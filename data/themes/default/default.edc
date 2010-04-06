@@ -1,0 +1,636 @@
+/*
+ *  Elif - EFL File Manager
+ *
+ *  Copyright (C) 2010 Davide Andreoli <dave@gurumeditation.it>
+ *
+ *  License LGPL-2.1, see COPYING file at project folder.
+ *
+ */
+
+#define COMP LOSSY 80
+
+#define FONT_COLOR_1 200 200 200 255
+
+images {
+   image: "layout.png" COMP;
+   image: "checkboard.png" COMP;
+   //~ image: "tower_normal_base.png" COMP;
+   //~ image: "tower_normal_rotate.png" COMP;
+   image: "tower_normal_icon.png" COMP;
+   image: "tower_ghost_icon.png" COMP;
+   image: "overlay_0.png" COMP;
+   image: "overlay_1.png" COMP;
+   image: "overlay_2.png" COMP;
+   image: "overlay_3.png" COMP;
+   image: "overlay_4.png" COMP;
+   image: "overlay_5.png" COMP;
+   image: "overlay_6.png" COMP;
+   image: "overlay_7.png" COMP;
+   image: "overlay_red.png" COMP;
+   image: "overlay_green.png" COMP;
+   image: "overlay_blue.png" COMP;
+   image: "overlay_wall.png" COMP;
+
+}
+
+fonts {
+   //~ font:"content.ttf" "content";
+}
+
+data {
+   //~ item: "ede/theme/name" "Default";
+   //~ item: "ede/theme/desc" "The ede default theme";
+   //~ item: "ede/theme/version" "1"; // This must match the ede version of themes
+}
+
+styles
+{
+   style { name: "ede_style";
+      base: "font=Sans font_size=10 align=left color=#FFF wrap=word";
+      tag:  "br" "\n";
+      //~ tag:  "hilight" "+ font_size=18 font=content_bd color=#A0D026";
+      //~ tag:  "b" "+ font=content_bd";
+      //~ tag:  "tab" "\t";
+      //~ tag:  "c" "+ align=center font_size=24 font=content_bd color=#A0D026A0 color2=#A0D026A0 style=GLOW";
+      //~ tag:  "big" "+ align=center font_size=36 color=#CCC style=soft_shadow shadow_color=#0000003f";
+   }
+}
+
+collections {
+
+/******************************************************************************/
+   group { name: "ede/layout";
+      parts {
+         /* background  */
+         part { name: "bg";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               image.normal: "layout.png";
+               image.border: 180 10 60 60;
+            }
+         }
+         /* a button for debug */
+         part { name: "a button";
+            type: RECT;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               color: 0 0 200 200;
+               max: 30 30;
+               min: 30 30;
+               align: 0.95 0.03;
+            }
+         }
+         /* add standard tower button */
+         part { name: "btn_tower_add_normal";
+            type: IMAGE;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               max: 30 30;
+               align: 0.0 0.0;
+               rel1.offset: 200 15;
+               image.normal: "tower_normal_icon.png";
+            }
+         }
+         /* add ghost tower button */
+         part { name: "btn_tower_add_ghost";
+            type: IMAGE;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               max: 30 30;
+               align: 0.0 0.0;
+               rel1.offset: 240 15;
+               image.normal: "tower_ghost_icon.png";
+            }
+         }
+         /* add slowdown tower button */
+         part { name: "btn_tower_add_slowdown";
+            type: IMAGE;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               max: 30 30;
+               align: 0.0 0.0;
+               rel1.offset: 280 15;
+               image.normal: "tower_normal_icon.png";
+            }
+         }
+         /* add powerup tower button */
+         part { name: "btn_tower_add_powerup";
+            type: IMAGE;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               max: 30 30;
+               align: 0.0 0.0;
+               rel1.offset: 320 15;
+               image.normal: "tower_normal_icon.png";
+            }
+         }
+         /* side bar */
+         part { name: "side_bar";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 0 200 0;
+               rel1.offset: 12 65;
+               rel2.relative: 0.0 1.0;
+               rel2.offset: 168 -65;
+            }
+         }
+         part { name: "tower.name";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 200 200 255;
+               max: 200 15;
+               align: 0.0 0.0;
+               rel1.offset: 10 0;
+               rel1.to: "side_bar";
+               rel2.to: "side_bar";
+               text {
+                  text: "Standad Tower";
+                  font: "Sans";
+                  size: 12;
+                  align: 0.0 0.0;
+                  
+               }
+            }
+         }
+         part { name: "tower.icon";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 200 200 255;
+               min: 30 30;
+               max: 30 30;
+               align: 0.0 0.0;
+               rel1.offset: 10 20;
+               rel1.to: "side_bar";
+               rel2.to: "side_bar";
+               visible: 0;
+            }
+            description { state: "normal" 0.0;
+               inherit: "default" 0.0;
+               visible: 1;
+               image.normal: "tower_normal_icon.png";
+            }
+            description { state: "ghost" 0.0;
+               inherit: "default" 0.0;
+               visible: 1;
+               image.normal: "tower_ghost_icon.png";
+            }
+         }
+         part { name: "tower.info";
+            type: TEXTBLOCK;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 200 200 255;
+               min: 105 50;
+               max: 105 50;
+               align: 0.0 0.0;
+               rel1.offset: 45 15;
+               rel1.to: "side_bar";
+               rel2.to: "side_bar";
+               text {
+                  text: "Power 100";
+                  style: "ede_style";
+               }
+            }
+         }
+         part { name: "tower.upgrade.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 200 200 255;
+               max: 200 15;
+               align: 0.0 0.0;
+               rel1.offset: 0 90;
+               rel1.to: "side_bar";
+               rel2.to: "side_bar";
+               text {
+                  text: "Upgrades";
+                  font: "Sans";
+                  size: 14;
+               }
+            }
+         }
+         /* stage swallow */
+         part { name: "stage.swallow";
+            type: SWALLOW;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 0 200 200;
+               rel1.offset: 180 60;
+               rel2.offset: -11 -61;
+            }
+         }
+      }
+      programs {
+         /* debug */
+         program {
+            signal: "mouse,down,1";
+            source: "a button";
+            action: SIGNAL_EMIT "button,pressed" "debug";
+         }
+         /* add buttons */
+         program {
+            signal: "mouse,down,1";
+            source: "btn_tower_add_normal";
+            action: SIGNAL_EMIT "tower,add" "normal";
+         }
+         program {
+            signal: "mouse,down,1";
+            source: "btn_tower_add_ghost";
+            action: SIGNAL_EMIT "tower,add" "ghost";
+         }
+         program {
+            signal: "mouse,down,1";
+            source: "btn_tower_add_powerup";
+            action: SIGNAL_EMIT "tower,add" "powerup";
+         }
+         program {
+            signal: "mouse,down,1";
+            source: "btn_tower_add_slowdown";
+            action: SIGNAL_EMIT "tower,add" "slowdown";
+         }
+         /* tower info */
+         program {
+            signal: "tower,icon,set";
+            source: "normal";
+            action: STATE_SET "normal" 0.0;
+            target: "tower.icon";
+         }
+         program {
+            signal: "tower,icon,set";
+            source: "ghost";
+            action: STATE_SET "ghost" 0.0;
+            target: "tower.icon";
+         }
+         program {
+            signal: "tower,icon,set";
+            source: "hide";
+            action: STATE_SET "default" 0.0;
+            target: "tower.icon";
+         }
+      }
+   }
+/******************************************************************************/
+   group { name: "ede/checkboard";
+      min: 50 50;
+      parts {
+         /* checkboard  */
+         part { name: "checkboard";
+            type: IMAGE;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               image.normal: "checkboard.png";
+               fill {
+                  smooth: 0;
+                  size.relative: 0.0 0.0;
+                  size.offset: 50 50;
+               }
+            }
+         }
+      }
+   }
+/******************************************************************************/
+   group { name: "ede/selection";
+      min: 25 25;
+      parts {
+         /* color */
+         part { name: "color";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 0 200 0 200;
+            }
+            description { state: "wrong" 0.0;
+               color: 200 0 0 200;
+            }
+            description { state: "blocking" 0.0;
+               color: 0 0 0 200;
+            }
+            description { state: "tower" 0.0;
+               color: 255 255 255 200;
+            }
+            description { state: "tower" 1.0;
+               color: 255 255 255 0;
+            }
+         }
+      }
+      programs {
+         program {
+            signal: "set,free";
+            source: "";
+            action: STATE_SET "default" 0.0;
+            target: "color";
+         }
+         program {
+            signal: "set,wrong";
+            source: "";
+            action: STATE_SET "wrong" 0.0;
+            target: "color";
+         }
+         program {
+            signal: "set,blocking";
+            source: "";
+            action: STATE_SET "blocking" 0.0;
+            target: "color";
+         }
+         program {
+            signal: "set,tower";
+            source: "";
+            action: STATE_SET "tower" 1.0;
+            target: "color";
+            after: "blink_selection1";
+         }
+         program {
+            name: "blink_selection1";
+            action: STATE_SET "tower" 0.0;
+            transition: SINUSOIDAL 1.0;
+            target: "color";
+            after: "blink_selection2";
+         }
+         program {
+            name: "blink_selection2";
+            action: STATE_SET "tower" 1.0;
+            transition: SINUSOIDAL 1.0;
+            target: "color";
+            after: "blink_selection1";
+         }
+      }
+   }
+/******************************************************************************/
+   group { name: "ede/enemy_start";
+      min: 25 25;
+      parts {
+         /* start */
+         part { name: "start";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 0 200 0 200;
+            }
+         }
+      }
+   }
+   group { name: "ede/enemy_end";
+      min: 25 25;
+      parts {
+         /* end */
+         part { name: "end";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 0 0 200;
+            }
+         }
+      }
+   }
+/******************************************************************************/
+
+/******************************************************************************/
+  /* group { name: "ede/tower/normal";
+      min: 50 50;
+      parts {
+         /* base 
+         part { name: "base";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               image.normal: "tower_normal_base.png";
+            }
+         }
+      }
+   }
+   group { name: "ede/tower/normal/rot";
+      min: 50 50;
+      parts {
+         /* base 
+         part { name: "base";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               image.normal: "tower_normal_rotate.png";
+            }
+         }
+      }
+   }*/
+/******************************************************************************/
+   group { name: "ede/cell_overlay";
+      min: 25 25;
+      parts {
+         /* image */
+         part { name: "image";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+            }
+            description { state: "wall" 0.0;
+               image.normal: "overlay_wall.png";
+            }
+         }
+         /* color */
+         part { name: "color";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 0 0 0 0;
+            }
+            description { state: "red" 0.0;
+               color: 200 0 0 200;
+            }
+            description { state: "green" 0.0;
+               color: 0 200 0 200;
+            }
+            description { state: "blue" 0.0;
+               color: 0 0 200 200;
+            }
+         }
+         /* border */
+         part { name: "border";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+            }
+            description { state: "red" 0.0;
+               image.normal: "overlay_red.png";
+            }
+            description { state: "green" 0.0;
+               image.normal: "overlay_green.png";
+            }
+            description { state: "blue" 0.0;
+               image.normal: "overlay_blue.png";
+            }
+         }
+         /* label1 */
+         part { name: "label1";
+            type: TEXT;
+            description { state: "deafault" 0.0;
+               text {
+                  font: "Sans";
+                  size: 8;
+                  align: 0.1 0.1;
+               }
+            }
+         }
+         /* label2 */
+         part { name: "label2";
+            type: TEXT;
+            description { state: "deafault" 0.0;
+               text {
+                  font: "Sans";
+                  size: 8;
+                  align: 0.1 1.0;
+               }
+            }
+         }
+         /* label3 */
+         part { name: "label3";
+            type: TEXT;
+            description { state: "deafault" 0.0;
+               text {
+                  font: "Sans";
+                  size: 8;
+                  align: 0.9 0.5;
+               }
+            }
+         }
+         /* Direction */
+         part { name: "direction";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+            }
+            description { state: "visible" 0.0;
+               image.normal: "overlay_0.png";
+            }
+            description { state: "visible" 0.1;
+               image.normal: "overlay_1.png";
+            }
+            description { state: "visible" 0.2;
+               image.normal: "overlay_2.png";
+            }
+            description { state: "visible" 0.3;
+               image.normal: "overlay_3.png";
+            }
+            description { state: "visible" 0.4;
+               image.normal: "overlay_4.png";
+            }
+            description { state: "visible" 0.5;
+               image.normal: "overlay_5.png";
+            }
+            description { state: "visible" 0.6;
+               image.normal: "overlay_6.png";
+            }
+            description { state: "visible" 0.7;
+               image.normal: "overlay_7.png";
+            }
+         }
+      }
+      programs {
+         program {
+            signal: "overlay,set,none";
+            source: "ede";
+            action: STATE_SET "default" 0.0;
+            target: "image";
+            target: "color";
+            target: "border";
+            target: "direction";
+         }
+         /* Overlay borders */
+         program {
+            signal: "overlay,border,set,red";
+            source: "ede";
+            action: STATE_SET "red" 0.0;
+            target: "border";
+         }
+         program {
+            signal: "overlay,border,set,green";
+            source: "ede";
+            action: STATE_SET "green" 0.0;
+            target: "border";
+         }
+         program {
+            signal: "overlay,border,set,blue";
+            source: "ede";
+            action: STATE_SET "blue" 0.0;
+            target: "border";
+         }
+         /* Overlay images */
+         program {
+            signal: "overlay,image,set,wall";
+            source: "ede";
+            action: STATE_SET "wall" 0.0;
+            target: "image";
+         }
+         /* Overlay colors */
+         program {
+            signal: "overlay,color,set,red";
+            source: "ede";
+            action: STATE_SET "red" 0.0;
+            target: "color";
+         }
+         program {
+            signal: "overlay,color,set,green";
+            source: "ede";
+            action: STATE_SET "green" 0.0;
+            target: "color";
+         }
+         program {
+            signal: "overlay,color,set,blue";
+            source: "ede";
+            action: STATE_SET "blue" 0.0;
+            target: "color";
+         }
+         /* Overlay directions */
+         program {
+            signal: "overlay,direction,set,0";
+            source: "ede";
+            action: STATE_SET "visible" 0.0;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,1";
+            source: "ede";
+            action: STATE_SET "visible" 0.1;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,2";
+            source: "ede";
+            action: STATE_SET "visible" 0.2;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,3";
+            source: "ede";
+            action: STATE_SET "visible" 0.3;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,4";
+            source: "ede";
+            action: STATE_SET "visible" 0.4;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,5";
+            source: "ede";
+            action: STATE_SET "visible" 0.5;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,6";
+            source: "ede";
+            action: STATE_SET "visible" 0.6;
+            target: "direction";
+         }
+         program {
+            signal: "overlay,direction,set,7";
+            source: "ede";
+            action: STATE_SET "visible" 0.7;
+            target: "direction";
+         }
+      }
+   }
+}

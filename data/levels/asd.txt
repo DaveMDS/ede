@@ -1,0 +1,71 @@
+# 
+# First ede level
+# Just for debugging purpose
+
+Name=my level
+Description=asjha ljashl <br>jaljasljsajlas <b>lsalkasjl</b> <br>slkjsalk salkj alskj s
+Author=DaveMDS
+Version=1
+Size=21x15
+
+# DIDASCALIA
+#
+#   . = Empty cell
+#   # = Unvalicable wall
+#
+#   s = Standard turret
+#   g = Ghost turret
+#
+#   P = Power up turret
+#   D = reloaD up turret
+#   R = Range up turret
+#
+#   S = Slow down turret
+#
+#   @ = Home! This is the player core turret. You can place only one @ in the
+#             level. Don't put the @ to let the user choose the place.
+#
+#   0..9 = enemy start base 0 to 9 (ten in total)
+#          NOTE: you can place more than one of a single number, ex. if you put
+#                three times the number 1 in the map, then the game will choose
+#                randomly from these three points.
+#                If you instead want to choose from where to start the waves then
+#                use different numbers
+#
+
+DATA
+#####################
+#@.........#11111...#
+#...######.#........#
+#..........#........#
+#........#####.####..
+#...0..0...#...#....#
+#..........#.#.#....#
+#...0..0...#.#.#....#
+...........#.#.#....#
+3............#.#....#
+##############.#....#
+.4..4..........#...2#
+....############...2#
+. 55 66 77 88 99...2#
+.....################
+
+WAVES
+spawn 10 standard enemy from base 1 [speed: 5 energy: 100], wait 5
+spawn 20 standard enemy from base 1 [speed: 10 energy: 100], wait 5
+spawn 30 standard enemy from base 1 [speed: 20 energy: 100], wait 10
+spawn 40 standard enemy from base 1 [speed: 30 energy: 100], wait 10
+spawn 50 standard enemy from base 1 [speed: 40 energy: 100], wait 10
+
+spawn 10 standard enemy from base 3 [speed: 40 energy: 100], wait 3
+spawn 10 standard enemy from base 4 [speed: 40 energy: 100], wait 3
+spawn 10 standard enemy from base 5 [speed: 40 energy: 100], wait 3
+spawn 10 standard enemy from base 6 [speed: 40 energy: 100], wait 3
+spawn 10 standard enemy from base 7 [speed: 40 energy: 100], wait 3
+spawn 10 standard enemy from base 8 [speed: 40 energy: 100], wait 3
+spawn 10 standard enemy from base 9 [speed: 40 energy: 100], wait 3
+
+
+spawn 20 standard enemy from base 2 [speed: 10 energy: 100], wait 99999
+
+

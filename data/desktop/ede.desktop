@@ -1,0 +1,11 @@
+
+[Desktop Entry]
+Encoding=UTF-8
+Name=EDE Defender
+Comment=EFL Defender Game
+Exec=ede
+Icon=ede
+Terminal=false
+Type=Application
+Categories=Application;Game;StrategyGame;
+

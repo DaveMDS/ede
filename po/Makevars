@@ -1,0 +1,7 @@
+DOMAIN = emc
+subdir = po
+top_builddir = ..
+XGETTEXT_OPTIONS = --keyword=_ --keyword=N_
+COPYRIGHT_HOLDER = Davide Andreoli
+MSGID_BUGS_ADDRESS = dave@gurumeditation.it
+EXTRA_LOCALE_CATEGORIES =

@@ -1,0 +1,8 @@
+
+[project]
+name=ede
+description=
+base_path=./
+run_cmd=
+regenerate=true
+type=C
