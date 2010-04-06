@@ -15,8 +15,8 @@
 #include "ede_tower.h"
 #include "ede_gui.h"
 #include "ede_level.h"
+#include "ede_bullet.h"
 
-#define EDE_MAX_TOWERS 500
 
 #define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
@@ -33,8 +33,11 @@ struct _Ede_Tower {
    Evas_Object *o_base;
    Evas_Object *o_cannon;
 
-   int row, col, rows, cols; // position, size
+   int row, col, rows, cols; // position & size. In cells
+   int center_x, center_y;   // center position. In pixel
    int range, damage, reload;
+
+   double reload_counter;
 };
 
 
@@ -46,6 +49,7 @@ static const char *_type_name[TOWER_TYPE_NUM] = {
    "powerup",
    "slowdown",
 };
+// tower type long names
 static const char *_type_long_name[TOWER_TYPE_NUM] = {
    "unknow",
    "Normal Tower",
@@ -74,7 +78,7 @@ _mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 /* Local subsystem functions */
 
 static void
-_tower_add_real(int row, int col, int w, int h, void *data)
+_tower_add_real(int row, int col, int rows, int cols, void *data)
 {
    Ede_Tower_Type tt = (Ede_Tower_Type)data;
    Ede_Level *level = ede_level_current_get();
@@ -86,25 +90,28 @@ _tower_add_real(int row, int col, int w, int h, void *data)
 
    if (tt == TOWER_UNKNOW) return;
 
-   // alloc & fill enemy struct
+   // alloc & fill tower structure
    tower = EDE_NEW(Ede_Tower);
    if (!tower) return;
+
    tower->type = tt;
    tower->row = row;
    tower->col = col;
-   tower->cols = w;
-   tower->rows = h;
+   tower->cols = cols;
+   tower->rows = rows;
    tower->damage = 10;
-   tower->range = 300;
-   tower->reload = 20;
+   tower->range = 50;
+   tower->reload = 10;
+   ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
+   tower->center_x = x + (cols * CELL_W / 2);
+   tower->center_y = y + (rows * CELL_H / 2);
 
    // add the base sprite
-   ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
    snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/tower_%s_base.png", _type_name[tt]);
    tower->o_base = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_base, buf, NULL);
    evas_object_event_callback_add(tower->o_base, EVAS_CALLBACK_MOUSE_DOWN, _mouse_down_cb, tower);
-   evas_object_resize(tower->o_base, CELL_W * w, CELL_H *h);
+   evas_object_resize(tower->o_base, CELL_W * cols, CELL_H * rows);
    evas_object_show(tower->o_base);
    evas_object_move(tower->o_base, x, y);
 
@@ -113,13 +120,13 @@ _tower_add_real(int row, int col, int w, int h, void *data)
    tower->o_cannon = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_cannon, buf, NULL);
    evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
-   evas_object_resize(tower->o_cannon, CELL_W * w, CELL_H *h);
+   evas_object_resize(tower->o_cannon, CELL_W * cols, CELL_H * rows);
    evas_object_show(tower->o_cannon);
    evas_object_move(tower->o_cannon, x, y);
 
    // mark all the tower cells as unwalkable
-   for (i = col; i < col + w; i++)
-      for (j = row; j < row + h; j++)
+   for (i = col; i < col + cols; i++)
+      for (j = row; j < row + rows; j++)
          level->cells[j][i] = CELL_TOWER;
 
    // add to the towers list
@@ -139,20 +146,27 @@ _tower_del(Ede_Tower *tower)
 }
 
 static void
-_tower_step(Ede_Tower *tower, double time)
+_tower_rotate(Ede_Tower *tower, int angle)
 {
-   static int angle = 0;
-   
-   //~ D("STEP %d [time %f]", e->id, time);
-   //~ ede_gui_sprite_rotate(e->id + 1, angle);
-   //~ angle += 2;
+   Evas_Map *map;
+   int x, y, w, h;
+
+   evas_object_geometry_get(tower->o_base, &x, &y, &w, &h);
+
+   map = evas_map_new(4);
+   evas_map_util_points_populate_from_object(map, tower->o_cannon);
+
+   evas_map_util_rotate(map, angle, x + w / 2, y + h / 2);
+   evas_object_map_enable_set(tower->o_cannon, 1);
+   evas_object_map_set(tower->o_cannon, map);
+   evas_map_free(map);
 }
 
 static void
 _tower_select(Ede_Tower *tower)
 {
    char buf[128];
-   
+
    D(" ");
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
@@ -161,14 +175,37 @@ _tower_select(Ede_Tower *tower)
    ede_gui_selection_type_set(SELECTION_TOWER);
 }
 
+static void
+_tower_shoot_at(Ede_Tower *tower, Ede_Enemy *e)
+{
+   ede_bullet_add(tower->center_x, tower->center_y, e, 1, tower->damage);
+   tower->reload_counter = (float)(tower->reload) / 10;
+}
 
+static void
+_tower_step(Ede_Tower *tower, double time)
+{
+   Ede_Enemy *e;
+   int angle = 0;
+   int distance = 0;
+
+   // check reload time
+   tower->reload_counter -= time;
+   if (tower->reload_counter > 0)
+      return;
+
+   // fire to the closest enemy (if in range)
+   // TODO no need to get the nearest every reload, every 1 or 2 seconds is enoughts
+   e = ede_enemy_nearest_get(tower->center_x, tower->center_y, &angle, &distance);
+   if (distance < tower->range)
+   {
+      _tower_rotate(tower, angle);
+      _tower_shoot_at(tower, e);
+   }
+}
 
 
 /* Externally accessible functions */
-
-/**
- * TODO
- */
 EAPI Eina_Bool
 ede_tower_init(void)
 {
@@ -177,9 +214,6 @@ ede_tower_init(void)
    return EINA_TRUE;
 }
 
-/**
- * TODO
- */
 EAPI Eina_Bool
 ede_tower_shutdown(void)
 {
@@ -192,9 +226,6 @@ ede_tower_shutdown(void)
    return EINA_TRUE;
 }
 
-/**
- * TODO
- */
 EAPI void
 ede_tower_add(const char *type)
 {
@@ -212,15 +243,13 @@ ede_tower_add(const char *type)
    ede_gui_request_area(2, 2, _tower_add_real, (void*)tt);
 }
 
-/**
- * TODO
- */
 EAPI void
 ede_tower_one_step_all(double time)
 {
    Ede_Tower *tower;
    Eina_List *l;
 
+   //~ D("STEP [time %f]", time);
    EINA_LIST_FOREACH(towers, l, tower)
       _tower_step(tower, time);
 }

@@ -41,5 +41,6 @@ EAPI Eina_Bool ede_enemy_shutdown(void);
 EAPI void ede_enemy_spawn(const char *type, int speed, int energy,
                           int start_row, int start_col, int end_row, int end_col);
 EAPI void ede_enemy_one_step_all(double time);
+EAPI Ede_Enemy *ede_enemy_nearest_get(int x, int y, int *angle, int *distance);
 
 #endif /* EDE_ENEMY_H */

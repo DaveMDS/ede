@@ -21,6 +21,15 @@
 #define PATH_MAX 4096
 #endif
 
+#define PI 3.14159265
+
+#define EINA_LIST_PUSH(LIST, ELEM) \
+   LIST = eina_list_prepend(LIST, ELEM);
+
+#define EINA_LIST_POP(LIST) \
+   eina_list_data_get(LIST); \
+   LIST = eina_list_remove_list(LIST, LIST);
+
 
 #define EDE_NEW(s) (s *)calloc(1, sizeof(s))
 #define EDE_FREE(p) do { free (p); p = NULL; } while (0)
@@ -63,6 +72,10 @@ extern Ede *ede;
 
 EAPI int **ede_array_new(int rows, int cols);
 EAPI void  ede_array_free(int **array);
+
+
+EAPI int ede_angle_calc(int x1, int y1, int x2, int y2);
+EAPI int ede_distance_calc(int x1, int y1, int x2, int y2);
 
 #define CRITICAL(...) EINA_LOG_DOM_CRIT(ede->log_domain, __VA_ARGS__)
 #define ERR(...)      EINA_LOG_DOM_ERR (ede->log_domain, __VA_ARGS__)

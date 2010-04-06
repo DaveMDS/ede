@@ -12,6 +12,7 @@
 #endif
 
 #include <stdio.h>
+#include <math.h>
 #include <Eina.h>
 #include <Ecore.h>
 #include <Ecore_File.h>
@@ -24,6 +25,7 @@
 #include "ede_astar.h"
 #include "ede_game.h"
 #include "ede_tower.h"
+#include "ede_bullet.h"
 
 #define LOCAL_DEBUG 0
 #if LOCAL_DEBUG
@@ -72,42 +74,24 @@ ede_array_free(int **array)
    EDE_FREE(array);
 }
 /******************************************************************************/
+EAPI int
+ede_angle_calc(int x1, int y1, int x2, int y2)
+{
+   float a;
 
+   a = atan2(y2 - y1, x2 - x1) * 180 / PI;
+   return (int)(a + 0.5) + 90;
+}
 
-
+EAPI int
+ede_distance_calc(int x1, int y1, int x2, int y2)
+{
+   int dx, dy;
+   dx = x1 - x2;
+   dy = y1 - y2;
+   return sqrt(dx*dx + dy*dy);
+}
 /******************************************************************************/
-
-   
-
-static int
-_fake_end(void *data)
-{
-   ede_gui_level_clear();
-   ede_level_free(data);
-   return ECORE_CALLBACK_CANCEL;
-}
-
-
-static int
-_fake_start(void *data)
-{
-      
-// overlay test
-   //~ ede_gui_cell_overlay_add(OVERLAY_BORDER_BLUE, 4, 4);
-   //~ ede_gui_cell_overlay_add(OVERLAY_IMAGE_WALL, 4, 5);
-   //~ ede_gui_cell_overlay_add(OVERLAY_7, 7, 4);
-   //~ ede_gui_cell_overlay_add(OVERLAY_NONE, 4, 4);
-   
-// enenmy tests
-   //~ ede_enemy_spawn("standard");
-   //~ ede_enemy_spawn("standard");
-   //~ ede_enemy_spawn("standard");
-
-// test level shutdown
-   //~ ecore_timer_add(4.0, _fake_end, level);
-   
-   return ECORE_CALLBACK_CANCEL;
-}
 
 /******************************************************************************/
 int
@@ -147,6 +131,7 @@ main(int argc, char **argv)
       goto shutdown;
    }
    ede_pathfinder_init();
+   ede_bullet_init();
    ede_enemy_init();
    ede_tower_init();
    ede_game_init();
@@ -160,8 +145,9 @@ main(int argc, char **argv)
    // shutdown
 shutdown:
    ede_game_shutdown();
-   ede_enemy_shutdown();
    ede_tower_shutdown();
+   ede_enemy_shutdown();
+   ede_bullet_shutdown();
    ede_pathfinder_shutdown();
    ede_gui_shutdown();
    ecore_shutdown();

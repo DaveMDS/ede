@@ -23,16 +23,7 @@
 #define D DBG
 #else
 #define D(...)
-#endif
-
-
-#define EINA_LIST_PUSH(LIST, ELEM) \
-   LIST = eina_list_prepend(LIST, ELEM);
-
-#define EINA_LIST_POP(LIST) \
-   eina_list_data_get(LIST); \
-   LIST = eina_list_remove_list(LIST, LIST);
-   
+#endif  
 
 
 /* Local subsystem vars */
@@ -158,6 +149,45 @@ ede_enemy_kill(Ede_Enemy *e)
    alives = eina_list_remove(alives, e);
    EINA_LIST_PUSH(deads, e);
    ede_gui_sprite_del(e->id);
+}
+
+
+EAPI Ede_Enemy *
+ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
+{
+   Ede_Enemy *e, *nearest = NULL;
+   Eina_List *l;
+   int min_d = 999999;
+   
+   //~ D("NEAREST OF %d %d", x, y);
+   EINA_LIST_FOREACH(alives, l, e)
+   {
+      int dx, dy, d;
+
+      //~ if (e->id != 1) continue; //dbg
+
+      // calc distance
+      dx = x - e->x;
+      dy = y - e->y;
+      d = sqrt(dx*dx + dy*dy); // SLOWWWWW TODO simplify
+      if (d < min_d)
+      {
+         min_d = d;
+         nearest = e;
+      }
+      //~ D("  buddy: %.2f %.2f [dx %d dy %d] %d", e->x, e->y, dx, dy, d);
+   }
+   //~ if (nearest)
+      //~ D("NEAREST: id %d, distance: %d", nearest->id, min_d);
+
+   if (angle && nearest)
+   {
+      *angle = ede_angle_calc(x, y, nearest->x, nearest->y);
+   }
+   if (distance)
+      *distance = min_d;
+   
+   return nearest;
 }
 
 

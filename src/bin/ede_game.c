@@ -17,6 +17,7 @@
 #include "ede_astar.h"
 #include "ede_enemy.h"
 #include "ede_tower.h"
+#include "ede_bullet.h"
 
 #define LOCAL_DEBUG 0
 #if LOCAL_DEBUG
@@ -49,6 +50,7 @@ _game_loop(void *data)
    // recalc position for every enemy
    ede_enemy_one_step_all(elapsed);
    ede_tower_one_step_all(elapsed);
+   ede_bullet_one_step_all(elapsed);
    
    return ECORE_CALLBACK_RENEW;
 }

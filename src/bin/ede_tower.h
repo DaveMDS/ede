@@ -10,7 +10,6 @@
 #ifndef EDE_TOWER_H
 #define EDE_TOWER_H
 
-//~ #include "ede.h"
 
 typedef enum {
    TOWER_UNKNOW,
@@ -20,7 +19,6 @@ typedef enum {
    TOWER_SLOWDOWN,
    TOWER_TYPE_NUM
 }Ede_Tower_Type;
-
 
 
 EAPI Eina_Bool ede_tower_init(void);
