@@ -69,7 +69,7 @@ EAPI void      ede_gui_sprite_resize(int id, int w, int h);
 EAPI void      ede_gui_sprite_rotate(int id, int angle);
 EAPI void      ede_gui_sprite_del(int id);
 
-EAPI void      ede_gui_selection_show_at(int row, int col, int rows, int cols);
+EAPI void      ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius);
 EAPI void      ede_gui_selection_type_set(Ede_Selection_Type type);
 EAPI void      ede_gui_selection_hide(void);
 

@@ -53,6 +53,7 @@ static Eina_Bool checkboard_click_handled = EINA_FALSE; /** stupid trick to stop
 
 
 static Evas_Object *o_selection; /** the object used to select map locations */
+static Evas_Object *o_circle; /** Polygon obj used for the selection range */
 static int area_req_rows, area_req_cols; /** size of the current area request */
 static void (*area_req_done_cb)(int row, int col, int w, int h, void *data); /** function to call on area selection complete */
 static void *area_req_done_data; /** user data to pass-back in the area_req_done_cb */
@@ -70,6 +71,26 @@ _move_at(Evas_Object *obj, int row, int col)
    evas_object_move(obj, x, y);
 }
 
+void
+_circle_recalc(Evas_Object *obj, int center_x, int center_y, int radius)
+{
+   int x, y, r2;
+
+   evas_object_polygon_points_clear(obj);
+
+   r2 = radius * radius;
+   for (x = -radius; x <= radius; x++)
+   {
+      y = (int) (sqrt(r2 - x*x) + 0.5);
+      evas_object_polygon_point_add(obj, center_x + x, center_y + y);
+   }
+   for (x = radius; x > -radius; x--)
+   {
+      y = (int) (sqrt(r2 - x*x) + 0.5);
+      evas_object_polygon_point_add(obj, center_x + x, center_y - y);
+   }
+}
+
 /* Local subsystem callbacks */
 static void
 _window_delete_req_cq(Ecore_Evas *window)
@@ -83,6 +104,7 @@ void _debug_button_cb(void *data, Evas_Object *o, const char *emission, const ch
    //~ ede_game_debug_hook();
    D(" ");
 }
+
 void _add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
    D("'%s' '%s'", emission, source);
@@ -101,6 +123,7 @@ _checkboard_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_inf
    else checkboard_click_handled = EINA_FALSE;
    
 }
+
 /* Externally accessible functions */
 
 /**
@@ -191,6 +214,14 @@ ede_gui_init(void)
       CRITICAL("error loading theme file: %s", buf);
       return EINA_FALSE;
    }
+   // selection circle
+   o_circle = evas_object_polygon_add(canvas);
+   evas_object_pass_events_set(o_circle, EINA_TRUE);
+   evas_object_color_set(o_circle, 100, 100, 100, 100);
+   Evas_Object *clipper; //TODO clip to the checkboard, not the stage.clipper
+   clipper = (Evas_Object *)edje_object_part_object_get(layout, "stage.clipper");
+   evas_object_clip_set(o_circle, clipper);
+
 
    // make sure the sprites array is clean
    for (i = 0; i < EDE_MAX_SPRITES; i++)
@@ -214,6 +245,7 @@ ede_gui_shutdown(void)
       EDE_OBJECT_DEL(sprite[i]);
 
    // free all interface components
+   EDE_OBJECT_DEL(o_circle);
    EDE_OBJECT_DEL(o_selection);
    EDE_OBJECT_DEL(checkboard);
    EDE_OBJECT_DEL(layout);
@@ -570,14 +602,28 @@ ede_gui_sprite_rotate(int id, int angle)
 
 /*****************  SELECTION OBJECT ******************************************/
 EAPI void
-ede_gui_selection_show_at(int row, int col, int rows, int cols)
+ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
 {
+   int x, y, dx, dy;
    D("%d %d %d %d", row, col, rows, cols);
    evas_object_raise(o_selection);
 
+   // selection rect
    _move_at(o_selection, row, col);
    evas_object_resize(o_selection, cols * CELL_W, rows * CELL_H);
    evas_object_show(o_selection);
+
+   if (radius)
+   {
+      ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
+      ede_gui_cell_coords_get(row + rows, col + cols, &dx, &dy, EINA_FALSE);
+      dx = (dx - x) / 2;
+      dy = (dy - y) / 2;
+      _circle_recalc(o_circle, x + dx, y + dy, radius);
+      evas_object_show(o_circle);
+   }
+   else evas_object_hide(o_circle);
+   
 }
 
 EAPI void
@@ -602,6 +648,7 @@ EAPI void
 ede_gui_selection_hide(void)
 {
    evas_object_hide(o_selection);
+   evas_object_hide(o_circle);
 }
 
 /*****************  FREE AREA REQUEST  ****************************************/
@@ -631,8 +678,8 @@ _sel_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
       // make the selection green or red
       ede_gui_selection_type_set(selection_ok ? SELECTION_FREE : SELECTION_WRONG);
 
-      // move the slection at the right place
-      ede_gui_selection_show_at(row, col, area_req_rows, area_req_cols);
+      // move the selection at the right place
+      ede_gui_selection_show_at(row, col, area_req_rows, area_req_cols, 0);
    }
    else ede_gui_selection_hide();
 

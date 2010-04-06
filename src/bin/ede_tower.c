@@ -95,7 +95,7 @@ _tower_add_real(int row, int col, int w, int h, void *data)
    tower->cols = w;
    tower->rows = h;
    tower->damage = 10;
-   tower->range = 50;
+   tower->range = 300;
    tower->reload = 20;
 
    // add the base sprite
@@ -157,7 +157,7 @@ _tower_select(Ede_Tower *tower)
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
    ede_gui_tower_info_set(_type_long_name[tower->type], _type_name[tower->type], buf);
-   ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols);
+   ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols, tower->range);
    ede_gui_selection_type_set(SELECTION_TOWER);
 }
 
@@ -209,7 +209,6 @@ ede_tower_add(const char *type)
       if (!strcmp(type, _type_name[i]))
          tt = TOWER_UNKNOW + i;
 
-   
    ede_gui_request_area(2, 2, _tower_add_real, (void*)tt);
 }
 
