@@ -12,6 +12,7 @@
 
 #include "ede.h"
 #include "ede_gui.h"
+#include "ede_utils.h"
 
 #define LOCAL_DEBUG 0
 #if LOCAL_DEBUG

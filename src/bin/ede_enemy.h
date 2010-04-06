@@ -14,11 +14,7 @@
 
 #define EDE_MAX_ENEMIES 1000
 
-typedef struct _Vector
-{
-   double x;
-   double y;
-} Vector;
+
 
 typedef struct _Ede_Enemy Ede_Enemy;
 struct _Ede_Enemy

@@ -34,64 +34,10 @@
 #define D(...)
 #endif
 
-Ede *ede;
-
+int ede_log_domain;
 
 /******************************************************************************/
-EAPI int **
-ede_array_new(int rows, int cols)
-{
-   D("rows: %d cols: %d", rows, cols);
 
-   int row;
-   int *aptr;
-   int **rptr;
-
-   aptr = calloc(cols * rows, sizeof(int));
-   rptr = malloc(rows * sizeof(int *));
-   if (!aptr || !rptr)
-   {
-      CRITICAL("Failure to allocate mem for the array");
-      EDE_FREE(aptr);
-      EDE_FREE(rptr);
-      return NULL;
-   }
-   // 'point' the rows pointers
-   for (row = 0; row < rows; row++)
-      rptr[row] = aptr + (row * cols);
-
-   return rptr;
-}
-
-EAPI void
-ede_array_free(int **array)
-{
-   D(" ");
-   if (!array || !*array)
-      return;
-
-   EDE_FREE(*array);
-   EDE_FREE(array);
-}
-/******************************************************************************/
-EAPI int
-ede_angle_calc(int x1, int y1, int x2, int y2)
-{
-   float a;
-
-   a = atan2(y2 - y1, x2 - x1) * 180 / PI;
-   return (int)(a + 0.5) + 90;
-}
-
-EAPI int
-ede_distance_calc(int x1, int y1, int x2, int y2)
-{
-   int dx, dy;
-   dx = x1 - x2;
-   dy = y1 - y2;
-   return sqrt(dx*dx + dy*dy);
-}
-/******************************************************************************/
 
 /******************************************************************************/
 int
@@ -101,14 +47,10 @@ main(int argc, char **argv)
    eina_init();
    ecore_init();
 
-   // alloc ede main structure
-   ede = EDE_NEW(Ede);
-   if (!ede) exit(1);
-
    // init log domain
    //~ eina_log_level_set(EINA_LOG_LEVEL_DBG);
-   ede->log_domain = eina_log_domain_register("ede", EINA_COLOR_GREEN);
-   if (ede->log_domain < 0)
+   ede_log_domain = eina_log_domain_register("ede", EINA_COLOR_GREEN);
+   if (ede_log_domain < 0)
    {
       EINA_LOG_CRIT("could not create log domain 'ede'.");
       exit(1);
@@ -153,12 +95,9 @@ shutdown:
    ecore_shutdown();
 
    // shutdown eina
-   eina_log_domain_unregister(ede->log_domain);
-   ede->log_domain = -1;
+   eina_log_domain_unregister(ede_log_domain);
+   ede_log_domain = -1;
    eina_shutdown();
-
-   // free ede
-   EDE_FREE(ede);
 
    return 0;
 }

@@ -21,7 +21,8 @@ ede_SOURCES = main.c \
               ede_astar.c \
               ede_game.c \
               ede_tower.c \
-              ede_bullet.c
+              ede_bullet.c \
+              ede_utils.c
 
 noinst_HEADERS = gettext.h
 EXTRA_DIST = gettext.h \
@@ -32,5 +33,6 @@ EXTRA_DIST = gettext.h \
              ede_astar.h \
              ede_game.h \
              ede_tower.h \
-             ede_bullet.h
+             ede_bullet.h \
+             ede_utils.h
 

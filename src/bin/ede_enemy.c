@@ -17,6 +17,7 @@
 #include "ede_level.h"
 #include "ede_gui.h"
 #include "ede_astar.h"
+#include "ede_utils.h"
 
 #define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
@@ -63,42 +64,7 @@ ede_enemy_shutdown(void)
 }
 
 
-//
-EAPI Vector
-vector_add(Vector v1, Vector v2)
-{
-   Vector sum;
-   sum.x = v1.x + v2.x;
-   sum.y = v1.y + v2.y;
-   return sum;
-}
 
-EAPI void
-vector_set(Vector *v, float x, float y)
-{
-   (*v).x = x;
-   (*v).y = y;
-}
-
-EAPI float
-vector_lenght(Vector v)
-{
-   return sqrt((v.x * v.x) + (v.y * v.y));
-}
-
-EAPI Vector
-vector_normalize(Vector v)
-{
-   Vector n;
-   float l;
-
-   l = vector_lenght(v);
-   n.x = v.x / l;
-   n.y = v.y / l;
-
-   return n;
-}
-//
 
 EAPI void
 ede_enemy_spawn(const char *type, int speed, int energy,
@@ -124,7 +90,7 @@ ede_enemy_spawn(const char *type, int speed, int energy,
    
    // reset the local destination
    e->dest_x = e->dest_y = 0;
-   e->speed = speed; //TODO FIXME
+   e->speed = speed;
    e->energy = energy;
 
    // put the enemy in the alives list
@@ -182,7 +148,7 @@ ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
 
    if (angle && nearest)
    {
-      *angle = ede_angle_calc(x, y, nearest->x, nearest->y);
+      *angle = ede_util_angle_calc(x, y, nearest->x, nearest->y);
    }
    if (distance)
       *distance = min_d;
@@ -290,7 +256,6 @@ _ede_enemy_step(Ede_Enemy *e, double time)
 
    // apply new position
    //~ D("%f %f",e->position.x, e->position.y);
-   //~ ede_gui_enemy_move(e, (int)(e->x + 0.5), (int)(e->y + 0.5));
    ede_gui_sprite_move(e->id, (int)(e->x + 0.5), (int)(e->y + 0.5));
 
    // TODO need to optimize rotation...or made prerotaded edje version :(

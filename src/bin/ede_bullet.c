@@ -16,6 +16,7 @@
 #include "ede_tower.h"
 #include "ede_gui.h"
 #include "ede_level.h"
+#include "ede_utils.h"
 
 
 #define LOCAL_DEBUG 1
@@ -121,7 +122,7 @@ ede_bullet_one_step_all(double time)
    EINA_LIST_FOREACH_SAFE(bullets, l, ll, b)
    {
       // calc distance from target
-      distance = ede_distance_calc(b->target->x, b->target->y, b->x, b->y);
+      distance = ede_util_distance_calc(b->target->x, b->target->y, b->x, b->y);
 
       // target reached
       if (distance < 10)

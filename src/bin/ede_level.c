@@ -15,6 +15,7 @@
 
 #include "ede.h"
 #include "ede_level.h"
+#include "ede_utils.h"
 
 #define LOCAL_DEBUG 1
 #if LOCAL_DEBUG

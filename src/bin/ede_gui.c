@@ -19,6 +19,7 @@
 #include "ede_level.h"
 #include "ede_astar.h"
 #include "ede_tower.h"
+#include "ede_utils.h"
 
 #define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
