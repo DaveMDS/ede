@@ -102,7 +102,7 @@ _window_delete_req_cq(Ecore_Evas *window)
 
 void _debug_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
-   //~ ede_game_debug_hook();
+   ede_game_debug_hook();
    D(" ");
 }
 
@@ -120,9 +120,9 @@ _checkboard_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_inf
    {
       ede_gui_selection_hide();
       ede_gui_tower_info_set(NULL, NULL, NULL);
+      ede_tower_deselect();
    }
    else checkboard_click_handled = EINA_FALSE;
-   
 }
 
 /* Externally accessible functions */

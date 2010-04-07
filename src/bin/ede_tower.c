@@ -40,7 +40,6 @@ struct _Ede_Tower {
    double reload_counter;
 };
 
-
 // tower type names
 static const char *_type_name[TOWER_TYPE_NUM] = {
    "unknow",
@@ -64,6 +63,7 @@ static void _tower_select(Ede_Tower *tower);
 
 /* Local subsystem vars */
 static Eina_List *towers = NULL;
+static Ede_Tower *selected_tower = NULL;
 
 
 /* Local subsystem callbacks */
@@ -129,6 +129,9 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
       for (j = row; j < row + rows; j++)
          level->cells[j][i] = CELL_TOWER;
 
+   // tell the enemies that the grid has changed
+   ede_enemy_path_recalc_all();
+
    // add to the towers list
    towers = eina_list_append(towers, tower);
 
@@ -139,7 +142,23 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 static void
 _tower_del(Ede_Tower *tower)
 {
-   //  TODO clear the level cells
+   Ede_Level *level;
+   int i, j;
+
+   // mark all the tower cells as unwalkable
+   level = ede_level_current_get();
+   for (i = tower->col; i < tower->col + tower->cols; i++)
+      for (j = tower->row; j < tower->row + tower->rows; j++)
+         level->cells[j][i] = CELL_EMPTY;
+
+   // tell the enemies that the grid has changed
+   ede_enemy_path_recalc_all();
+
+   // hide the selection
+   ede_gui_selection_hide();
+
+   // free stuff
+   towers = eina_list_remove(towers, tower);
    EDE_OBJECT_DEL(tower->o_base);
    EDE_OBJECT_DEL(tower->o_cannon);
    EDE_FREE(tower);
@@ -168,6 +187,7 @@ _tower_select(Ede_Tower *tower)
    char buf[128];
 
    D(" ");
+   selected_tower = tower;
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
    ede_gui_tower_info_set(_type_long_name[tower->type], _type_name[tower->type], buf);
@@ -241,6 +261,20 @@ ede_tower_add(const char *type)
          tt = TOWER_UNKNOW + i;
 
    ede_gui_request_area(2, 2, _tower_add_real, (void*)tt);
+}
+
+EAPI void
+ede_tower_destroy_selected(void)
+{
+   if (selected_tower)
+      _tower_del(selected_tower);
+   selected_tower = NULL;
+}
+
+EAPI void
+ede_tower_deselect(void)
+{
+   selected_tower = NULL;
 }
 
 EAPI void

@@ -33,132 +33,33 @@ static Eina_List *deads;
 static Eina_List *alives;
 
 /* Local subsystem callbacks */
-
-
-/* Externally accessible functions */
-EAPI Eina_Bool
-ede_enemy_init(void)
+static void
+_path_recalc(Ede_Enemy *e)
 {
-   Ede_Enemy *e;
-   int i;
-   D(" ");
-
-   // put all the population in the 'deads' list...just for starting well  :)
-   for (i = EDE_MAX_ENEMIES; i > 0; i--)
-   {
-      e = &population[i];
-      e->id = i;
-      EINA_LIST_PUSH(deads, e);
-   }
-   D("KILLED: %d", eina_list_count(deads));
-   return EINA_TRUE;
-}
-
-EAPI Eina_Bool
-ede_enemy_shutdown(void)
-{
-   D(" ");
-   if (deads) eina_list_free(deads);
-   if (alives) eina_list_free(alives);
-   return EINA_TRUE;
-}
-
-
-
-
-EAPI void
-ede_enemy_spawn(const char *type, int speed, int energy,
-                int start_row, int start_col, int end_row, int end_col)
-{
+   int row, col;
    Ede_Level *level;
-   Ede_Enemy *e;
 
-
-   //~ D("alives count %d", eina_list_count(alives));
-   //~ D("deads count %d", eina_list_count(deads));
-
-   // get an enemy from the deads list
-   e = EINA_LIST_POP(deads);//TODO CHECK
+   // get current enemy cell
+   ede_gui_cell_get_at_coords(e->x, e->y, &row, &col);
    
-   //~ D("SPAW ENEMEY ID: %d", e->id);
+   //~ D("hops: %d [pos %d %d][goto %d %d]", eina_list_count(e->path), row, col, e->target_row, e->target_col);
 
-   // set the starting position
-   int xi, yi;
-   ede_gui_cell_coords_get(start_row, start_col, &xi, &yi, EINA_TRUE);
-   e->x = xi;
-   e->y = yi;
-   
-   // reset the local destination
-   e->dest_x = e->dest_y = 0;
-   e->speed = speed;
-   e->energy = energy;
+   // free old path
+   eina_list_free(e->path);
 
-   // put the enemy in the alives list
-   EINA_LIST_PUSH(alives, e);
-
-   // calc the route using the A* pathfinder
+   // run the pathfinder
    level = ede_level_current_get();
    e->path = ede_pathfinder(level->rows, level->cols,
-                  start_row, start_col, end_row, end_col,
+                  row, col, e->target_row, e->target_col,
                   ede_level_walkable_get, 0, EINA_FALSE);
-   
-   
-   //~ ede_gui_sprite_add(e->id, "ede/enemy/standard", e->x, e->y, 0, EINA_TRUE);
-   ede_gui_sprite_add2(e->id, PACKAGE_DATA_DIR"/themes/enemy_standard.png", e->x, e->y, 0, EINA_TRUE);
-   ede_gui_sprite_resize(e->id, 25, 25);
+
+   // TODO the travel from the current position (in pixel) from the first
+   //      hop is not really defined, but it seems quiet good.
+   //~ D("NEW PATH %d", eina_list_count(e->path));
 }
-
-EAPI void
-ede_enemy_kill(Ede_Enemy *e)
-{
-   // TODO free e->path
-   alives = eina_list_remove(alives, e);
-   EINA_LIST_PUSH(deads, e);
-   ede_gui_sprite_del(e->id);
-}
-
-
-EAPI Ede_Enemy *
-ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
-{
-   Ede_Enemy *e, *nearest = NULL;
-   Eina_List *l;
-   int min_d = 999999;
-   
-   //~ D("NEAREST OF %d %d", x, y);
-   EINA_LIST_FOREACH(alives, l, e)
-   {
-      int dx, dy, d;
-
-      //~ if (e->id != 1) continue; //dbg
-
-      // calc distance
-      dx = x - e->x;
-      dy = y - e->y;
-      d = sqrt(dx*dx + dy*dy); // SLOWWWWW TODO simplify
-      if (d < min_d)
-      {
-         min_d = d;
-         nearest = e;
-      }
-      //~ D("  buddy: %.2f %.2f [dx %d dy %d] %d", e->x, e->y, dx, dy, d);
-   }
-   //~ if (nearest)
-      //~ D("NEAREST: id %d, distance: %d", nearest->id, min_d);
-
-   if (angle && nearest)
-   {
-      *angle = ede_util_angle_calc(x, y, nearest->x, nearest->y);
-   }
-   if (distance)
-      *distance = min_d;
-   
-   return nearest;
-}
-
 
 static void
-_ede_enemy_step(Ede_Enemy *e, double time)
+_enemy_step(Ede_Enemy *e, double time)
 {
    int row, col;
    int dx, dy;
@@ -262,6 +163,125 @@ _ede_enemy_step(Ede_Enemy *e, double time)
    ede_gui_sprite_rotate(e->id, e->angle); // TODO really I need to rotate everytime ???
 }
 
+/* Externally accessible functions */
+EAPI Eina_Bool
+ede_enemy_init(void)
+{
+   Ede_Enemy *e;
+   int i;
+   D(" ");
+
+   // put all the population in the 'deads' list...just for starting well  :)
+   for (i = EDE_MAX_ENEMIES; i > 0; i--)
+   {
+      e = &population[i];
+      e->id = i;
+      EINA_LIST_PUSH(deads, e);
+   }
+   D("KILLED: %d", eina_list_count(deads));
+   return EINA_TRUE;
+}
+
+EAPI Eina_Bool
+ede_enemy_shutdown(void)
+{
+   D(" ");
+   if (deads) eina_list_free(deads);
+   if (alives) eina_list_free(alives);
+   return EINA_TRUE;
+}
+
+EAPI void //TODO rename end_* in target_*
+ede_enemy_spawn(const char *type, int speed, int energy,
+                int start_row, int start_col, int end_row, int end_col)
+{
+   Ede_Level *level;
+   Ede_Enemy *e;
+
+
+   //~ D("alives count %d", eina_list_count(alives));
+   //~ D("deads count %d", eina_list_count(deads));
+
+   // get an enemy from the deads list
+   e = EINA_LIST_POP(deads);//TODO CHECK
+   
+   //~ D("SPAW ENEMEY ID: %d", e->id);
+
+   // set the starting position
+   int xi, yi;
+   ede_gui_cell_coords_get(start_row, start_col, &xi, &yi, EINA_TRUE);
+   e->x = xi;
+   e->y = yi;
+   e->target_row = end_row;
+   e->target_col = end_col;
+   
+   // reset the local destination
+   e->dest_x = e->dest_y = 0;
+   e->speed = speed;
+   e->energy = energy;
+
+   // put the enemy in the alives list
+   EINA_LIST_PUSH(alives, e);
+
+   // calc the route using the A* pathfinder
+   level = ede_level_current_get();
+   e->path = ede_pathfinder(level->rows, level->cols,
+                  start_row, start_col, end_row, end_col,
+                  ede_level_walkable_get, 0, EINA_FALSE);
+   
+   
+   //~ ede_gui_sprite_add(e->id, "ede/enemy/standard", e->x, e->y, 0, EINA_TRUE);
+   ede_gui_sprite_add2(e->id, PACKAGE_DATA_DIR"/themes/enemy_standard.png", e->x, e->y, 0, EINA_TRUE);
+   ede_gui_sprite_resize(e->id, 25, 25);
+}
+
+EAPI void
+ede_enemy_kill(Ede_Enemy *e)
+{
+   // TODO free e->path
+   alives = eina_list_remove(alives, e);
+   EINA_LIST_PUSH(deads, e);
+   ede_gui_sprite_del(e->id);
+}
+
+EAPI Ede_Enemy *
+ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
+{
+   Ede_Enemy *e, *nearest = NULL;
+   Eina_List *l;
+   int min_d = 999999;
+   
+   //~ D("NEAREST OF %d %d", x, y);
+   EINA_LIST_FOREACH(alives, l, e)
+   {
+      int dx, dy, d;
+
+      //~ if (e->id != 1) continue; //dbg
+
+      // calc distance
+      dx = x - e->x;
+      dy = y - e->y;
+      d = sqrt(dx*dx + dy*dy); // SLOWWWWW TODO simplify
+      if (d < min_d)
+      {
+         min_d = d;
+         nearest = e;
+      }
+      //~ D("  buddy: %.2f %.2f [dx %d dy %d] %d", e->x, e->y, dx, dy, d);
+   }
+   //~ if (nearest)
+      //~ D("NEAREST: id %d, distance: %d", nearest->id, min_d);
+
+   if (angle && nearest)
+   {
+      *angle = ede_util_angle_calc(x, y, nearest->x, nearest->y);
+   }
+   if (distance)
+      *distance = min_d;
+   
+   return nearest;
+}
+
 EAPI void
 ede_enemy_one_step_all(double time)
 {
@@ -270,8 +290,20 @@ ede_enemy_one_step_all(double time)
 
    // calc every alive enemy
    EINA_LIST_FOREACH_SAFE(alives, l, ll, e)
-     _ede_enemy_step(e, time);
+     _enemy_step(e, time);
 
+}
+
+EAPI void
+ede_enemy_path_recalc_all(void)
+{
+   Eina_List *l;
+   Ede_Enemy *e;
+
+   //TODO maybe just mark the path as invalidd and recald on next loop ??
+   D(" ");
+   EINA_LIST_FOREACH(alives, l, e)
+      _path_recalc(e);
 }
 
 /*

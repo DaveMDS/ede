@@ -23,6 +23,7 @@ struct _Ede_Enemy
    float x, y;
    int angle; // current position & orientation
    int speed, energy; // current speed & energy
+   int target_row, target_col; // target pos
 
    Eina_List *path; // the path to follow as returned by the pathfinder
    int dest_x, dest_y;
@@ -36,7 +37,9 @@ EAPI Eina_Bool ede_enemy_shutdown(void);
 
 EAPI void ede_enemy_spawn(const char *type, int speed, int energy,
                           int start_row, int start_col, int end_row, int end_col);
+EAPI void ede_enemy_kill(Ede_Enemy *e);
 EAPI void ede_enemy_one_step_all(double time);
+EAPI void ede_enemy_path_recalc_all(void);
 EAPI Ede_Enemy *ede_enemy_nearest_get(int x, int y, int *angle, int *distance);
 
 #endif /* EDE_ENEMY_H */

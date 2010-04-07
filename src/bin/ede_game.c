@@ -208,5 +208,7 @@ EAPI void
 ede_game_debug_hook(void)
 {
    //~ _next_wave();
-   ede_tower_add("normal");
+   ede_tower_destroy_selected();
+   
+   
 }
