@@ -1,2 +1,9 @@
 
+Optimizations
+
  * pathfinder: keep a cahe of calculated paths
+ * use eina array instead of list where LIST_PUSH/POP s used
+
+Bugs
+
+ * Bullet: If the target dies before the bullet has reached it...do something

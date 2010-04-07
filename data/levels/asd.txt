@@ -51,6 +51,7 @@ DATA
 .....################
 
 WAVES
+spawn 1 standard enemy from base 1 [speed: 10 energy: 150], wait 7
 spawn 100 standard enemy from base 1 [speed: 20 energy: 100], wait 60
 spawn 20 standard enemy from base 1 [speed: 10 energy: 100], wait 5
 spawn 30 standard enemy from base 1 [speed: 20 energy: 100], wait 10

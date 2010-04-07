@@ -80,7 +80,7 @@ _delayed_spawn(void *data)
                    start_row, start_col,
                    current_level->home_row, current_level->home_col);
 
-   if (wave->count < 0 )
+   if (wave->count <= 0 )
       return ECORE_CALLBACK_CANCEL;
    else
       return ECORE_CALLBACK_RENEW;

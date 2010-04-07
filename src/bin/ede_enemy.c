@@ -27,7 +27,9 @@
 #endif  
 
 
-#define EDE_MAX_ENEMIES 1000
+#define GAUGE_W 20
+#define GAUGE_H 4
+
 
 /* Local subsystem vars */
 static Eina_List *deads = NULL;
@@ -65,6 +67,20 @@ _path_recalc(Ede_Enemy *e)
    // TODO the travel from the current position (in pixel) from the first
    //      hop is not really defined, but it seems quiet good.
    //~ D("NEW PATH %d", eina_list_count(e->path));
+}
+
+static void
+_gauge_recalc(Ede_Enemy *e)
+{
+   int x, y;
+   double val;
+
+   x = (int)(e->x + 0.5) - e->w / 2;
+   y = (int)(e->y + 0.5) + e->h / 2;
+   val = (double)e->energy / (double)e->strength;
+   evas_object_move(e->o_gauge1, x, y);
+   evas_object_move(e->o_gauge2, x, y);
+   evas_object_resize(e->o_gauge2, val * GAUGE_W, GAUGE_H);
 }
 
 static void
@@ -172,6 +188,9 @@ _enemy_step(Ede_Enemy *e, double time)
 
    // TODO need to optimize rotation...or made prerotaded edje version :(
    ede_util_obj_rotate(e->obj, e->angle);// TODO really I need to rotate everytime ???
+
+   // update the energy meter (pos & value)
+   _gauge_recalc(e);
 }
 
 /* Externally accessible functions */
@@ -195,15 +214,15 @@ ede_enemy_shutdown(void)
    return EINA_TRUE;
 }
 
+
 EAPI void //TODO rename end_* in target_*
-ede_enemy_spawn(const char *type, int speed, int energy,
+ede_enemy_spawn(const char *type, int speed, int strength,
                 int start_row, int start_col, int end_row, int end_col)
 {
    Ede_Level *level;
    Ede_Enemy *e;
 
-
-   D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
+   //~ D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
 
    // get an enemy from the deads list
    e = EINA_LIST_POP(deads);
@@ -218,6 +237,14 @@ ede_enemy_spawn(const char *type, int speed, int energy,
       e->w = 25;
       e->h = 25;
       evas_object_resize(e->obj, e->w, e->h);
+
+      // create the 2 rects used for the energy meter
+      e->o_gauge1 = evas_object_rectangle_add(ede_gui_canvas_get());
+      evas_object_color_set(e->o_gauge1, 200, 0, 0, 255);
+      evas_object_resize(e->o_gauge1, GAUGE_W, GAUGE_H);
+
+      e->o_gauge2 = evas_object_rectangle_add(ede_gui_canvas_get());
+      evas_object_color_set(e->o_gauge2, 0, 200, 0, 255);
    }
    
    
@@ -230,11 +257,12 @@ ede_enemy_spawn(const char *type, int speed, int energy,
    e->y = yi;
    e->target_row = end_row;
    e->target_col = end_col;
+   e->killed = EINA_FALSE;
    
    // reset the local destination
    e->dest_x = e->dest_y = 0;
    e->speed = speed;
-   e->energy = energy;
+   e->energy = e->strength = strength;
 
    // put the enemy in the alives list
    EINA_LIST_PUSH(alives, e);
@@ -248,16 +276,33 @@ ede_enemy_spawn(const char *type, int speed, int energy,
    // calc the initial position/rotation and show the enemy
    _enemy_step(e, 0.0);
    evas_object_show(e->obj);
+   evas_object_show(e->o_gauge1);
+   evas_object_show(e->o_gauge2);
 }
 
 EAPI void
 ede_enemy_kill(Ede_Enemy *e)
 {
-   D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
+   //~ D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
+   if (e->killed) return;
+   else e->killed = EINA_TRUE;
+   
    if (e->path) eina_list_free(e->path);
    alives = eina_list_remove(alives, e);
    EINA_LIST_PUSH(deads, e);
    evas_object_hide(e->obj);
+   evas_object_hide(e->o_gauge1);
+   evas_object_hide(e->o_gauge2);
+}
+
+EAPI void
+ede_enemy_damage(Ede_Enemy *e, int damage)
+{
+   D("DAMAGE %d [%d]", e->energy, e->strength);
+
+   e->energy -= damage;
+   if (e->energy <= 0)
+      ede_enemy_kill(e);
 }
 
 EAPI Ede_Enemy *

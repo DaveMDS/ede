@@ -127,6 +127,7 @@ ede_bullet_one_step_all(double time)
       // target reached
       if (distance < 10)
       {
+         ede_enemy_damage(b->target, b->damage);
          evas_object_hide(b->obj);
          EINA_LIST_PUSH(inactives, b);
          bullets = eina_list_remove_list(bullets, l);
