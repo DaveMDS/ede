@@ -233,6 +233,7 @@ ede_enemy_spawn(const char *type, int speed, int strength,
       if (!e) return;
 
       e->obj = evas_object_image_filled_add(ede_gui_canvas_get());
+      evas_object_pass_events_set(e->obj, EINA_TRUE);
       evas_object_image_file_set(e->obj, PACKAGE_DATA_DIR"/themes/enemy_standard.png", NULL);
       e->w = 25;
       e->h = 25;
@@ -240,10 +241,12 @@ ede_enemy_spawn(const char *type, int speed, int strength,
 
       // create the 2 rects used for the energy meter
       e->o_gauge1 = evas_object_rectangle_add(ede_gui_canvas_get());
+      evas_object_pass_events_set(e->o_gauge1, EINA_TRUE);
       evas_object_color_set(e->o_gauge1, 200, 0, 0, 255);
       evas_object_resize(e->o_gauge1, GAUGE_W, GAUGE_H);
 
       e->o_gauge2 = evas_object_rectangle_add(ede_gui_canvas_get());
+      evas_object_pass_events_set(e->o_gauge2, EINA_TRUE);
       evas_object_color_set(e->o_gauge2, 0, 200, 0, 255);
    }
    
