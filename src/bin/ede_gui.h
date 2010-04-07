@@ -64,13 +64,6 @@ EAPI void      ede_gui_cell_overlay_text_set(int row, int col, int val, int pos)
 EAPI Eina_Bool ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center);
 EAPI Eina_Bool ede_gui_cell_get_at_coords(int x, int y, int *row, int *col);
 
-EAPI void      ede_gui_sprite_add(int id, const char *group, int x, int y, int angle, Eina_Bool is_center);
-EAPI void      ede_gui_sprite_add2(int id, const char *group, int x, int y, int angle, Eina_Bool is_center);
-EAPI void      ede_gui_sprite_move(int id, int x, int y);
-EAPI void      ede_gui_sprite_resize(int id, int w, int h);
-EAPI void      ede_gui_sprite_rotate(int id, int angle);
-EAPI void      ede_gui_sprite_del(int id);
-
 EAPI void      ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius);
 EAPI void      ede_gui_selection_type_set(Ede_Selection_Type type);
 EAPI void      ede_gui_selection_hide(void);

@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include <Eina.h>
+#include <Evas.h>
 
 #include "ede.h"
 #include "ede_utils.h"
@@ -23,6 +24,23 @@
 #define D(...)
 #endif
 
+
+EAPI void
+ede_util_obj_rotate(Evas_Object *obj, int angle)
+{
+   Evas_Map *map;
+   int x, y, w, h;
+
+   evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+   map = evas_map_new(4);
+   evas_map_util_points_populate_from_object(map, obj);
+
+   evas_map_util_rotate(map, angle, x + w / 2, y + h / 2);
+   evas_object_map_enable_set(obj, 1);
+   evas_object_map_set(obj, map);
+   evas_map_free(map);
+}
 
 
 /**************   BASIC CALCS   ***********************************************/

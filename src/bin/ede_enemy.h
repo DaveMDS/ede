@@ -10,25 +10,20 @@
 #ifndef EDE_ENEMY_H
 #define EDE_ENEMY_H
 
-//~ #include "ede.h"
-
-#define EDE_MAX_ENEMIES 1000
-
-
+#include <Evas.h>
 
 typedef struct _Ede_Enemy Ede_Enemy;
 struct _Ede_Enemy
 {
-   int id; // not really used atm
-   float x, y;
-   int angle; // current position & orientation
+   Evas_Object *obj;
+   float x, y; // current position, in pixel (include accumulation)
+   int w, h;   // size in pixel
+   int angle; // current orientation
    int speed, energy; // current speed & energy
-   int target_row, target_col; // target pos
+   int target_row, target_col; // target position
 
    Eina_List *path; // the path to follow as returned by the pathfinder
-   int dest_x, dest_y;
-
-   void *gui_data; // actually the enemy evas object
+   int dest_x, dest_y; // this is the pos of the next hop (the one we are approaching)
 };
 
 

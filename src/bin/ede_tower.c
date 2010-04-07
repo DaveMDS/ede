@@ -16,6 +16,7 @@
 #include "ede_gui.h"
 #include "ede_level.h"
 #include "ede_bullet.h"
+#include "ede_utils.h"
 
 
 #define LOCAL_DEBUG 1
@@ -25,6 +26,9 @@
 #define D(...)
 #endif
 
+#define TOWER_DEFAULT_DAMAGE 10
+#define TOWER_DEFAULT_RANGE 200
+#define TOWER_DEFAULT_RELOAD 5
 
 typedef struct _Ede_Tower Ede_Tower;
 struct _Ede_Tower {
@@ -99,9 +103,9 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->col = col;
    tower->cols = cols;
    tower->rows = rows;
-   tower->damage = 10;
-   tower->range = 50;
-   tower->reload = 10;
+   tower->damage = TOWER_DEFAULT_DAMAGE;
+   tower->range = TOWER_DEFAULT_RANGE;
+   tower->reload = TOWER_DEFAULT_RELOAD;
    ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
    tower->center_x = x + (cols * CELL_W / 2);
    tower->center_y = y + (rows * CELL_H / 2);
@@ -165,23 +169,6 @@ _tower_del(Ede_Tower *tower)
 }
 
 static void
-_tower_rotate(Ede_Tower *tower, int angle)
-{
-   Evas_Map *map;
-   int x, y, w, h;
-
-   evas_object_geometry_get(tower->o_base, &x, &y, &w, &h);
-
-   map = evas_map_new(4);
-   evas_map_util_points_populate_from_object(map, tower->o_cannon);
-
-   evas_map_util_rotate(map, angle, x + w / 2, y + h / 2);
-   evas_object_map_enable_set(tower->o_cannon, 1);
-   evas_object_map_set(tower->o_cannon, map);
-   evas_map_free(map);
-}
-
-static void
 _tower_select(Ede_Tower *tower)
 {
    char buf[128];
@@ -219,7 +206,7 @@ _tower_step(Ede_Tower *tower, double time)
    e = ede_enemy_nearest_get(tower->center_x, tower->center_y, &angle, &distance);
    if (distance < tower->range)
    {
-      _tower_rotate(tower, angle);
+      ede_util_obj_rotate(tower->o_cannon, angle);
       _tower_shoot_at(tower, e);
    }
 }

@@ -29,26 +29,16 @@
 #endif
 
 
-
-#define EDE_MAX_SPRITES 5000
-/*
- * Spritets 0..1000(EDE_MAX_ENEMIES) are for enemys
- *          1000..1500 for towers (EDE_MAX_TOWERS)
- *
- *   ...  need to find a better method :/
- */
-
-
 /* Local subsystem vars */
-static Evas_Object ***overlays = NULL; /** 2D dynamic array of Evas_Object pointers. One for each cell of the grid */
-static Evas_Object *sprite[EDE_MAX_SPRITES]; /**< 1D static array of Evas_Object pointers. Will store all the game sprites */
+static Evas_Object ***overlays = NULL; /** 2D dynamic array of Evas_Object pointers.
+                                           One for each cell of the grid */
 
 static const char *theme_file; /** full path to the theme file */
 static Ecore_Evas *window;     /** window handle */
 static Evas *canvas;           /** evas canvas */
-static Evas_Object *layout;    /** main edje object containing the interface */
+static Evas_Object *o_layout;    /** main edje object containing the interface */
 
-static Evas_Object *checkboard;/**< the level background object */
+static Evas_Object *o_checkboard; /**< the level background object */
 static int checkboard_rows, checkboard_cols; /**< current size of the checkboard */
 static Eina_Bool checkboard_click_handled = EINA_FALSE; /** stupid trick to stop the propagatioin of the click */
 
@@ -80,12 +70,12 @@ _circle_recalc(Evas_Object *obj, int center_x, int center_y, int radius)
    evas_object_polygon_points_clear(obj);
 
    r2 = radius * radius;
-   for (x = -radius; x <= radius; x++)
+   for (x = -radius; x <= radius; x+=2)
    {
       y = (int) (sqrt(r2 - x*x) + 0.5);
       evas_object_polygon_point_add(obj, center_x + x, center_y + y);
    }
-   for (x = radius; x > -radius; x--)
+   for (x = radius; x > -radius; x-=2)
    {
       y = (int) (sqrt(r2 - x*x) + 0.5);
       evas_object_polygon_point_add(obj, center_x + x, center_y - y);
@@ -136,7 +126,6 @@ ede_gui_init(void)
    char buf[PATH_MAX];
    Eina_List *engines, *l;
    const char *e;
-   int i;
 
    D(" ");
    evas_init();
@@ -182,51 +171,36 @@ ede_gui_init(void)
 
 
    // create the main layout edje object
-   layout = edje_object_add(canvas);
-   if (!edje_object_file_set(layout, theme_file, "ede/layout"))
+   o_layout = edje_object_add(canvas);
+   if (!edje_object_file_set(o_layout, theme_file, "ede/layout"))
    {
       CRITICAL("error loading  theme file: %s", buf);
       return EINA_FALSE;
    }
-   ecore_evas_object_associate(window, layout, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
-   evas_object_resize(layout, WIN_W, WIN_H);
-   evas_object_show(layout);
-   edje_object_signal_callback_add(layout, "button,pressed", "debug", _debug_button_cb, NULL);
-   edje_object_signal_callback_add(layout, "tower,add", "*", _add_tower_button_cb, NULL);
+   ecore_evas_object_associate(window, o_layout, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
+   evas_object_resize(o_layout, WIN_W, WIN_H);
+   evas_object_show(o_layout);
+   edje_object_signal_callback_add(o_layout, "button,pressed", "debug", _debug_button_cb, NULL);
+   edje_object_signal_callback_add(o_layout, "tower,add", "*", _add_tower_button_cb, NULL);
 
    // create the checkboard object
-   checkboard = edje_object_add(canvas);
-   if (!edje_object_file_set(checkboard, theme_file, "ede/checkboard"))
-   {
-      CRITICAL("error loading theme file: %s", buf);
-      return EINA_FALSE;
-   }
-   _move_at(checkboard, 0, 0);
-   evas_object_resize(checkboard, 0, 0);
-   evas_object_show(checkboard);
-   //~ edje_object_signal_callback_add(checkboard, "tower,add", "*", _checkboard_mouse_down_cb, NULL);
-   evas_object_event_callback_add(checkboard, EVAS_CALLBACK_MOUSE_DOWN, _checkboard_mouse_down_cb, NULL);
+   o_checkboard = edje_object_add(canvas);
+   edje_object_file_set(o_checkboard, theme_file, "ede/checkboard");
+   _move_at(o_checkboard, 0, 0);
+   evas_object_resize(o_checkboard, 0, 0);
+   evas_object_show(o_checkboard);
+   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_DOWN, _checkboard_mouse_down_cb, NULL);
    
-
    // create the selection object
    o_selection = edje_object_add(canvas);
-   if (!edje_object_file_set(o_selection, theme_file, "ede/selection"))
-   {
-      CRITICAL("error loading theme file: %s", buf);
-      return EINA_FALSE;
-   }
+   edje_object_file_set(o_selection, theme_file, "ede/selection");
    // selection circle
    o_circle = evas_object_polygon_add(canvas);
    evas_object_pass_events_set(o_circle, EINA_TRUE);
    evas_object_color_set(o_circle, 100, 100, 100, 100);
    Evas_Object *clipper; //TODO clip to the checkboard, not the stage.clipper
-   clipper = (Evas_Object *)edje_object_part_object_get(layout, "stage.clipper");
+   clipper = (Evas_Object *)edje_object_part_object_get(o_layout, "stage.clipper");
    evas_object_clip_set(o_circle, clipper);
-
-
-   // make sure the sprites array is clean
-   for (i = 0; i < EDE_MAX_SPRITES; i++)
-      sprite[i] = NULL;
 
    return EINA_TRUE;
 }
@@ -237,19 +211,13 @@ ede_gui_init(void)
 EAPI Eina_Bool
 ede_gui_shutdown(void)
 {
-   int i;
-
    D(" ");
-   
-   // free all the sprite objects
-   for (i = 0; i < EDE_MAX_SPRITES; i++)
-      EDE_OBJECT_DEL(sprite[i]);
 
    // free all interface components
    EDE_OBJECT_DEL(o_circle);
    EDE_OBJECT_DEL(o_selection);
-   EDE_OBJECT_DEL(checkboard);
-   EDE_OBJECT_DEL(layout);
+   EDE_OBJECT_DEL(o_checkboard);
+   EDE_OBJECT_DEL(o_layout);
    if (window) ecore_evas_free(window);
    EDE_STRINGSHARE_DEL(theme_file);
 
@@ -281,10 +249,9 @@ EAPI Eina_Bool
 ede_gui_level_init(int rows, int cols)
 {
    D("%d %d", rows, cols);
-   evas_object_resize(checkboard, cols * CELL_W, rows * CELL_H);
-   //~ ede_checkboard_size_set(checkboard2, rows, cols);
+   evas_object_resize(o_checkboard, cols * CELL_W, rows * CELL_H);
 
-   ede_array_free((int **)overlays); //////////!!!!!!!!!!!!!! check this
+   ede_array_free((int **)overlays);
    overlays = (Evas_Object ***)ede_array_new(rows, cols);
    if (!overlays) return EINA_FALSE;
    checkboard_rows = rows;
@@ -312,7 +279,7 @@ ede_gui_level_clear(void)
    overlays = NULL;
 
    // hide the checkboard
-   evas_object_resize(checkboard, 0, 0);
+   evas_object_resize(o_checkboard, 0, 0);
    checkboard_rows = checkboard_cols = 0;
 }
 
@@ -326,15 +293,15 @@ ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
 
    if (!name)
    {
-      edje_object_part_text_set(layout, "tower.name", "");
-      edje_object_part_text_set(layout, "tower.info", "");
-      edje_object_signal_emit(layout, "tower,icon,set", "hide");
+      edje_object_part_text_set(o_layout, "tower.name", "");
+      edje_object_part_text_set(o_layout, "tower.info", "");
+      edje_object_signal_emit(o_layout, "tower,icon,set", "hide");
       return;
    }
 
-   edje_object_part_text_set(layout, "tower.name", name);
-   edje_object_part_text_set(layout, "tower.info", text);
-   edje_object_signal_emit(layout, "tower,icon,set", icon);
+   edje_object_part_text_set(o_layout, "tower.name", name);
+   edje_object_part_text_set(o_layout, "tower.info", text);
+   edje_object_signal_emit(o_layout, "tower,icon,set", icon);
 }
 
 /**
@@ -475,130 +442,6 @@ ede_gui_cell_overlay_text_set(int row, int col, int val, int pos)
    if (pos == 1) edje_object_part_text_set(obj, "label1", buf);
    else if (pos == 2) edje_object_part_text_set(obj, "label2", buf);
    else if (pos == 3) edje_object_part_text_set(obj, "label3", buf);
-}
-
-/*****************  SPRITE FUNCTIONS  *****************************************/
-
-/**
- * Create a new sprite at the given location looking at the given direction.
- * Sprite size is readed from the 'min: w h' param of edje group.
- *
- * @param id The unique identifier, all other sprite function will get this
- * @param file The full path fo the image file to use
- * @param group the edje group in the theme file to load (ex. "ede/enemy/standard")
- * @param x CenterX of the sprite
- * @param y CenterY of the sprite
- * @param w Sprite width in pixel (used only if not edje object)
- * @param h Sprite height in pixel (used only if not edje object)
- * @param angle Direction in degrees, 0 point north
- * @param is_center Set to EINA_TRUE if x & y refer to the center of the sprite,
- *                  or EINA_FALSE for the top-left corner
- * 
- */
-//~ EAPI void
-//~ ede_gui_sprite_add(int id, const char *group, int x, int y, int angle, Eina_Bool is_center)
-//~ {
-   //~ int w, h;
-//~ 
-   //~ D("id: %d (at: %d,%d a: %d)", id, x, y, angle);
-   //~ if (!sprite[id])
-      //~ sprite[id] = edje_object_add(canvas);
-//~ 
-   //~ edje_object_file_set(sprite[id], theme_file, group);
-   //~ edje_object_size_min_get(sprite[id], &w, &h);
-//~ 
-   //~ if (is_center)
-      //~ evas_object_move(sprite[id], x - w / 2, y - h / 2);
-   //~ else
-      //~ evas_object_move(sprite[id], x, y);
-   //~ evas_object_resize(sprite[id], w, h);
-   //~ evas_object_show(sprite[id]);
-//~ }
-
-EAPI void
-ede_gui_sprite_add2(int id, const char *group,
-                    int x, int y, int angle, Eina_Bool is_center)
-{
-   int w, h;
-
-   //~ D("id: %d (at: %d,%d a: %d)", id, x, y, angle);
-   
-   if (group[0] == '/')
-   {
-      // load a nomal image file from the given full path
-      if (!sprite[id])
-         sprite[id] = evas_object_image_filled_add(canvas);
-      evas_object_image_file_set(sprite[id], group, NULL);
-      evas_object_pass_events_set(sprite[id], EINA_TRUE);
-      
-   }
-   else
-   {
-      // load the give edje group from the theme file
-      if (!sprite[id])
-      {
-         sprite[id] = edje_object_add(canvas);
-      }
-
-      edje_object_file_set(sprite[id], theme_file, group);
-      edje_object_size_min_get(sprite[id], &w, &h);
-      evas_object_resize(sprite[id], w, h);
-   }
-
-   // position and show
-   if (is_center) evas_object_move(sprite[id], x - w / 2, y - h / 2);
-   else           evas_object_move(sprite[id], x, y);
-   evas_object_show(sprite[id]);
-}
-
-/**
- * Move the sprite at the given location (center of the sprite)
- */
-EAPI void //TODO optimize (maybe just a macro)
-ede_gui_sprite_move(int id, int x, int y)
-{
-   int w, h;
-   evas_object_geometry_get(sprite[id], NULL, NULL, &w, &h);
-   evas_object_move(sprite[id], x - w / 2, y - h / 2);
-}
-
-/**
- * Resize the sprite
- */
-EAPI void //TODO optimize (maybe just a macro)
-ede_gui_sprite_resize(int id, int w, int h)
-{
-   evas_object_resize(sprite[id], w, h);
-}
-
-/**
- * Hide the sprite, an make the id available for next call to ede_gui_sprite_add(id)
- */
-EAPI void
-ede_gui_sprite_del(int id)
-{
-   evas_object_hide(sprite[id]);
-}
-
-/**
- * Rotate the given sprite at the given angle
- * Angle in degrees, 0 point north
- */
-EAPI void //TODO optimize
-ede_gui_sprite_rotate(int id, int angle)
-{
-   Evas_Map *map;
-   int x, y, w, h;
-
-   evas_object_geometry_get(sprite[id], &x, &y, &w, &h);
-
-   map = evas_map_new(4);
-   evas_map_util_points_populate_from_object(map, sprite[id]);
-
-   evas_map_util_rotate(map, angle, x + w / 2, y + h / 2);
-   evas_object_map_enable_set(sprite[id], 1);
-   evas_object_map_set(sprite[id], map);
-   evas_map_free(map);
 }
 
 /*****************  SELECTION OBJECT ******************************************/
@@ -776,7 +619,7 @@ ede_gui_request_area(int w, int h, void (*done_cb)(int row, int col, int w, int 
    area_req_rows = h;
    area_req_done_cb = done_cb;
    area_req_done_data = data;
-   evas_object_event_callback_add(checkboard, EVAS_CALLBACK_MOUSE_MOVE, _sel_mouse_move_cb, NULL);
-   evas_object_event_callback_add(checkboard, EVAS_CALLBACK_MOUSE_OUT, _sel_mouse_out_cb, NULL);
-   evas_object_event_callback_add(checkboard, EVAS_CALLBACK_MOUSE_DOWN, _sel_mouse_down_cb, NULL);
+   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_MOVE, _sel_mouse_move_cb, NULL);
+   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_OUT, _sel_mouse_out_cb, NULL);
+   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_DOWN, _sel_mouse_down_cb, NULL);
 }

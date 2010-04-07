@@ -10,6 +10,7 @@
 #ifndef EDE_UTILS_H
 #define EDE_UTILS_H
 
+#include <Evas.h>
 
 #define PI 3.14159265
 
@@ -27,10 +28,13 @@ EAPI Vector vector_normalize(Vector v);
 // UNUSED END
 
 
+EAPI void ede_util_obj_rotate(Evas_Object *obj, int angle);
+
 EAPI int ede_util_angle_calc(int x1, int y1, int x2, int y2);
 EAPI int ede_util_distance_calc(int x1, int y1, int x2, int y2);
 
 EAPI int **ede_array_new(int rows, int cols);
 EAPI void  ede_array_free(int **array);
+
 
 #endif /* EDE_UTILS_H */

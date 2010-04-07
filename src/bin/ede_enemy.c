@@ -27,12 +27,21 @@
 #endif  
 
 
+#define EDE_MAX_ENEMIES 1000
+
 /* Local subsystem vars */
-static Ede_Enemy population[EDE_MAX_ENEMIES];
-static Eina_List *deads;
-static Eina_List *alives;
+static Eina_List *deads = NULL;
+static Eina_List *alives = NULL;
 
 /* Local subsystem callbacks */
+static void
+_enemy_del(Ede_Enemy *e)
+{
+   EDE_OBJECT_DEL(e->obj);
+   if (e->path) eina_list_free(e->path);
+   EDE_FREE(e);
+}
+
 static void
 _path_recalc(Ede_Enemy *e)
 {
@@ -155,39 +164,34 @@ _enemy_step(Ede_Enemy *e, double time)
    else if (e->angle == 180 && e->y >= e->dest_y)
       MOVE_TO_TARGET()
 
-   // apply new position
+   // apply the new position
    //~ D("%f %f",e->position.x, e->position.y);
-   ede_gui_sprite_move(e->id, (int)(e->x + 0.5), (int)(e->y + 0.5));
+   dx = (int)(e->x + 0.5) - e->w / 2;
+   dy = (int)(e->y + 0.5) - e->h / 2;
+   evas_object_move(e->obj, dx, dy);
 
    // TODO need to optimize rotation...or made prerotaded edje version :(
-   ede_gui_sprite_rotate(e->id, e->angle); // TODO really I need to rotate everytime ???
+   ede_util_obj_rotate(e->obj, e->angle);// TODO really I need to rotate everytime ???
 }
 
 /* Externally accessible functions */
 EAPI Eina_Bool
 ede_enemy_init(void)
 {
-   Ede_Enemy *e;
-   int i;
-   D(" ");
 
-   // put all the population in the 'deads' list...just for starting well  :)
-   for (i = EDE_MAX_ENEMIES; i > 0; i--)
-   {
-      e = &population[i];
-      e->id = i;
-      EINA_LIST_PUSH(deads, e);
-   }
-   D("KILLED: %d", eina_list_count(deads));
    return EINA_TRUE;
 }
 
 EAPI Eina_Bool
 ede_enemy_shutdown(void)
 {
+   Ede_Enemy *e;
+   
    D(" ");
-   if (deads) eina_list_free(deads);
-   if (alives) eina_list_free(alives);
+   EINA_LIST_FREE(deads, e);
+      _enemy_del(e);
+   EINA_LIST_FREE(alives, e);
+      _enemy_del(e);
    return EINA_TRUE;
 }
 
@@ -199,11 +203,23 @@ ede_enemy_spawn(const char *type, int speed, int energy,
    Ede_Enemy *e;
 
 
-   //~ D("alives count %d", eina_list_count(alives));
-   //~ D("deads count %d", eina_list_count(deads));
+   D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
 
    // get an enemy from the deads list
-   e = EINA_LIST_POP(deads);//TODO CHECK
+   e = EINA_LIST_POP(deads);
+   if (!e)
+   {
+      // or create a new one
+      e = EDE_NEW(Ede_Enemy);
+      if (!e) return;
+
+      e->obj = evas_object_image_filled_add(ede_gui_canvas_get());
+      evas_object_image_file_set(e->obj, PACKAGE_DATA_DIR"/themes/enemy_standard.png", NULL);
+      e->w = 25;
+      e->h = 25;
+      evas_object_resize(e->obj, e->w, e->h);
+   }
+   
    
    //~ D("SPAW ENEMEY ID: %d", e->id);
 
@@ -228,20 +244,20 @@ ede_enemy_spawn(const char *type, int speed, int energy,
    e->path = ede_pathfinder(level->rows, level->cols,
                   start_row, start_col, end_row, end_col,
                   ede_level_walkable_get, 0, EINA_FALSE);
-   
-   
-   //~ ede_gui_sprite_add(e->id, "ede/enemy/standard", e->x, e->y, 0, EINA_TRUE);
-   ede_gui_sprite_add2(e->id, PACKAGE_DATA_DIR"/themes/enemy_standard.png", e->x, e->y, 0, EINA_TRUE);
-   ede_gui_sprite_resize(e->id, 25, 25);
+
+   // calc the initial position/rotation and show the enemy
+   _enemy_step(e, 0.0);
+   evas_object_show(e->obj);
 }
 
 EAPI void
 ede_enemy_kill(Ede_Enemy *e)
 {
-   // TODO free e->path
+   D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
+   if (e->path) eina_list_free(e->path);
    alives = eina_list_remove(alives, e);
    EINA_LIST_PUSH(deads, e);
-   ede_gui_sprite_del(e->id);
+   evas_object_hide(e->obj);
 }
 
 EAPI Ede_Enemy *
