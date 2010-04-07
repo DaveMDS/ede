@@ -41,7 +41,7 @@ struct _Ede_Tower {
    int center_x, center_y;   // center position. In pixel
    int range, damage, reload;
 
-   double reload_counter;
+   double reload_counter; // accumulator for reloading
 };
 
 // tower type names
@@ -62,22 +62,13 @@ static const char *_type_long_name[TOWER_TYPE_NUM] = {
 };
 
 
-/* protos */
-static void _tower_select(Ede_Tower *tower);
-
 /* Local subsystem vars */
 static Eina_List *towers = NULL;
 static Ede_Tower *selected_tower = NULL;
 
 
 /* Local subsystem callbacks */
-static void
-_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
-{
-   Ede_Tower *tower = data;
-   
-   _tower_select(tower);
-}
+
 
 /* Local subsystem functions */
 
@@ -111,19 +102,19 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->center_y = y + (rows * CELL_H / 2);
 
    // add the base sprite
-   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/tower_%s_base.png", _type_name[tt]);
+   snprintf(buf, sizeof(buf),
+            PACKAGE_DATA_DIR"/themes/tower_%s_base.png", _type_name[tt]);
    tower->o_base = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_base, buf, NULL);
-   evas_object_event_callback_add(tower->o_base, EVAS_CALLBACK_MOUSE_DOWN, _mouse_down_cb, tower);
    evas_object_resize(tower->o_base, CELL_W * cols, CELL_H * rows);
    evas_object_show(tower->o_base);
    evas_object_move(tower->o_base, x, y);
 
    // add the rotating sprite
-   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/tower_%s_cannon.png", _type_name[tt]);
+   snprintf(buf, sizeof(buf),
+            PACKAGE_DATA_DIR"/themes/tower_%s_cannon.png", _type_name[tt]);
    tower->o_cannon = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_cannon, buf, NULL);
-   evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
    evas_object_resize(tower->o_cannon, CELL_W * cols, CELL_H * rows);
    evas_object_show(tower->o_cannon);
    evas_object_move(tower->o_cannon, x, y);
@@ -138,9 +129,6 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 
    // add to the towers list
    towers = eina_list_append(towers, tower);
-
-   // select the tower
-   _tower_select(tower);
 }
 
 static void
@@ -262,6 +250,27 @@ EAPI void
 ede_tower_deselect(void)
 {
    selected_tower = NULL;
+   ede_gui_selection_hide();
+   ede_gui_tower_info_set(NULL, NULL, NULL);
+}
+
+EAPI void
+ede_tower_select_at(int row, int col)
+{
+   Ede_Tower *tower;
+   Eina_List *l;
+
+   D("%d %d", row, col);
+
+   EINA_LIST_FOREACH(towers, l, tower)
+   {
+      if (row >= tower->row && row < tower->row + tower->rows &&
+          col >= tower->col && col < tower->col + tower->cols)
+      {
+         _tower_select(tower);
+         return;
+      }
+   }
 }
 
 EAPI void

@@ -69,6 +69,7 @@ EAPI void      ede_gui_selection_type_set(Ede_Selection_Type type);
 EAPI void      ede_gui_selection_hide(void);
 
 EAPI void      ede_gui_request_area(int w, int h, void (*done_cb)(int row, int col, int w, int h, void *data), void *data);
+EAPI void      ede_gui_request_area_end(void);
 
 EAPI void      ede_gui_debug_text_set(const char *text);
 

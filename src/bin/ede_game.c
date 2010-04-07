@@ -28,6 +28,7 @@
 #endif
 
 /* Local subsystem vars */
+static Ede_Game_State _game_state;
 static Ede_Level *current_level = NULL;
 static int current_wave_num = 0;
 static Eina_Bool _debug_panel_enable = EINA_FALSE;
@@ -202,6 +203,8 @@ _game_start(Ede_Level *level)
 
    _start_time = ecore_loop_time_get();
 
+   ede_game_state_set(GAME_STATE_PLAYING);
+   
    // spawn the first wave (that will spawn the others, in chain)
    _next_wave(NULL);
    
@@ -283,4 +286,16 @@ ede_game_time_get(double now)
       snprintf(buf, sizeof(buf), "%ds", seconds);
 
    return strdup(buf);
+}
+
+EAPI void
+ede_game_state_set(Ede_Game_State state)
+{
+   _game_state = state;
+}
+
+EAPI Ede_Game_State
+ede_game_state_get(void)
+{
+   return _game_state;
 }

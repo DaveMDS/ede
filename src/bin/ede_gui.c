@@ -29,6 +29,9 @@
 #endif
 
 
+#define STAGE_OFFSET_X 180
+#define STAGE_OFFSET_Y 60
+
 /* Local subsystem vars */
 static Evas_Object ***overlays = NULL; /** 2D dynamic array of Evas_Object pointers.
                                            One for each cell of the grid */
@@ -37,11 +40,11 @@ static const char *theme_file; /** full path to the theme file */
 static Ecore_Evas *window;     /** window handle */
 static Evas *canvas;           /** evas canvas */
 static Evas_Object *o_layout;    /** main edje object containing the interface */
-static Ecore_Event_Handler *_keyb_handler; /** event handler for key press */
+
+static Eina_List *event_handlers; /** list of connected event handlers */
 
 static Evas_Object *o_checkboard; /**< the level background object */
 static int checkboard_rows, checkboard_cols; /**< current size of the checkboard */
-static Eina_Bool checkboard_click_handled = EINA_FALSE; /** stupid trick to stop the propagatioin of the click */
 
 
 static Evas_Object *o_selection; /** the object used to select map locations */
@@ -51,6 +54,10 @@ static void (*area_req_done_cb)(int row, int col, int w, int h, void *data); /**
 static void *area_req_done_data; /** user data to pass-back in the area_req_done_cb */
 static Eina_Bool selection_ok;   /** true if the selection is in a free position */
 
+
+/* Local protos */
+static void _area_request_mouse_down(int x, int y);
+static void _area_request_mouse_move(int x, int y);
 
 
 /* Local subsystem functions */
@@ -83,6 +90,17 @@ _circle_recalc(Evas_Object *obj, int center_x, int center_y, int radius)
    }
 }
 
+static Eina_Bool
+_point_inside_checkboard(int x, int y)
+{
+   Ede_Level *level = ede_level_current_get();
+   
+   return (x > STAGE_OFFSET_X &&
+           x < STAGE_OFFSET_X + level->cols * CELL_W &&
+           y > STAGE_OFFSET_Y &&
+           y < STAGE_OFFSET_Y + level->rows * CELL_H);
+}
+
 /* Local subsystem callbacks */
 static void
 _window_delete_req_cq(Ecore_Evas *window)
@@ -103,19 +121,6 @@ _add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const cha
 {
    D("'%s' '%s'", emission, source);
    ede_tower_add(source);
-}
-
-static void
-_checkboard_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
-{
-   D(" ");
-   if (!checkboard_click_handled)
-   {
-      ede_gui_selection_hide();
-      ede_gui_tower_info_set(NULL, NULL, NULL);
-      ede_tower_deselect();
-   }
-   else checkboard_click_handled = EINA_FALSE;
 }
 
 EAPI void
@@ -159,6 +164,53 @@ _ecore_event_key_down_cb(void *data, int type, void *event)
 
    return ECORE_CALLBACK_CANCEL;
 }
+
+static int
+_ecore_event_mouse_move_cb(void *data, int type, void *event)
+{
+   Ecore_Event_Mouse_Move *ev = event;
+   Ede_Game_State state = ede_game_state_get();
+
+   if ( state == GAME_STATE_AREA_REQUEST)
+      _area_request_mouse_move(ev->x, ev->y);
+   
+   return ECORE_CALLBACK_CANCEL;
+}
+
+static int
+_ecore_event_mouse_down_cb(void *data, int type, void *event)
+{
+   Ecore_Event_Mouse_Button *ev = event;
+   Ede_Game_State state = ede_game_state_get();
+   Eina_Bool inside = _point_inside_checkboard(ev->x, ev->y);
+   Ede_Level *level = ede_level_current_get();
+   int row, col;
+
+   if (state == GAME_STATE_AREA_REQUEST)
+   {
+      _area_request_mouse_down(ev->x, ev->y);
+      return ECORE_CALLBACK_CANCEL;
+   }
+
+   if (state == GAME_STATE_PLAYING)
+   {
+      if (inside) // click inside checkboard
+      {
+         D(" IN");
+         ede_gui_cell_get_at_coords(ev->x, ev->y, &row, &col);
+         D(" IN [%d %d - %d]", row, col, level->cells[row][col]);
+         if (level->cells[row][col] == CELL_TOWER)
+            ede_tower_select_at(row, col);
+         else
+            ede_tower_deselect();
+      }
+      else
+         D("OUT");
+   }
+
+   return ECORE_CALLBACK_CANCEL;
+}
+
 
 /* Externally accessible functions */
 
@@ -234,23 +286,29 @@ ede_gui_init(void)
    _move_at(o_checkboard, 0, 0);
    evas_object_resize(o_checkboard, 0, 0);
    evas_object_show(o_checkboard);
-   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_DOWN, _checkboard_mouse_down_cb, NULL);
-   
+
    // create the selection object
    o_selection = edje_object_add(canvas);
    edje_object_file_set(o_selection, theme_file, "ede/selection");
    // selection circle
    o_circle = evas_object_polygon_add(canvas);
-   evas_object_pass_events_set(o_circle, EINA_TRUE);
    evas_object_color_set(o_circle, 100, 100, 100, 100);
    Evas_Object *clipper; //TODO clip to the checkboard, not the stage.clipper
    clipper = (Evas_Object *)edje_object_part_object_get(o_layout, "stage.clipper");
    evas_object_clip_set(o_circle, clipper);
 
 
-   // connect keyboard press event
-   _keyb_handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
-                                           _ecore_event_key_down_cb, NULL);
+
+   // connect keyboard & mouse event
+   event_handlers = eina_list_append(event_handlers,
+                     ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
+                                             _ecore_event_key_down_cb, NULL));   
+   event_handlers = eina_list_append(event_handlers,
+                     ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE,
+                                             _ecore_event_mouse_move_cb, NULL));
+   event_handlers = eina_list_append(event_handlers,
+                     ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN,
+                                             _ecore_event_mouse_down_cb, NULL));
 
    return EINA_TRUE;
 }
@@ -261,10 +319,13 @@ ede_gui_init(void)
 EAPI Eina_Bool
 ede_gui_shutdown(void)
 {
+   Ecore_Event_Handler *h;
+
    D(" ");
 
-   // disconnect keyboard events
-   ecore_event_handler_del(_keyb_handler);
+   // disconnect all ecore events
+   EINA_LIST_FREE(event_handlers, h)
+      EDE_EVENT_HANDLER_DEL(h);
    
    // free all interface components
    EDE_OBJECT_DEL(o_circle);
@@ -282,12 +343,18 @@ ede_gui_shutdown(void)
    return EINA_TRUE;
 }
 
+/**
+ * Get the evas canvas
+ */
 EAPI Evas *
 ede_gui_canvas_get(void)
 {
    return canvas;
 }
 
+/**
+ * Get the full path to the edje theme file
+ */
 EAPI const char *
 ede_gui_theme_get(void)
 {
@@ -365,15 +432,11 @@ ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
 EAPI Eina_Bool
 ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
 {
-   // TODO GET THE OFFSET FROM THE THEME
-   int offset_x = 180;
-   int offset_y = 60;
-
    if (row > checkboard_rows || col > checkboard_cols)
       return EINA_FALSE;
    
-   if (x) *x = (col * CELL_W + offset_x) + (center * CELL_W / 2);
-   if (y) *y = (row * CELL_H + offset_y) + (center * CELL_H / 2);
+   if (x) *x = (col * CELL_W + STAGE_OFFSET_X) + (center * CELL_W / 2);
+   if (y) *y = (row * CELL_H + STAGE_OFFSET_Y) + (center * CELL_H / 2);
    return EINA_TRUE;
 }
 
@@ -384,12 +447,8 @@ ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
 EAPI Eina_Bool
 ede_gui_cell_get_at_coords(int x, int y, int *row, int *col)
 {
-   // TODO GET THE OFFSET FROM THE THEME
-   int offset_x = 180;
-   int offset_y = 60;
-
-   if (row) *row = (y - offset_y) / CELL_W;
-   if (col) *col = (x - offset_x) / CELL_H;
+   if (row) *row = (y - STAGE_OFFSET_Y) / CELL_W;
+   if (col) *col = (x - STAGE_OFFSET_X) / CELL_H;
    return EINA_TRUE;
 }
 
@@ -498,6 +557,7 @@ ede_gui_cell_overlay_text_set(int row, int col, int val, int pos)
 }
 
 /*****************  SELECTION OBJECT ******************************************/
+
 EAPI void
 ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
 {
@@ -548,24 +608,23 @@ ede_gui_selection_hide(void)
    evas_object_hide(o_circle);
 }
 
-/*****************  FREE AREA REQUEST  ****************************************/
+/*****************  AREA REQUEST STUFF ****************************************/
 
 static void
-_sel_mouse_out_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
+_area_request_mouse_move(int x, int y)
 {
-   evas_object_hide(o_selection);
-}
-
-static void
-_sel_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
-{
-   Evas_Event_Mouse_Move *ev = event_info;
-   int row = 0, col = 0, i, j;
-
-   // get cell under the mouse
-   if (ede_gui_cell_get_at_coords(ev->cur.canvas.x, ev->cur.canvas.y, &row, &col))
+   int row, col, i, j;
+   
+   if (!_point_inside_checkboard(x, y))
    {
-      // check if all the cells needed are walkable
+      ede_gui_selection_hide();
+      return;
+   }
+
+   // draw the area request selection
+   if (ede_gui_cell_get_at_coords(x, y, &row, &col))
+   {
+      // check if all the cells requested are walkable
       selection_ok = EINA_TRUE;
       for (i = 0; i < area_req_cols; i++)
          for (j = 0; j < area_req_rows; j++)
@@ -578,14 +637,11 @@ _sel_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
       // move the selection at the right place
       ede_gui_selection_show_at(row, col, area_req_rows, area_req_cols, 0);
    }
-   else ede_gui_selection_hide();
-
 }
 
 static void
-_sel_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
+_area_request_mouse_down(int x, int y)
 {
-   Evas_Event_Mouse_Down *ev = event_info;
    Ede_Level *level;
    Eina_List *l;
    int mouse_row, mouse_col;
@@ -593,20 +649,25 @@ _sel_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 
    D(" ");
 
+   // click outside the checkboard, stop area-request
+   if (!_point_inside_checkboard(x, y))
+   {
+      ede_gui_request_area_end();
+      return;
+   }
+
+   // selection is in a not valid position
    if (!selection_ok)
    {
       D("Wrong selection");
       return;
    }
 
-   // stupid trick to stop the propagation of this event in the _checkboard_mouse_down_cb() callback
-   checkboard_click_handled = EINA_TRUE;
-
    // all the needed cells are free, now check if we are blocking all the
    // possible path. Pathfind from all the starting base to the home.
 
    level = ede_level_current_get();
-   ede_gui_cell_get_at_coords(ev->canvas.x, ev->canvas.y, &mouse_row, &mouse_col);
+   ede_gui_cell_get_at_coords(x, y, &mouse_row, &mouse_col);
 
    // set all the needed cells to a temporary (unwalkable) value   
    for (i = 0; i < area_req_cols; i++)
@@ -642,17 +703,10 @@ end_loop:
 
    if (selection_ok)
    {
-      // selection complete, call the selection callback
+      // selection ok, call the selection callback
       if (area_req_done_cb)
-         area_req_done_cb(mouse_row, mouse_col, area_req_cols, area_req_rows, area_req_done_data);
-
-      // clear the selection stuff
-      evas_object_event_callback_del(obj,EVAS_CALLBACK_MOUSE_MOVE,_sel_mouse_move_cb);
-      evas_object_event_callback_del(obj,EVAS_CALLBACK_MOUSE_OUT,_sel_mouse_out_cb);
-      evas_object_event_callback_del(obj, EVAS_CALLBACK_MOUSE_DOWN, _sel_mouse_down_cb);
-      area_req_done_cb = NULL;
-      area_req_done_data = NULL;
-      area_req_cols = area_req_rows = 0;
+         area_req_done_cb(mouse_row, mouse_col, area_req_cols, area_req_rows,
+                          area_req_done_data);
    }
    else
    {
@@ -666,13 +720,20 @@ ede_gui_request_area(int w, int h, void (*done_cb)(int row, int col, int w, int 
 {
    D(" ");
 
-   //~ evas_object_raise(o_selection);
-   //~ evas_object_resize(o_selection, w * CELL_W, h * CELL_H);
+   ede_game_state_set(GAME_STATE_AREA_REQUEST);
    area_req_cols = w;
    area_req_rows = h;
    area_req_done_cb = done_cb;
    area_req_done_data = data;
-   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_MOVE, _sel_mouse_move_cb, NULL);
-   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_OUT, _sel_mouse_out_cb, NULL);
-   evas_object_event_callback_add(o_checkboard, EVAS_CALLBACK_MOUSE_DOWN, _sel_mouse_down_cb, NULL);
+}
+
+EAPI void
+ede_gui_request_area_end(void)
+{
+   D(" ");
+
+   // clear the area request global stuff
+   area_req_done_data = NULL;
+   area_req_cols = area_req_rows = 0;
+   ede_game_state_set(GAME_STATE_PLAYING);
 }
