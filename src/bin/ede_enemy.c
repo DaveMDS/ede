@@ -8,6 +8,7 @@
  */
 
 #include <math.h>
+#include <stdio.h>
 #include <Eina.h>
 #include <Ecore.h>
 
@@ -34,6 +35,8 @@
 /* Local subsystem vars */
 static Eina_List *deads = NULL;
 static Eina_List *alives = NULL;
+static int _count_spawned = 0;
+static int _count_killed = 0;
 
 /* Local subsystem callbacks */
 static void
@@ -205,11 +208,11 @@ EAPI Eina_Bool
 ede_enemy_shutdown(void)
 {
    Ede_Enemy *e;
-   
+
    D(" ");
-   EINA_LIST_FREE(deads, e);
+   EINA_LIST_FREE(deads, e)
       _enemy_del(e);
-   EINA_LIST_FREE(alives, e);
+   EINA_LIST_FREE(alives, e)
       _enemy_del(e);
    return EINA_TRUE;
 }
@@ -281,6 +284,9 @@ ede_enemy_spawn(const char *type, int speed, int strength,
    evas_object_show(e->obj);
    evas_object_show(e->o_gauge1);
    evas_object_show(e->o_gauge2);
+
+   // global counter
+   _count_spawned++;
 }
 
 EAPI void
@@ -296,12 +302,15 @@ ede_enemy_kill(Ede_Enemy *e)
    evas_object_hide(e->obj);
    evas_object_hide(e->o_gauge1);
    evas_object_hide(e->o_gauge2);
+
+   // global counter
+   _count_killed++;
 }
 
 EAPI void
 ede_enemy_damage(Ede_Enemy *e, int damage)
 {
-   D("DAMAGE %d [%d]", e->energy, e->strength);
+   //~ D("DAMAGE %d [%d]", e->energy, e->strength);
 
    e->energy -= damage;
    if (e->energy <= 0)
@@ -368,6 +377,21 @@ ede_enemy_path_recalc_all(void)
    D(" ");
    EINA_LIST_FOREACH(alives, l, e)
       _path_recalc(e);
+}
+
+EAPI void
+ede_enemy_debug_info_fill(Eina_Strbuf *t)
+{
+   char buf[1024];
+
+   eina_strbuf_append(t, "<h3>enemies:</h3><br>");
+   snprintf(buf, sizeof(buf), "active %d  on-hold %d<br>",
+            eina_list_count(alives), eina_list_count(deads));
+   eina_strbuf_append(t, buf);
+   snprintf(buf, sizeof(buf), "spawned %d  killed %d<br>",
+            _count_spawned, _count_killed);
+   eina_strbuf_append(t, buf);
+   eina_strbuf_append(t, "<br>");
 }
 
 /*

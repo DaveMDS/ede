@@ -41,6 +41,7 @@ struct _Ede_Bullet {
 /* Local subsystem vars */
 static Eina_List *bullets = NULL;   //** Current active bullets */
 static Eina_List *inactives = NULL; //** List of Ede_Bullet* to reuse */
+static int _count_fired = 0;
 
 
 /* Local subsystem callbacks */
@@ -110,6 +111,8 @@ ede_bullet_add(int start_x, int start_y, Ede_Enemy *target, int speed, int damag
    evas_object_show(b->obj);
 
    EINA_LIST_PUSH(bullets, b);
+
+   _count_fired++;
 }
 
 EAPI void
@@ -138,4 +141,18 @@ ede_bullet_one_step_all(double time)
       b->y += (b->target->y - b->y) / distance * time * 128;
       evas_object_move(b->obj, b->x + 0.5, b->y + 0.5);
    }
+}
+
+EAPI void
+ede_bullet_debug_info_fill(Eina_Strbuf *t)
+{
+   char buf[1024];
+
+   eina_strbuf_append(t, "<h3>bullets:</h3><br>");
+   snprintf(buf, sizeof(buf), "active %d  on-hold %d<br>",
+            eina_list_count(bullets), eina_list_count(inactives));
+   eina_strbuf_append(t, buf);
+   snprintf(buf, sizeof(buf), "fired %d<br>",_count_fired);
+   eina_strbuf_append(t, buf);
+   eina_strbuf_append(t, "<br>");
 }

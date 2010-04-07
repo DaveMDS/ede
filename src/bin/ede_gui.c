@@ -37,6 +37,7 @@ static const char *theme_file; /** full path to the theme file */
 static Ecore_Evas *window;     /** window handle */
 static Evas *canvas;           /** evas canvas */
 static Evas_Object *o_layout;    /** main edje object containing the interface */
+static Ecore_Event_Handler *_keyb_handler; /** event handler for key press */
 
 static Evas_Object *o_checkboard; /**< the level background object */
 static int checkboard_rows, checkboard_cols; /**< current size of the checkboard */
@@ -90,13 +91,15 @@ _window_delete_req_cq(Ecore_Evas *window)
    ecore_main_loop_quit();
 }
 
-void _debug_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
+static void
+_debug_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
    ede_game_debug_hook();
    D(" ");
 }
 
-void _add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
+static void
+_add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
    D("'%s' '%s'", emission, source);
    ede_tower_add(source);
@@ -113,6 +116,48 @@ _checkboard_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_inf
       ede_tower_deselect();
    }
    else checkboard_click_handled = EINA_FALSE;
+}
+
+EAPI void
+ede_gui_debug_text_set(const char *text)
+{
+   edje_object_part_text_set(o_layout, "debug.panel.text", text);
+}
+
+static int
+_ecore_event_key_down_cb(void *data, int type, void *event)
+{
+   Ecore_Event_Key *ev = event;
+   static Eina_Bool dpanel_visible = EINA_FALSE;
+
+   if (ev->modifiers) return ECORE_CALLBACK_RENEW;
+
+   if (!strcmp(ev->key, "d"))
+   {
+      D("D [destroy]");
+   }
+   else if (!strcmp(ev->key, "F12"))
+   {
+      D("F12: toggle debug panel");
+      dpanel_visible = !dpanel_visible;
+      if (dpanel_visible)
+      {
+         edje_object_signal_emit(o_layout, "debug,panel,show", "");
+         ede_game_debug_panel_enable(EINA_TRUE);
+      }
+      else
+      {
+         edje_object_signal_emit(o_layout, "debug,panel,hide", "");
+         ede_game_debug_panel_enable(EINA_FALSE);
+      }
+   }
+   else if (!strcmp(ev->key, "Escape"))
+   {
+      D("ESC");
+   }
+
+
+   return ECORE_CALLBACK_CANCEL;
 }
 
 /* Externally accessible functions */
@@ -202,6 +247,11 @@ ede_gui_init(void)
    clipper = (Evas_Object *)edje_object_part_object_get(o_layout, "stage.clipper");
    evas_object_clip_set(o_circle, clipper);
 
+
+   // connect keyboard press event
+   _keyb_handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
+                                           _ecore_event_key_down_cb, NULL);
+
    return EINA_TRUE;
 }
 
@@ -213,6 +263,9 @@ ede_gui_shutdown(void)
 {
    D(" ");
 
+   // disconnect keyboard events
+   ecore_event_handler_del(_keyb_handler);
+   
    // free all interface components
    EDE_OBJECT_DEL(o_circle);
    EDE_OBJECT_DEL(o_selection);

@@ -49,10 +49,10 @@ styles
       base: "font=Sans font_size=10 align=left color=#FFF wrap=word";
       tag:  "br" "\n";
       //~ tag:  "hilight" "+ font_size=18 font=content_bd color=#A0D026";
-      //~ tag:  "b" "+ font=content_bd";
+      tag:  "b" "+ font=Sans:style=Bold";
       //~ tag:  "tab" "\t";
       //~ tag:  "c" "+ align=center font_size=24 font=content_bd color=#A0D026A0 color2=#A0D026A0 style=GLOW";
-      //~ tag:  "big" "+ align=center font_size=36 color=#CCC style=soft_shadow shadow_color=#0000003f";
+      tag:  "h3" "+ align=center font_size=12 color=#CCC style=soft_shadow shadow_color=#0000003f";
    }
 }
 
@@ -223,6 +223,38 @@ collections {
                rel2.offset: -11 -61;
             }
          }
+         /* Debug info panel */
+         part { name: "debug.panel";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 20 20 20 255;
+               rel1.offset: -175 0;
+               rel2.relative: 0.0 0.0;
+               rel2.offset: 0 300;
+         
+            }
+            description { state: "visible" 0.0;
+               inherit: "default" 0.0;
+               rel1.offset: 0 0;
+               rel2.offset: 175 300;
+            }
+         }
+         part { name: "debug.panel.text";
+            type: TEXTBLOCK;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               rel1.to: "debug.panel";
+               rel1.offset: 3 3;
+               rel2.to: "debug.panel";
+               rel2.offset: -4 -4;
+               text {
+                  text: "suka";
+                  style: "ede_style";
+               }
+         
+            }
+         }
       }
       programs {
          /* debug */
@@ -230,6 +262,20 @@ collections {
             signal: "mouse,down,1";
             source: "a button";
             action: SIGNAL_EMIT "button,pressed" "debug";
+         }
+         program {
+            signal: "debug,panel,show";
+            source: "";
+            action: STATE_SET "visible" 0.0;
+            transition: LINEAR 0.4;
+            target: "debug.panel";
+         }
+         program {
+            signal: "debug,panel,hide";
+            source: "";
+            action: STATE_SET "default" 0.0;
+            transition: LINEAR 0.4;
+            target: "debug.panel";
          }
          /* add buttons */
          program {

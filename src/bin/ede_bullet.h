@@ -16,6 +16,7 @@ EAPI Eina_Bool ede_bullet_shutdown(void);
 
 EAPI void ede_bullet_add(int start_x, int start_y, Ede_Enemy *target, int speed, int damage);
 EAPI void ede_bullet_one_step_all(double time);
+EAPI void ede_bullet_debug_info_fill(Eina_Strbuf *t);
 
 
 #endif /* EDE_BULLET_H */

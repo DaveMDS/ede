@@ -7,6 +7,7 @@
  *
  */
 
+#include <stdio.h>
 #include <Eina.h>
 #include <Ecore.h>
 
@@ -19,7 +20,7 @@
 #include "ede_tower.h"
 #include "ede_bullet.h"
 
-#define LOCAL_DEBUG 0
+#define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
 #define D DBG
 #else
@@ -29,6 +30,8 @@
 /* Local subsystem vars */
 static Ede_Level *current_level = NULL;
 static int current_wave_num = 0;
+static Eina_Bool _debug_panel_enable = EINA_FALSE;
+static double _start_time;
 
 /* Local subsystem functions */
 static int
@@ -38,19 +41,59 @@ _game_loop(void *data)
    double elapsed, now;
 
    // calc time between each frame
-   if (!last_time) // need a time reference, the firts call is discarted !!
-   {
-      last_time = ecore_time_get();
-      return ECORE_CALLBACK_RENEW;
-   }
    now = ecore_loop_time_get();
    elapsed = now - last_time;
    last_time = now;
    
-   // recalc position for every enemy
+   // recalc enemys
    ede_enemy_one_step_all(elapsed);
+   // recalc towers
    ede_tower_one_step_all(elapsed);
+   // recalc bullets
    ede_bullet_one_step_all(elapsed);
+
+   // update debug panel
+   if (_debug_panel_enable)
+   {
+      Eina_Strbuf *t;
+      char buf[1024];
+      char *ts;
+      static int last_second = 0;
+      static int fps_counter = 0;
+      static int FPS = 0;
+      
+      // calc FPS
+      fps_counter++;
+      if ((int)now > last_second)
+      {
+         //~ D("last second %d %d", last_second, fps_counter);
+         last_second = now;
+         FPS = fps_counter;
+         fps_counter = 0;
+      }
+      
+      
+      t = eina_strbuf_new();
+
+      // game info
+      eina_strbuf_append(t, "<h3>game:</h3><br>");
+      ts = ede_game_time_get(now);
+      snprintf(buf, sizeof(buf), "FPS %d  time %s<br>", FPS,ts);
+      EDE_FREE(ts);
+      eina_strbuf_append(t, buf);
+      snprintf(buf, sizeof(buf), "waves %d  energy %d<br>",
+               current_wave_num, 123);
+      eina_strbuf_append(t, buf);
+      eina_strbuf_append(t, "<br>");
+
+      // info from other components
+      ede_enemy_debug_info_fill(t);
+      ede_tower_debug_info_fill(t);
+      ede_bullet_debug_info_fill(t);
+
+      ede_gui_debug_text_set(eina_strbuf_string_get(t));
+      eina_strbuf_free(t);
+   }
    
    return ECORE_CALLBACK_RENEW;
 }
@@ -62,7 +105,7 @@ _delayed_spawn(void *data)
    int count;
    int start_row, start_col;
    Eina_List *points;
-   D(" ");
+   //~ D(" ");
 
    wave->count--;
 
@@ -156,6 +199,9 @@ _game_start(Ede_Level *level)
    }
    ede_gui_cell_overlay_add(OVERLAY_COLOR_GREEN, level->home_row, level->home_col);
 
+
+   _start_time = ecore_loop_time_get();
+
    // spawn the first wave (that will spawn the others, in chain)
    _next_wave(NULL);
    
@@ -211,4 +257,30 @@ ede_game_debug_hook(void)
    ede_tower_destroy_selected();
    
    
+}
+
+EAPI void
+ede_game_debug_panel_enable(Eina_Bool enable)
+{
+   _debug_panel_enable = enable;
+}
+
+EAPI char *
+ede_game_time_get(double now)
+{
+   char buf[16];
+   int seconds, minutes, hours;
+
+   seconds = (int)(now - _start_time);
+   minutes = seconds / 60;
+   hours = minutes / 60;
+
+   if (hours > 0)
+      snprintf(buf, sizeof(buf), "%dh %dm %ds", hours, minutes % 60, seconds % 60);
+   else if (minutes > 0)
+      snprintf(buf, sizeof(buf), "%dm %ds", minutes % 60, seconds % 60);
+   else
+      snprintf(buf, sizeof(buf), "%ds", seconds);
+
+   return strdup(buf);
 }

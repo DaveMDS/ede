@@ -70,6 +70,7 @@ EAPI void      ede_gui_selection_hide(void);
 
 EAPI void      ede_gui_request_area(int w, int h, void (*done_cb)(int row, int col, int w, int h, void *data), void *data);
 
+EAPI void      ede_gui_debug_text_set(const char *text);
 
 
 #endif /* EDE_GUI_H */

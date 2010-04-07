@@ -28,6 +28,7 @@ EAPI void ede_tower_add(const char *type);
 EAPI void ede_tower_destroy_selected(void);
 EAPI void ede_tower_deselect(void);
 EAPI void ede_tower_one_step_all(double time);
+EAPI void ede_tower_debug_info_fill(Eina_Strbuf *t);
 
 
 

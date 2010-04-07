@@ -43,5 +43,6 @@ EAPI void ede_enemy_damage(Ede_Enemy *e, int damage);
 EAPI void ede_enemy_one_step_all(double time);
 EAPI void ede_enemy_path_recalc_all(void);
 EAPI Ede_Enemy *ede_enemy_nearest_get(int x, int y, int *angle, int *distance);
+EAPI void ede_enemy_debug_info_fill(Eina_Strbuf *t);
 
 #endif /* EDE_ENEMY_H */

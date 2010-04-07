@@ -16,6 +16,8 @@
 EAPI Eina_Bool ede_game_init(void);
 EAPI Eina_Bool ede_game_shutdown(void);
 
-EAPI void ede_game_debug_hook(void);
+EAPI void  ede_game_debug_hook(void);
+EAPI void  ede_game_debug_panel_enable(Eina_Bool enable);
+EAPI char *ede_game_time_get(double now);
 
 #endif /* EDE_GAME_H */
