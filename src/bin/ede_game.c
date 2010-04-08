@@ -36,6 +36,7 @@ static Ede_Level *current_level = NULL;
 static int current_wave_num = 0;
 static int _player_lives;
 static int _player_bucks;
+static int _player_score;
 static Eina_Bool _debug_panel_enable = EINA_FALSE;
 static double _start_time;
 
@@ -210,8 +211,11 @@ _game_start(Ede_Level *level)
    _start_time = ecore_loop_time_get();
    _player_lives = level->lives;
    _player_bucks = level->bucks;
+   _player_score = 2;
 
    ede_gui_lives_set(_player_lives);
+   ede_gui_bucks_set(_player_lives);
+   ede_gui_score_set(_player_score);
    ede_game_state_set(GAME_STATE_PLAYING);
 
    // spawn the first wave (that will spawn the others, in chain)

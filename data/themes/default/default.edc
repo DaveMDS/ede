@@ -32,6 +32,7 @@ images {
    image: "overlay_wall.png" COMP;
    image: "icon_lives.png" COMP;
    image: "icon_bucks.png" COMP;
+   image: "icon_score.png" COMP;
 
 }
 
@@ -92,7 +93,7 @@ collections {
                max: 15 15;
                min: 15 15;
                align: 0.0 0.0;
-               rel1.offset: 10 20;
+               rel1.offset: 15 20;
                image.normal: "icon_lives.png";
             }
          }
@@ -100,7 +101,8 @@ collections {
             type: TEXT;
             mouse_events:  0;
             description { state: "default" 0.0;
-               color: 255 0 0 255;
+               color: 200 10 10 255;
+
                max: 30 15;
                min: 30 15;
                align: 0.0 0.0;
@@ -141,6 +143,40 @@ collections {
                rel1.to: "bucks.icon";
                rel1.relative: 1.0 0.0;
                rel2.to: "bucks.icon";
+               rel2.relative: 1.0 1.0;
+               text {
+                  align: 0.0 0.5;
+                  text: "0";
+                  font: "Sans:style=Bold";
+                  size: 14;
+               }
+
+            }
+         }
+
+         /* score icon + text */
+         part { name: "score.icon";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               max: 15 15;
+               min: 15 15;
+               align: 0.0 0.0;
+               rel1.offset: 15 40;
+               image.normal: "icon_score.png";
+            }
+         }
+         part { name: "score.icon.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 224 152 88 255;
+               max: 150 15;
+               min: 150 15;
+               align: 0.0 0.0;
+               rel1.to: "score.icon";
+               rel1.relative: 1.0 0.0;
+               rel2.to: "score.icon";
                rel2.relative: 1.0 1.0;
                text {
                   align: 0.0 0.5;

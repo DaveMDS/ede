@@ -57,6 +57,7 @@ EAPI Eina_Bool   ede_gui_level_init(int rows, int cols);
 EAPI void        ede_gui_level_clear(void);
 EAPI void        ede_gui_lives_set(int lives);
 EAPI void        ede_gui_bucks_set(int bucks);
+EAPI void        ede_gui_score_set(int score);
 
 EAPI void        ede_gui_tower_info_set(const char *name, const char *icon, const char *text);
 

@@ -412,8 +412,7 @@ EAPI void
 ede_gui_lives_set(int lives)
 {
    char buf[16];
-
-   snprintf(buf, sizeof(buf), "%d", lives);
+   eina_convert_itoa(lives, buf);
    edje_object_part_text_set(o_layout, "lives.icon.text", buf);
 }
 
@@ -421,9 +420,16 @@ EAPI void
 ede_gui_bucks_set(int bucks)
 {
    char buf[16];
-
-   snprintf(buf, sizeof(buf), "%d", bucks);
+   eina_convert_itoa(bucks, buf);
    edje_object_part_text_set(o_layout, "bucks.icon.text", buf);
+}
+
+EAPI void
+ede_gui_score_set(int score)
+{
+   char buf[16];
+   eina_convert_itoa(score, buf);
+   edje_object_part_text_set(o_layout, "score.icon.text", buf);
 }
 
 /**
