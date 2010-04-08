@@ -135,8 +135,6 @@ _ecore_event_key_down_cb(void *data, int type, void *event)
    Ecore_Event_Key *ev = event;
    static Eina_Bool dpanel_visible = EINA_FALSE;
 
-   if (ev->modifiers) return ECORE_CALLBACK_RENEW;
-
    if (!strcmp(ev->key, "d"))
    {
       D("D [destroy]");
@@ -408,6 +406,24 @@ ede_gui_level_clear(void)
    // hide the checkboard
    evas_object_resize(o_checkboard, 0, 0);
    checkboard_rows = checkboard_cols = 0;
+}
+
+EAPI void
+ede_gui_lives_set(int lives)
+{
+   char buf[16];
+
+   snprintf(buf, sizeof(buf), "%d", lives);
+   edje_object_part_text_set(o_layout, "lives.icon.text", buf);
+}
+
+EAPI void
+ede_gui_bucks_set(int bucks)
+{
+   char buf[16];
+
+   snprintf(buf, sizeof(buf), "%d", bucks);
+   edje_object_part_text_set(o_layout, "bucks.icon.text", buf);
 }
 
 /**

@@ -400,7 +400,7 @@ ede_enemy_debug_info_fill(Eina_Strbuf *t)
    char buf[1024];
 
    eina_strbuf_append(t, "<h3>enemies:</h3><br>");
-   snprintf(buf, sizeof(buf), "active %d  on-hold %d [max: %d]<br>",
+   snprintf(buf, sizeof(buf), "on %.3d  off %.3d [max: %d]<br>",
             eina_list_count(alives), eina_list_count(deads),
             eina_list_count(alives) + eina_list_count(deads));
    eina_strbuf_append(t, buf);

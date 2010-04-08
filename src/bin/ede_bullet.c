@@ -172,7 +172,7 @@ ede_bullet_debug_info_fill(Eina_Strbuf *t)
    char buf[1024];
 
    eina_strbuf_append(t, "<h3>bullets:</h3><br>");
-   snprintf(buf, sizeof(buf), "on %d  off %d [max %d]<br>",
+   snprintf(buf, sizeof(buf), "on %.3d  off %.3d [max %d]<br>",
             eina_list_count(bullets), eina_list_count(inactives),
             eina_list_count(bullets) + eina_list_count(inactives));
    eina_strbuf_append(t, buf);

@@ -30,6 +30,8 @@ images {
    image: "overlay_green.png" COMP;
    image: "overlay_blue.png" COMP;
    image: "overlay_wall.png" COMP;
+   image: "icon_lives.png" COMP;
+   image: "icon_bucks.png" COMP;
 
 }
 
@@ -81,6 +83,75 @@ collections {
                align: 0.95 0.03;
             }
          }
+
+         /* lives icon + text */
+         part { name: "lives.icon";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               max: 15 15;
+               min: 15 15;
+               align: 0.0 0.0;
+               rel1.offset: 10 20;
+               image.normal: "icon_lives.png";
+            }
+         }
+         part { name: "lives.icon.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 255 0 0 255;
+               max: 30 15;
+               min: 30 15;
+               align: 0.0 0.0;
+               rel1.to: "lives.icon";
+               rel1.relative: 1.0 0.0;
+               rel2.to: "lives.icon";
+               rel2.relative: 1.0 1.0;
+               text {
+                  text: "20";
+                  font: "Sans:style=Bold";
+                  size: 14;
+                  align: 0.0 0.5;
+               }
+
+            }
+         }
+
+         /* bucks icon + text */
+         part { name: "bucks.icon";
+            type: IMAGE;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               max: 15 15;
+               min: 15 15;
+               align: 0.0 0.0;
+               rel1.offset: 60 20;
+               image.normal: "icon_bucks.png";
+            }
+         }
+         part { name: "bucks.icon.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 160 25 255;
+               max: 150 15;
+               min: 150 15;
+               align: 0.0 0.0;
+               rel1.to: "bucks.icon";
+               rel1.relative: 1.0 0.0;
+               rel2.to: "bucks.icon";
+               rel2.relative: 1.0 1.0;
+               text {
+                  align: 0.0 0.5;
+                  text: "0";
+                  font: "Sans:style=Bold";
+                  size: 14;
+               }
+
+            }
+         }
+
          /* add standard tower button */
          part { name: "btn_tower_add_normal";
             type: IMAGE;
@@ -229,15 +300,15 @@ collections {
             mouse_events:  0;
             description { state: "default" 0.0;
                color: 20 20 20 255;
-               rel1.offset: -175 0;
+               rel1.offset: -176 55;
                rel2.relative: 0.0 0.0;
-               rel2.offset: 0 300;
+               rel2.offset: -1 360;
 
             }
             description { state: "visible" 0.0;
                inherit: "default" 0.0;
-               rel1.offset: 0 0;
-               rel2.offset: 175 300;
+               rel1.offset: 0 55;
+               rel2.offset: 175 360;
             }
          }
          part { name: "debug.panel.text";
@@ -245,7 +316,7 @@ collections {
             mouse_events:  0;
             description { state: "default" 0.0;
                rel1.to: "debug.panel";
-               rel1.offset: 3 3;
+               rel1.offset: 4 4;
                rel2.to: "debug.panel";
                rel2.offset: -4 -4;
                text {

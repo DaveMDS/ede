@@ -211,6 +211,7 @@ _game_start(Ede_Level *level)
    _player_lives = level->lives;
    _player_bucks = level->bucks;
 
+   ede_gui_lives_set(_player_lives);
    ede_game_state_set(GAME_STATE_PLAYING);
 
    // spawn the first wave (that will spawn the others, in chain)
@@ -314,6 +315,8 @@ ede_game_home_violated(void)
 {
    if (_player_lives-- <= 0)
       D("YOU LOOSE");
+   else
+      ede_gui_lives_set(_player_lives);
 }
 
 EAPI int
@@ -326,5 +329,6 @@ EAPI void
 ede_game_bucks_gain(int bucks)
 {
    _player_bucks += bucks;
+   ede_gui_bucks_set(_player_bucks);
 }
 
