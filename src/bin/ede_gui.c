@@ -94,7 +94,7 @@ static Eina_Bool
 _point_inside_checkboard(int x, int y)
 {
    Ede_Level *level = ede_level_current_get();
-   
+
    return (x > STAGE_OFFSET_X &&
            x < STAGE_OFFSET_X + level->cols * CELL_W &&
            y > STAGE_OFFSET_Y &&
@@ -173,7 +173,7 @@ _ecore_event_mouse_move_cb(void *data, int type, void *event)
 
    if (state == GAME_STATE_AREA_REQUEST)
       _area_request_mouse_move(ev->x, ev->y);
-   
+
    return ECORE_CALLBACK_CANCEL;
 }
 
@@ -244,7 +244,7 @@ ede_gui_init(void)
    }
    INF("Available evas engine: %s", buf);
    ecore_evas_engines_free(engines);
-   
+
    // create window
    window = ecore_evas_new(NULL, 0, 0, WIN_W, WIN_H, NULL);
    if (!window)
@@ -309,7 +309,7 @@ ede_gui_init(void)
    // connect keyboard & mouse event
    event_handlers = eina_list_append(event_handlers,
                      ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
-                                             _ecore_event_key_down_cb, NULL));   
+                                             _ecore_event_key_down_cb, NULL));
    event_handlers = eina_list_append(event_handlers,
                      ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE,
                                              _ecore_event_mouse_move_cb, NULL));
@@ -333,7 +333,7 @@ ede_gui_shutdown(void)
    // disconnect all ecore events
    EINA_LIST_FREE(event_handlers, h)
       EDE_EVENT_HANDLER_DEL(h);
-   
+
    // free all interface components
    EDE_OBJECT_DEL(o_circle);
    EDE_OBJECT_DEL(o_selection);
@@ -441,7 +441,7 @@ ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
 {
    if (row > checkboard_rows || col > checkboard_cols)
       return EINA_FALSE;
-   
+
    if (x) *x = (col * CELL_W + STAGE_OFFSET_X) + (center * CELL_W / 2);
    if (y) *y = (row * CELL_H + STAGE_OFFSET_Y) + (center * CELL_H / 2);
    return EINA_TRUE;
@@ -449,7 +449,7 @@ ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
 
 
 /**
- * Get the cell (row,col) at the given screen coords (in pixel) 
+ * Get the cell (row,col) at the given screen coords (in pixel)
  */
 EAPI Eina_Bool
 ede_gui_cell_get_at_coords(int x, int y, int *row, int *col)
@@ -480,7 +480,7 @@ ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col)
       obj = edje_object_add(canvas);
       edje_object_file_set(obj, theme_file, "ede/cell_overlay");
       evas_object_pass_events_set(obj, EINA_TRUE);
-   
+
       _move_at(obj, row, col);
       evas_object_resize(obj, CELL_W, CELL_H);
       evas_object_show(obj);
@@ -555,7 +555,7 @@ ede_gui_cell_overlay_text_set(int row, int col, int val, int pos)
 {
    char buf[8];
    Evas_Object *obj = overlays[row][col];
-   
+
    if (!obj) return;
 
    snprintf(buf, sizeof(buf), "%d", val);
@@ -700,12 +700,12 @@ _area_request_mouse_down(int x, int y,
     * possible path. Pathfind from all the starting bases to the home.
     */
 
-  
-   // set all the needed cells to a temporary (unwalkable) value   
+
+   // set all the needed cells to a temporary (unwalkable) value
    for (i = 0; i < area_req_cols; i++)
       for (j = 0; j < area_req_rows; j++)
          level->cells[mouse_row + j][mouse_col + i] += 100;
-   
+
    for (i = 0; i < 10; i++) // Base 0..9
    {
       for (l = level->starts[i]; l; l = l->next->next) // all the points for the Base

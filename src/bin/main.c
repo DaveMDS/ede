@@ -80,7 +80,7 @@ main(int argc, char **argv)
 
    // start the main loop
    ecore_main_loop_begin();
- 
+
    // shutdown
 shutdown:
    ede_game_shutdown();

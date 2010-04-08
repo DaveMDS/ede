@@ -216,10 +216,10 @@ ede_tower_shutdown(void)
 {
    Ede_Tower *tower;
    D(" ");
-   
+
    EINA_LIST_FREE(towers, tower)
       _tower_del(tower);
-   
+
    return EINA_TRUE;
 }
 
@@ -228,10 +228,10 @@ ede_tower_add(const char *type)
 {
    int i;
    Ede_Tower_Type tt;
-   
+
    D("%s", type);
 
-   // set tower_type 
+   // set tower_type
    tt = TOWER_UNKNOW;
    for (i = 0; i < TOWER_TYPE_NUM; i++)
       if (!strcmp(type, _type_name[i]))

@@ -50,7 +50,7 @@ _game_loop(void *data)
    now = ecore_loop_time_get();
    elapsed = now - last_time;
    last_time = now;
-   
+
    // recalc enemys
    ede_enemy_one_step_all(elapsed);
    // recalc towers
@@ -67,7 +67,7 @@ _game_loop(void *data)
       static int last_second = 0;
       static int fps_counter = 0;
       static int FPS = 0;
-      
+
       // calc FPS
       fps_counter++;
       if ((int)now > last_second)
@@ -101,7 +101,7 @@ _game_loop(void *data)
       ede_gui_debug_text_set(eina_strbuf_string_get(t));
       eina_strbuf_free(t);
    }
-   
+
    return ECORE_CALLBACK_RENEW;
 }
 
@@ -119,7 +119,7 @@ _delayed_spawn(void *data)
    // get number of cells that are starting point for this start_base
    points = current_level->starts[wave->start_base];
    count = eina_list_count(points) / 2; // two elements for each point (row, col)
-   
+
    // choose a random starting point from the list
    count = rand() % count;
    start_row = (int)eina_list_nth(points, count * 2);
@@ -167,7 +167,7 @@ _game_start(Ede_Level *level)
    D(" ");
 
    ede_gui_level_init(level->rows, level->cols);
-  
+
 
    // populate the checkboard with walls, start points and home
    for (row = 0; row < level->rows; row++)
@@ -212,7 +212,7 @@ _game_start(Ede_Level *level)
    _player_bucks = level->bucks;
 
    ede_game_state_set(GAME_STATE_PLAYING);
-   
+
    // spawn the first wave (that will spawn the others, in chain)
    _next_wave(NULL);
 
@@ -234,7 +234,7 @@ ede_game_init(void)
    D(" ");
 
    current_level = ede_level_load_header("asd.txt");
-   
+
    ede_level_load_data(current_level);
    current_wave_num = 0;
 
@@ -267,8 +267,8 @@ ede_game_debug_hook(void)
 {
    //~ _next_wave();
    ede_tower_destroy_selected();
-   
-   
+
+
 }
 
 EAPI void

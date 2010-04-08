@@ -178,7 +178,7 @@ ede_pathfinder(int level_rows, int level_cols,
    Eina_Bool corner_walkable;
 
    if (max_loops < 1) max_loops = level_rows * level_cols;
-   
+
    D("\n----------  A *  -----------\n");
    D("From: %d,%d To: %d,%d [map: %d,%d][max loops: %d]\n\n", start_row, start_col,
            target_row, target_col, level_rows, level_cols, max_loops);
@@ -197,7 +197,7 @@ ede_pathfinder(int level_rows, int level_cols,
       Parent = ede_array_new(level_rows, level_cols);
       if (!Gcost || !Hcost || !Fcost || !Parent) return EINA_FALSE;
    }
-   
+
    eina_counter_stop(time_counter, 0);
    eina_counter_start(time_counter);
 
@@ -267,7 +267,7 @@ ede_pathfinder(int level_rows, int level_cols,
                      {
                         // Don't cut across corners
                         corner_walkable = EINA_TRUE;
-                        if (row == curRow - 1) 
+                        if (row == curRow - 1)
                         {
                            if (col == curCol - 1) // top-left
                            {
@@ -278,7 +278,7 @@ ede_pathfinder(int level_rows, int level_cols,
                            else if (col == curCol + 1) // top-right
                            {
                               if (!is_walkable(curRow, curCol + 1) ||
-                                  !is_walkable(curRow - 1, curCol)) 
+                                  !is_walkable(curRow - 1, curCol))
                                 corner_walkable = EINA_FALSE;
                            }
                         }
@@ -287,7 +287,7 @@ ede_pathfinder(int level_rows, int level_cols,
                            if (col == curCol - 1) // bottom-left
                            {
                               if (!is_walkable(curRow, curCol - 1) ||
-                                 !is_walkable(curRow + 1, curCol)) 
+                                 !is_walkable(curRow + 1, curCol))
                                  corner_walkable = EINA_FALSE;
                            }
                            else if (col == curCol + 1) // bottom-right
@@ -319,8 +319,8 @@ ede_pathfinder(int level_rows, int level_cols,
                            else
                            {
                               FD(". already on open list, checking if it's a shorter way ..");
-                              // If adjacent cell is already on the open list, check to see if this 
-                              // path to that cell from the starting location is a better one. 
+                              // If adjacent cell is already on the open list, check to see if this
+                              // path to that cell from the starting location is a better one.
                               // If so, change the parent of the cell and its G and F costs.
 
                               //Figure out the G cost of this possible new path
@@ -404,7 +404,7 @@ end:
    }
    D("\n%s\n", eina_counter_dump(time_counter));
    D("----------  A* end ----------\n\n");
-   
+
    // dump open & close list, to console  and/or  in  game
    _dump_list(OpenList, info_to_console, info_in_game);
    _dump_list(CloseList, info_to_console, info_in_game);

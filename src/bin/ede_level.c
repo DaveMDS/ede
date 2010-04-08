@@ -274,12 +274,12 @@ ede_level_free(Ede_Level *level)
 
    EINA_LIST_FREE(level->waves, wave)
       _ede_wave_free(wave);
-   
+
    EDE_STRINGSHARE_DEL(level->file);
    EDE_STRINGSHARE_DEL(level->name);
    EDE_STRINGSHARE_DEL(level->description);
    EDE_STRINGSHARE_DEL(level->author);
-   
+
    ede_array_free((int **)level->cells);
 
    EDE_FREE(level);
@@ -304,7 +304,7 @@ ede_level_dump(Ede_Level *level)
    printf(" Author: '%s'\n", level->author);
    printf(" Version: '%d'\n", level->version);
    printf(" Size: '%dx%d'\n", level->cols, level->rows);
-   
+
    if (level->cells)
    {
       printf("\nLEVEL GRID\n");

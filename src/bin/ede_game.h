@@ -10,7 +10,6 @@
 #ifndef EDE_GAME_H
 #define EDE_GAME_H
 
-//~ #include "ede.h"
 
 typedef enum _Ede_Game_State Ede_Game_State;
 enum _Ede_Game_State {
@@ -19,6 +18,7 @@ enum _Ede_Game_State {
    GAME_STATE_PLAYING,
    GAME_STATE_AREA_REQUEST
 };
+
 
 EAPI Eina_Bool ede_game_init(void);
 EAPI Eina_Bool ede_game_shutdown(void);

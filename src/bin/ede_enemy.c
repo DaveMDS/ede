@@ -26,7 +26,7 @@
 #define D DBG
 #else
 #define D(...)
-#endif  
+#endif
 
 
 #define GAUGE_W 20
@@ -62,7 +62,7 @@ _path_recalc(Ede_Enemy *e)
 
    // get current enemy cell
    ede_gui_cell_get_at_coords(e->x, e->y, &row, &col);
-   
+
    //~ D("hops: %d [pos %d %d][goto %d %d]", eina_list_count(e->path), row, col, e->target_row, e->target_col);
 
    // free old path
@@ -114,7 +114,7 @@ _enemy_step(Ede_Enemy *e, double time)
       // pop 2 elements (row & col of the next path hop) from the path list
       row = (int)(long)EINA_LIST_POP(e->path);
       col = (int)(long)EINA_LIST_POP(e->path);
-      
+
       // get destination center point in pixel
       ede_gui_cell_coords_get(row, col, &e->dest_x, &e->dest_y, EINA_TRUE);
       //~ D("New destination: row:%d col:%d (%d,&d)", row, col, e->dest_x, e->dest_y);
@@ -143,7 +143,7 @@ _enemy_step(Ede_Enemy *e, double time)
       }
       //~ D("angle: %d [dx: %d dy: %d]", e->angle, dx, dy);
    }
-   
+
 
    // calc the new position (...another stupid but really fast method)
    switch (e->angle)
@@ -259,8 +259,8 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
       evas_object_pass_events_set(e->o_gauge2, EINA_TRUE);
       evas_object_color_set(e->o_gauge2, 0, 200, 0, 255);
    }
-   
-   
+
+
    //~ D("SPAW ENEMEY ID: %d", e->id);
 
    // set the starting position
@@ -272,7 +272,7 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
    e->target_col = end_col;
    e->killed = EINA_FALSE;
    e->born_count++;
-   
+
    // reset the local destination
    e->dest_x = e->dest_y = 0;
    e->speed = speed;
@@ -338,7 +338,7 @@ ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
    Ede_Enemy *e, *nearest = NULL;
    Eina_List *l;
    int min_d = 999999;
-   
+
    //~ D("NEAREST OF %d %d", x, y);
    EINA_LIST_FOREACH(alives, l, e)
    {
@@ -366,7 +366,7 @@ ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
    }
    if (distance)
       *distance = min_d;
-   
+
    return nearest;
 }
 
@@ -413,21 +413,21 @@ ede_enemy_debug_info_fill(Eina_Strbuf *t)
 /*
  * NOTHING BEHIND .. just some tests
  *
- * 
+ *
 EAPI void // TODO optimize!
 ede_enemy_one_step_all_SIMPLE(void)
 {
    Ede_Enemy *e;
    Eina_List *l;
-   
+
    double elapsed = 0;
    static double last_time = 0;
    double now;
    now = ecore_loop_time_get();
    if (last_time) elapsed = now - last_time;
    last_time = now;
-   
-   
+
+
    //~ D("elapsed %f", elapsed);
    EINA_LIST_FOREACH(alives, l, e)
    {
@@ -461,7 +461,7 @@ ede_enemy_one_step_all_SIMPLE(void)
       Vector v;
       v.x = e->position.x + (now - e->move_time) * (e->destination.x - e->position.x);
       v.y = e->position.y + (now - e->move_time) * (e->destination.y - e->position.y);
-      
+
 
       // calc rotation angle
       if (e->velocity.x == 0)
@@ -482,7 +482,7 @@ ede_enemy_one_step_all_SIMPLE(void)
       }
 
 
-      
+
       if (abs((int)v.x - (int)e->destination.x) < 5)
       {
          e->position.x = e->destination.x;
@@ -505,15 +505,15 @@ ede_enemy_one_step_all_BOID(void)
    Ede_Enemy *e;
    Eina_List *l;
    //~ double distance;
-   
+
    double elapsed = 0;
    static double last_time = 0;
    double now;
    now = ecore_loop_time_get();
    if (last_time) elapsed = now - last_time;
    last_time = now;
-   
-   
+
+
    //~ D("elapsed %f", elapsed);
    EINA_LIST_FOREACH(alives, l, e)
    {
@@ -536,14 +536,14 @@ ede_enemy_one_step_all_BOID(void)
          // get destination center point in pixel
          ede_gui_pos_to_center_coords(row, col, &e->dest_x, &e->dest_y);
 
-        
+
 
          vector_set(&e->position, e->x, e->y);
          vector_set(&e->velocity, 0, 0);
 
-         
+
          e->speed = 1;
-         
+
          D("AT: %d,%d  GOTO: %d,%d ", e->x, e->y, e->dest_x, e->dest_y);
       }
       // rule1: goto dest
@@ -563,10 +563,10 @@ ede_enemy_one_step_all_BOID(void)
          //~ e->velocity.x = (e->velocity.x / len) * e->speed;
          //~ e->velocity.y = (e->velocity.y / len) * e->speed;
       //~ }
-//~ 
+//~
       //~ e->velocity = vector_add(e->velocity, v);
       //~ e->position = vector_add(e->position, e->velocity);
-      
+
 
       // calc rotation angle
       if (e->velocity.x == 0)
@@ -585,20 +585,20 @@ ede_enemy_one_step_all_BOID(void)
          e->direction = (e->direction * (180 / 3.1415));
          D("[%f %f] angle: %.2f", e->velocity.x, e->velocity.y, e->direction);
       }
-      
+
       // move it
       ede_gui_enemy_move(e, e->position.x + 0.5, e->position.y + 0.5);
       ede_gui_enemy_rotate(e, e->direction);
 
       // destination reached?
       //~ D("%d - %d (%f)", (int)e->position.x, e->dest_x, len);
-      //~ if (e->position.x 
+      //~ if (e->position.x
       if ((int)e->position.x == e->dest_x)
       {
          e->x = e->dest_x;
          e->y = e->dest_y;
          e->dest_x = e->dest_y = 0;
-         
+
       }
    }
 }
@@ -610,15 +610,15 @@ ede_enemy_one_step_all_OK2(void)
    Ede_Enemy *e;
    Eina_List *l;
    double distance;
-   
+
    double elapsed = 0;
    static double last_time = 0;
    double now;
    now = ecore_loop_time_get();
    if (last_time) elapsed = now - last_time;
    last_time = now;
-   
-   
+
+
    //~ D("elapsed %f", elapsed);
    EINA_LIST_FOREACH(alives, l, e)
    {
@@ -647,15 +647,15 @@ ede_enemy_one_step_all_OK2(void)
          //~ distance = sqrt((dx * dx) + (dy * dy));
 
          e->speed = 3;
-         
+
          e->v.x = (float)(e->dest_x - e->x)  / 60;
          e->v.y = (float)(e->dest_y - e->y)  / 60;
          e->direction = atanf(e->v.x);
 
          e->subx = e->x;
          e->suby = e->y;
-         
-         
+
+
          //~ D("pos: %d,%d (a: %f) vec[%f,%f] [to: %d,%d]",e->x, e->y, distance, e->v.x, e->v.y, e->dest_x, e->dest_y);
       }
 
@@ -688,8 +688,8 @@ ede_enemy_one_step_all_OK(void)
    now = ecore_loop_time_get();
    if (last_time) elapsed = now - last_time;
    last_time = now;
-   
-   
+
+
    //~ D("elapsed %f", elapsed);
    EINA_LIST_FOREACH(alives, l, e)
    {
@@ -711,7 +711,7 @@ ede_enemy_one_step_all_OK(void)
 
          D("e: %d [cur: %d %d - %f][goto: %d %d]", e->id, e->x, e->y, e->direction, row, col);
          ede_gui_pos_to_center_coords(row, col, &e->dest_x, &e->dest_y);
-         
+
          e->subx = e->x;
          e->suby = e->y;
          e->speed = 50;

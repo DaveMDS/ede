@@ -77,7 +77,7 @@ ede_bullet_shutdown(void)
       _bullet_del(b);
    EINA_LIST_FREE(bullets, b)
       _bullet_del(b);
-   
+
    return EINA_TRUE;
 }
 
