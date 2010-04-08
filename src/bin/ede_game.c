@@ -27,6 +27,9 @@
 #define D(...)
 #endif
 
+
+#define MAX_FPS 30
+
 /* Local subsystem vars */
 static Ede_Game_State _game_state;
 static Ede_Level *current_level = NULL;
@@ -212,7 +215,8 @@ _game_start(Ede_Level *level)
    
    // spawn the first wave (that will spawn the others, in chain)
    _next_wave(NULL);
-   
+
+   ecore_animator_frametime_set(1.0 / MAX_FPS);
    ecore_animator_add(_game_loop, NULL);
 }
 

@@ -268,6 +268,7 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
    e->target_row = end_row;
    e->target_col = end_col;
    e->killed = EINA_FALSE;
+   e->born_count++;
    
    // reset the local destination
    e->dest_x = e->dest_y = 0;

@@ -25,6 +25,7 @@ struct _Ede_Enemy
    int strength; // initial energy
    int bucks; // bucks gain if killed
    int target_row, target_col; // target position
+   int born_count; // incremented on each born, can be used to check if the enemy has changed
 
    Eina_List *path; // the path to follow as returned by the pathfinder
    int dest_x, dest_y; // this is the pos of the next hop (the one we are approaching)

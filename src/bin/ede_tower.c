@@ -28,7 +28,7 @@
 
 #define TOWER_DEFAULT_DAMAGE 10
 #define TOWER_DEFAULT_RANGE 200
-#define TOWER_DEFAULT_RELOAD 5
+#define TOWER_DEFAULT_RELOAD 1
 
 typedef struct _Ede_Tower Ede_Tower;
 struct _Ede_Tower {

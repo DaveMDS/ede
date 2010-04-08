@@ -30,11 +30,13 @@
 typedef struct _Ede_Bullet Ede_Bulllet;
 struct _Ede_Bullet {
    Evas_Object *obj;
-   float x, y;
-   int w, h;
-   Ede_Enemy *target;
-   int speed;
-   int damage;
+   float x, y; /** current position */
+   int w, h; /** sprite size in pixel */
+   Ede_Enemy *target; /** target enemy, or NULL if the bullet is 'lost' */
+   int target_id; /** target enemy born_count, used to check if the target is died/reborn  */
+   int dest_x, dest_y; /** destination point, in pixel */
+   int speed; /** bullet speed */
+   int damage; /** bullet damage */
 };
 
 
@@ -103,6 +105,7 @@ ede_bullet_add(int start_x, int start_y, Ede_Enemy *target, int speed, int damag
    b->speed = speed;
    b->damage = damage;
    b->target = target;
+   b->target_id = target->born_count;
    b->x = start_x - b->w / 2;
    b->y = start_y - b->h / 2;
 
@@ -124,21 +127,38 @@ ede_bullet_one_step_all(double time)
 
    EINA_LIST_FOREACH_SAFE(bullets, l, ll, b)
    {
+      // update bullet destination
+      if (b->target)
+      {
+         if (b->target->born_count != b->target_id)
+         {
+            // target is dead, mark the bullet a 'lost'
+            b->target = NULL;
+         }
+         else
+         {
+            // track target position
+            b->dest_x = b->target->x;
+            b->dest_y = b->target->y;
+         }
+      }
+
       // calc distance from target
-      distance = ede_util_distance_calc(b->target->x, b->target->y, b->x, b->y);
+      distance = ede_util_distance_calc(b->dest_x, b->dest_y, b->x, b->y);
 
       // target reached
       if (distance < 10)
       {
-         ede_enemy_hit(b->target, b->damage);
+         if (b->target)
+            ede_enemy_hit(b->target, b->damage);
          evas_object_hide(b->obj);
          EINA_LIST_PUSH(inactives, b);
          bullets = eina_list_remove_list(bullets, l);
       }
 
       // calc new position
-      b->x += (b->target->x - b->x) / distance * time * 128;
-      b->y += (b->target->y - b->y) / distance * time * 128;
+      b->x += (b->dest_x - b->x) / distance * time * 128;
+      b->y += (b->dest_y - b->y) / distance * time * 128;
       evas_object_move(b->obj, b->x + 0.5, b->y + 0.5);
    }
 }
