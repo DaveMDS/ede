@@ -56,7 +56,7 @@ static Eina_Bool selection_ok;   /** true if the selection is in a free position
 
 
 /* Local protos */
-static void _area_request_mouse_down(int x, int y);
+static void _area_request_mouse_down(int x, int y, Eina_Bool inside_checkboard, Eina_Bool on_a_tower);
 static void _area_request_mouse_move(int x, int y);
 
 
@@ -171,7 +171,7 @@ _ecore_event_mouse_move_cb(void *data, int type, void *event)
    Ecore_Event_Mouse_Move *ev = event;
    Ede_Game_State state = ede_game_state_get();
 
-   if ( state == GAME_STATE_AREA_REQUEST)
+   if (state == GAME_STATE_AREA_REQUEST)
       _area_request_mouse_move(ev->x, ev->y);
    
    return ECORE_CALLBACK_CANCEL;
@@ -182,30 +182,35 @@ _ecore_event_mouse_down_cb(void *data, int type, void *event)
 {
    Ecore_Event_Mouse_Button *ev = event;
    Ede_Game_State state = ede_game_state_get();
-   Eina_Bool inside = _point_inside_checkboard(ev->x, ev->y);
    Ede_Level *level = ede_level_current_get();
+   Eina_Bool inside_checkboard;
+   Eina_Bool on_a_tower = EINA_FALSE;
    int row, col;
+
+   inside_checkboard = _point_inside_checkboard(ev->x, ev->y);
+
+   if (inside_checkboard)
+   {
+      ede_gui_cell_get_at_coords(ev->x, ev->y, &row, &col);
+      on_a_tower = (level->cells[row][col] == CELL_TOWER);
+   }
 
    if (state == GAME_STATE_AREA_REQUEST)
    {
-      _area_request_mouse_down(ev->x, ev->y);
+      _area_request_mouse_down(ev->x, ev->y, inside_checkboard, on_a_tower);
       return ECORE_CALLBACK_CANCEL;
    }
 
    if (state == GAME_STATE_PLAYING)
    {
-      if (inside) // click inside checkboard
+      if (inside_checkboard)
       {
-         D(" IN");
-         ede_gui_cell_get_at_coords(ev->x, ev->y, &row, &col);
-         D(" IN [%d %d - %d]", row, col, level->cells[row][col]);
-         if (level->cells[row][col] == CELL_TOWER)
+         if (on_a_tower)
             ede_tower_select_at(row, col);
          else
             ede_tower_deselect();
       }
-      else
-         D("OUT");
+      return ECORE_CALLBACK_CANCEL;
    }
 
    return ECORE_CALLBACK_CANCEL;
@@ -292,7 +297,7 @@ ede_gui_init(void)
    edje_object_file_set(o_selection, theme_file, "ede/selection");
    // selection circle
    o_circle = evas_object_polygon_add(canvas);
-   evas_object_color_set(o_circle, 100, 100, 100, 100);
+   evas_object_color_set(o_circle, 40, 40, 40, 40);
    Evas_Object *clipper; //TODO clip to the checkboard, not the stage.clipper
    clipper = (Evas_Object *)edje_object_part_object_get(o_layout, "stage.clipper");
    evas_object_clip_set(o_circle, clipper);
@@ -640,19 +645,30 @@ _area_request_mouse_move(int x, int y)
 }
 
 static void
-_area_request_mouse_down(int x, int y)
+_area_request_mouse_down(int x, int y,
+                         Eina_Bool inside_checkboard, Eina_Bool on_a_tower)
 {
-   Ede_Level *level;
+   Ede_Level *level = ede_level_current_get();;
    Eina_List *l;
    int mouse_row, mouse_col;
    int row, col, i, j;
 
    D(" ");
 
-   // click outside the checkboard, stop area-request
-   if (!_point_inside_checkboard(x, y))
+   // clicked outside the checkboard, stop area-request
+   if (!inside_checkboard)
    {
       ede_gui_request_area_end();
+      return;
+   }
+
+   ede_gui_cell_get_at_coords(x, y, &mouse_row, &mouse_col);
+
+   // clicked on a tower, select it
+   if (on_a_tower)
+   {
+      ede_gui_request_area_end();
+      ede_tower_select_at(mouse_row, mouse_col);
       return;
    }
 
@@ -663,12 +679,12 @@ _area_request_mouse_down(int x, int y)
       return;
    }
 
-   // all the needed cells are free, now check if we are blocking all the
-   // possible path. Pathfind from all the starting base to the home.
+   /*
+    * ok, all the needed cells are free, now check if we are blocking some
+    * possible path. Pathfind from all the starting bases to the home.
+    */
 
-   level = ede_level_current_get();
-   ede_gui_cell_get_at_coords(x, y, &mouse_row, &mouse_col);
-
+  
    // set all the needed cells to a temporary (unwalkable) value   
    for (i = 0; i < area_req_cols; i++)
       for (j = 0; j < area_req_rows; j++)
