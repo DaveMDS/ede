@@ -44,6 +44,7 @@ struct _Ede_Bullet {
 static Eina_List *bullets = NULL;   //** Current active bullets */
 static Eina_List *inactives = NULL; //** List of Ede_Bullet* to reuse */
 static int _count_fired = 0;
+static int _count_lost = 0;
 
 
 /* Local subsystem callbacks */
@@ -135,6 +136,7 @@ ede_bullet_one_step_all(double time)
          {
             // target is dead, mark the bullet a 'lost'
             b->target = NULL;
+            _count_lost++;
          }
          else
          {
@@ -170,11 +172,11 @@ ede_bullet_debug_info_fill(Eina_Strbuf *t)
    char buf[1024];
 
    eina_strbuf_append(t, "<h3>bullets:</h3><br>");
-   snprintf(buf, sizeof(buf), "active %d  on-hold %d [max %d]<br>",
+   snprintf(buf, sizeof(buf), "on %d  off %d [max %d]<br>",
             eina_list_count(bullets), eina_list_count(inactives),
             eina_list_count(bullets) + eina_list_count(inactives));
    eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "fired %d<br>",_count_fired);
+   snprintf(buf, sizeof(buf), "fired %d  lost %d<br>", _count_fired, _count_lost);
    eina_strbuf_append(t, buf);
    eina_strbuf_append(t, "<br>");
 }
