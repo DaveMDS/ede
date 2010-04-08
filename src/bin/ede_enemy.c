@@ -244,7 +244,6 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
       if (!e) return;
 
       e->obj = evas_object_image_filled_add(ede_gui_canvas_get());
-      evas_object_pass_events_set(e->obj, EINA_TRUE);
       evas_object_image_file_set(e->obj, PACKAGE_DATA_DIR"/themes/enemy_standard.png", NULL);
       e->w = 25;
       e->h = 25;

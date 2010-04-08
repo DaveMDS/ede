@@ -97,6 +97,7 @@ ede_bullet_add(int start_x, int start_y, Ede_Enemy *target, int speed, int damag
       if (!b) return;
 
       b->obj = evas_object_image_filled_add(ede_gui_canvas_get());
+      evas_object_pass_events_set(b->obj, EINA_TRUE);
       evas_object_image_file_set(b->obj, PACKAGE_DATA_DIR"/themes/bullet1.png", NULL);
       evas_object_image_size_get(b->obj, &b->w, &b->h);
       evas_object_resize(b->obj, b->w, b->h);

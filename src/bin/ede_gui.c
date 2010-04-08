@@ -295,8 +295,10 @@ ede_gui_init(void)
    // create the selection object
    o_selection = edje_object_add(canvas);
    edje_object_file_set(o_selection, theme_file, "ede/selection");
+   evas_object_pass_events_set(o_selection, EINA_TRUE);
    // selection circle
    o_circle = evas_object_polygon_add(canvas);
+   evas_object_pass_events_set(o_selection, EINA_TRUE);
    evas_object_color_set(o_circle, 40, 40, 40, 40);
    Evas_Object *clipper; //TODO clip to the checkboard, not the stage.clipper
    clipper = (Evas_Object *)edje_object_part_object_get(o_layout, "stage.clipper");
@@ -477,6 +479,7 @@ ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col)
    {
       obj = edje_object_add(canvas);
       edje_object_file_set(obj, theme_file, "ede/cell_overlay");
+      evas_object_pass_events_set(obj, EINA_TRUE);
    
       _move_at(obj, row, col);
       evas_object_resize(obj, CELL_W, CELL_H);
@@ -567,7 +570,7 @@ EAPI void
 ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
 {
    int x, y, dx, dy;
-   D("%d %d %d %d", row, col, rows, cols);
+   //~ D("%d %d %d %d", row, col, rows, cols);
    evas_object_raise(o_selection);
 
    // selection rect
@@ -585,7 +588,6 @@ ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
       evas_object_show(o_circle);
    }
    else evas_object_hide(o_circle);
-   
 }
 
 EAPI void
@@ -619,29 +621,43 @@ static void
 _area_request_mouse_move(int x, int y)
 {
    int row, col, i, j;
-   
+
+   // hide the selection when mouse is out the checkboard
    if (!_point_inside_checkboard(x, y))
    {
       ede_gui_selection_hide();
       return;
    }
 
-   // draw the area request selection
-   if (ede_gui_cell_get_at_coords(x, y, &row, &col))
+   // check if all the requested cells are walkable
+   selection_ok = EINA_TRUE;
+   ede_gui_cell_get_at_coords(x, y, &row, &col);
+   for (i = 0; i < area_req_cols; i++)
+      for (j = 0; j < area_req_rows; j++)
+         if (!ede_level_walkable_get(row + j, col + i))
+            selection_ok = EINA_FALSE;
+
+   // now check if an enemy is under the requested area
+   if (selection_ok)
    {
-      // check if all the cells requested are walkable
-      selection_ok = EINA_TRUE;
-      for (i = 0; i < area_req_cols; i++)
-         for (j = 0; j < area_req_rows; j++)
-            if (!ede_level_walkable_get(row + j, col + i))
-               selection_ok = EINA_FALSE;
+      Evas_Object *under;
+      int sx, sy, w, h;
 
-      // make the selection green or red
-      ede_gui_selection_type_set(selection_ok ? SELECTION_FREE : SELECTION_WRONG);
-
-      // move the selection at the right place
-      ede_gui_selection_show_at(row, col, area_req_rows, area_req_cols, 0);
+      ede_gui_cell_coords_get(row, col, &sx, &sy, EINA_FALSE);
+      w = area_req_cols * CELL_W;
+      h = area_req_rows * CELL_H;
+      under = evas_object_top_in_rectangle_get(ede_gui_canvas_get(),
+                                               sx,  sy,  w,  h,
+                                               EINA_FALSE, EINA_FALSE);
+      if (under != o_checkboard)
+         selection_ok = EINA_FALSE;
    }
+
+   // make the selection green or red
+   ede_gui_selection_type_set(selection_ok ? SELECTION_FREE : SELECTION_WRONG);
+
+   // move the selection at the right place
+   ede_gui_selection_show_at(row, col, area_req_rows, area_req_cols, 0);
 }
 
 static void
