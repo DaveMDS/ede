@@ -19,6 +19,7 @@
 #include "ede_gui.h"
 #include "ede_astar.h"
 #include "ede_utils.h"
+#include "ede_game.h"
 
 #define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
@@ -43,6 +44,8 @@ static void
 _enemy_del(Ede_Enemy *e)
 {
    EDE_OBJECT_DEL(e->obj);
+   EDE_OBJECT_DEL(e->o_gauge1);
+   EDE_OBJECT_DEL(e->o_gauge2);
    if (e->path) eina_list_free(e->path);
    EDE_FREE(e);
 }
@@ -99,6 +102,7 @@ _enemy_step(Ede_Enemy *e, double time)
       // if the path list is empty then the target is reached !
       if (eina_list_count(e->path) < 2)
       {
+         ede_game_home_violated();
          ede_enemy_kill(e);
          return;
       }
@@ -219,7 +223,7 @@ ede_enemy_shutdown(void)
 
 
 EAPI void //TODO rename end_* in target_*
-ede_enemy_spawn(const char *type, int speed, int strength,
+ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
                 int start_row, int start_col, int end_row, int end_col)
 {
    Ede_Level *level;
@@ -268,6 +272,7 @@ ede_enemy_spawn(const char *type, int speed, int strength,
    // reset the local destination
    e->dest_x = e->dest_y = 0;
    e->speed = speed;
+   e->bucks = bucks;
    e->energy = e->strength = strength;
 
    // put the enemy in the alives list
@@ -295,26 +300,28 @@ ede_enemy_kill(Ede_Enemy *e)
    //~ D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
    if (e->killed) return;
    else e->killed = EINA_TRUE;
-   
+
+   _count_killed++;
+
    if (e->path) eina_list_free(e->path);
    alives = eina_list_remove(alives, e);
    EINA_LIST_PUSH(deads, e);
    evas_object_hide(e->obj);
    evas_object_hide(e->o_gauge1);
    evas_object_hide(e->o_gauge2);
-
-   // global counter
-   _count_killed++;
 }
 
 EAPI void
-ede_enemy_damage(Ede_Enemy *e, int damage)
+ede_enemy_hit(Ede_Enemy *e, int damage)
 {
    //~ D("DAMAGE %d [%d]", e->energy, e->strength);
 
    e->energy -= damage;
    if (e->energy <= 0)
+   {
+      ede_game_bucks_gain(e->bucks);
       ede_enemy_kill(e);
+   }
 }
 
 EAPI Ede_Enemy *
@@ -385,8 +392,9 @@ ede_enemy_debug_info_fill(Eina_Strbuf *t)
    char buf[1024];
 
    eina_strbuf_append(t, "<h3>enemies:</h3><br>");
-   snprintf(buf, sizeof(buf), "active %d  on-hold %d<br>",
-            eina_list_count(alives), eina_list_count(deads));
+   snprintf(buf, sizeof(buf), "active %d  on-hold %d [max: %d]<br>",
+            eina_list_count(alives), eina_list_count(deads),
+            eina_list_count(alives) + eina_list_count(deads));
    eina_strbuf_append(t, buf);
    snprintf(buf, sizeof(buf), "spawned %d  killed %d<br>",
             _count_spawned, _count_killed);

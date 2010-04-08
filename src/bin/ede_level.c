@@ -35,7 +35,7 @@ static Ede_Level *current_level = NULL;
 
  static void
 _ede_level_wave_add(Ede_Level *level, int count, const char *type,
-                    int start_base, int speed, int energy, int wait)
+                    int start_base, int speed, int energy, int bucks, int wait)
 {
    Ede_Wave *wave;
 
@@ -47,6 +47,7 @@ _ede_level_wave_add(Ede_Level *level, int count, const char *type,
    wave->start_base = start_base;
    wave->speed = speed;
    wave->energy = energy;
+   wave->bucks = bucks;
    wave->wait = wait;
 
    level->waves = eina_list_append(level->waves, wave);
@@ -123,7 +124,11 @@ ede_level_load_header(const char *name)
          level->author = eina_stringshare_add(str);
       else if (sscanf(buf, "Version=%d", &level->version) == 1)
          {}
-      else if (sscanf(buf, "Size=%dx%d", &level->cols, &level->rows) == 1)
+      else if (sscanf(buf, "Size=%dx%d", &level->cols, &level->rows) == 2)
+         {}
+      else if (sscanf(buf, "Lives=%d", &level->lives) == 1)
+         {}
+      else if (sscanf(buf, "Bucks=%d", &level->bucks) == 1)
          {}
       else if (strncmp(buf, "DATA", 4) == 0)
          level->data_start_at_line = count;
@@ -216,17 +221,17 @@ ede_level_load_data(Ede_Level *level)
    while (fgets(line, sizeof(line), fp) != NULL)
    {
       char type[32];
-      int start_base, speed, energy, wait;
+      int start_base, speed, energy, wait, bucks;
 
       // skip comments, blank lines and too short lines
       if (strlen(line) < 5 || line[0] == '#')
          continue;
 
       // read and add the new wave to the level
-      // example line: spawn 10 standard enemy from base 1 [speed: 10 energy: 100], wait 5
-      if (sscanf(line, "spawn %d %s enemy from base %d [speed: %d energy: %d], wait %d",
-                    &count, type, &start_base, &speed, &energy, &wait) == 6)
-         _ede_level_wave_add(level, count, type, start_base, speed, energy, wait);
+      // example line: "21 standard from base 1 [speed: 30 energy: 20 bucks: 15], wait 5"
+      if (sscanf(line, "%d %s from base %d [speed: %d energy: %d bucks: %d], wait %d",
+                    &count, type, &start_base, &speed, &energy, &bucks, &wait) == 7)
+         _ede_level_wave_add(level, count, type, start_base, speed, energy, bucks, wait);
    }
    fclose(fp);
 
@@ -240,7 +245,7 @@ ede_level_load_data(Ede_Level *level)
    }
 
    current_level = level;
-   //~ ede_level_dump(level); // DBG
+   ede_level_dump(level); // DBG
    return EINA_TRUE;
 }
 

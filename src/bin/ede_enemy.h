@@ -23,8 +23,8 @@ struct _Ede_Enemy
    int speed; // speed
    int energy; // current energy
    int strength; // initial energy
+   int bucks; // bucks gain if killed
    int target_row, target_col; // target position
-   
 
    Eina_List *path; // the path to follow as returned by the pathfinder
    int dest_x, dest_y; // this is the pos of the next hop (the one we are approaching)
@@ -36,10 +36,10 @@ struct _Ede_Enemy
 EAPI Eina_Bool ede_enemy_init(void);
 EAPI Eina_Bool ede_enemy_shutdown(void);
 
-EAPI void ede_enemy_spawn(const char *type, int speed, int strength,
+EAPI void ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
                           int start_row, int start_col, int end_row, int end_col);
 EAPI void ede_enemy_kill(Ede_Enemy *e);
-EAPI void ede_enemy_damage(Ede_Enemy *e, int damage);
+EAPI void ede_enemy_hit(Ede_Enemy *e, int damage);
 EAPI void ede_enemy_one_step_all(double time);
 EAPI void ede_enemy_path_recalc_all(void);
 EAPI Ede_Enemy *ede_enemy_nearest_get(int x, int y, int *angle, int *distance);

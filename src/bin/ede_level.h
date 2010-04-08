@@ -40,6 +40,8 @@ struct _Ede_Level
    const char *author;
    int         version;
    int         cols, rows;
+   int         lives;
+   int         bucks;
    int         data_start_at_line;
    Ede_Level_Cell **cells; // access as: level->cells[row][col]
    int         home_row, home_col;
@@ -58,6 +60,7 @@ struct _Ede_Wave{
    int speed;
    int energy;
    int wait;
+   int bucks;
 };
 
 

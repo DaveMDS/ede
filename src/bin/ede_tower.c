@@ -249,9 +249,12 @@ ede_tower_destroy_selected(void)
 EAPI void
 ede_tower_deselect(void)
 {
-   selected_tower = NULL;
-   ede_gui_selection_hide();
-   ede_gui_tower_info_set(NULL, NULL, NULL);
+   if (selected_tower)
+   {
+      selected_tower = NULL;
+      ede_gui_selection_hide();
+      ede_gui_tower_info_set(NULL, NULL, NULL);
+   }
 }
 
 EAPI void

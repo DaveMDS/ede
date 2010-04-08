@@ -30,5 +30,8 @@ EAPI char *ede_game_time_get(double now);
 
 EAPI void            ede_game_state_set(Ede_Game_State state);
 EAPI Ede_Game_State  ede_game_state_get(void);
+EAPI void            ede_game_home_violated(void);
+EAPI int             ede_game_bucks_get(void);
+EAPI void            ede_game_bucks_gain(int bucks);
 
 #endif /* EDE_GAME_H */

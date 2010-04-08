@@ -31,6 +31,8 @@
 static Ede_Game_State _game_state;
 static Ede_Level *current_level = NULL;
 static int current_wave_num = 0;
+static int _player_lives;
+static int _player_bucks;
 static Eina_Bool _debug_panel_enable = EINA_FALSE;
 static double _start_time;
 
@@ -72,8 +74,7 @@ _game_loop(void *data)
          FPS = fps_counter;
          fps_counter = 0;
       }
-      
-      
+
       t = eina_strbuf_new();
 
       // game info
@@ -82,8 +83,10 @@ _game_loop(void *data)
       snprintf(buf, sizeof(buf), "FPS %d  time %s<br>", FPS,ts);
       EDE_FREE(ts);
       eina_strbuf_append(t, buf);
-      snprintf(buf, sizeof(buf), "waves %d  energy %d<br>",
-               current_wave_num, 123);
+      snprintf(buf, sizeof(buf), "waves %d  lives %d<br>",
+               current_wave_num, _player_lives);
+      eina_strbuf_append(t, buf);
+      snprintf(buf, sizeof(buf), "bucks %d<br>", _player_bucks);
       eina_strbuf_append(t, buf);
       eina_strbuf_append(t, "<br>");
 
@@ -120,7 +123,7 @@ _delayed_spawn(void *data)
    start_col = (int)eina_list_nth(points, count * 2 + 1);
 
    // spaw the new enemy
-   ede_enemy_spawn(wave->type, wave->speed, wave->energy,
+   ede_enemy_spawn(wave->type, wave->speed, wave->energy, wave->bucks,
                    start_row, start_col,
                    current_level->home_row, current_level->home_col);
 
@@ -202,6 +205,8 @@ _game_start(Ede_Level *level)
 
 
    _start_time = ecore_loop_time_get();
+   _player_lives = level->lives;
+   _player_bucks = level->bucks;
 
    ede_game_state_set(GAME_STATE_PLAYING);
    
@@ -299,3 +304,23 @@ ede_game_state_get(void)
 {
    return _game_state;
 }
+
+EAPI void
+ede_game_home_violated(void)
+{
+   if (_player_lives-- <= 0)
+      D("YOU LOOSE");
+}
+
+EAPI int
+ede_game_bucks_get(void)
+{
+   return _player_bucks;
+}
+
+EAPI void
+ede_game_bucks_gain(int bucks)
+{
+   _player_bucks += bucks;
+}
+

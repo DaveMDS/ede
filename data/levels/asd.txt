@@ -6,7 +6,9 @@ Name=my level
 Description=asjha ljashl <br>jaljasljsajlas <b>lsalkasjl</b> <br>slkjsalk salkj alskj s
 Author=DaveMDS
 Version=1
-Size=21x15
+Lives=20
+Bucks=200
+Size=24x19
 
 # DIDASCALIA
 #
@@ -34,39 +36,81 @@ Size=21x15
 #
 
 DATA
-#####################
-#@..........11111...#
-#...######.#........#
-#..........#........#
-#........#####.####..
-#...0..0...#...#....#
-#..........#.#.#....#
-#...0..0...#.#.#....#
-...........#.#.#....#
-3............#.#....#
-##############.#....#
-.4..4..........#...2#
-....############...2#
-. 55 66 77 88 99...2#
-.....################
+########################
+#@..........11111......#
+#...######.#...........#
+#..........#...........#
+#........#####.####.....
+#..........#...#.......#
+#..........#.#.#.......#
+#..........#.#.#.......#
+#..........#.#.#.......#
+#..........#.#.#.......#
+#..........#.#.#.......#
+#..........#.#.#.......#
+...........#.#.#.......#
+3............#.#.......#
+##############.#.......#
+.4..4..........#....2..#
+....############.....2.#
+. 55 66 77 88 99......2#
+.....###################
 
 WAVES
-spawn 1 standard enemy from base 1 [speed: 10 energy: 20], wait 5
-spawn 100 standard enemy from base 1 [speed: 20 energy: 20], wait 60
-spawn 20 standard enemy from base 1 [speed: 10 energy: 100], wait 5
-spawn 30 standard enemy from base 1 [speed: 20 energy: 100], wait 10
-spawn 40 standard enemy from base 1 [speed: 30 energy: 100], wait 10
-spawn 50 standard enemy from base 1 [speed: 40 energy: 100], wait 10
+10 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
+30 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
+40 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
+60 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
+20 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
+60 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
+30 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
+40 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 1 [speed: 30 energy: 55 bucks: 15], wait 5
+30 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 3 [speed: 30 energy: 50 5ucks: 15], wait 5
+50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
+66 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
+30 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
+70 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
+55 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
+55 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
+50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
 
-spawn 10 standard enemy from base 3 [speed: 40 energy: 100], wait 3
-spawn 10 standard enemy from base 4 [speed: 40 energy: 100], wait 3
-spawn 10 standard enemy from base 5 [speed: 40 energy: 100], wait 3
-spawn 10 standard enemy from base 6 [speed: 40 energy: 100], wait 3
-spawn 10 standard enemy from base 7 [speed: 40 energy: 100], wait 3
-spawn 10 standard enemy from base 8 [speed: 40 energy: 100], wait 3
-spawn 10 standard enemy from base 9 [speed: 40 energy: 100], wait 3
-
-
-spawn 20 standard enemy from base 2 [speed: 10 energy: 100], wait 99999
 
 

@@ -130,7 +130,7 @@ ede_bullet_one_step_all(double time)
       // target reached
       if (distance < 10)
       {
-         ede_enemy_damage(b->target, b->damage);
+         ede_enemy_hit(b->target, b->damage);
          evas_object_hide(b->obj);
          EINA_LIST_PUSH(inactives, b);
          bullets = eina_list_remove_list(bullets, l);
@@ -149,8 +149,9 @@ ede_bullet_debug_info_fill(Eina_Strbuf *t)
    char buf[1024];
 
    eina_strbuf_append(t, "<h3>bullets:</h3><br>");
-   snprintf(buf, sizeof(buf), "active %d  on-hold %d<br>",
-            eina_list_count(bullets), eina_list_count(inactives));
+   snprintf(buf, sizeof(buf), "active %d  on-hold %d [max %d]<br>",
+            eina_list_count(bullets), eina_list_count(inactives),
+            eina_list_count(bullets) + eina_list_count(inactives));
    eina_strbuf_append(t, buf);
    snprintf(buf, sizeof(buf), "fired %d<br>",_count_fired);
    eina_strbuf_append(t, buf);
