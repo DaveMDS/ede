@@ -46,7 +46,11 @@ _enemy_del(Ede_Enemy *e)
    EDE_OBJECT_DEL(e->obj);
    EDE_OBJECT_DEL(e->o_gauge1);
    EDE_OBJECT_DEL(e->o_gauge2);
-   if (e->path) eina_list_free(e->path);
+   if (e->path)
+   {
+      eina_list_free(e->path);
+      e->path = NULL;
+   }
    EDE_FREE(e);
 }
 
@@ -304,7 +308,11 @@ ede_enemy_kill(Ede_Enemy *e)
 
    _count_killed++;
 
-   if (e->path) eina_list_free(e->path);
+   if (e->path)
+   {
+      eina_list_free(e->path);
+      e->path = NULL;
+   }
    alives = eina_list_remove(alives, e);
    EINA_LIST_PUSH(deads, e);
    evas_object_hide(e->obj);
