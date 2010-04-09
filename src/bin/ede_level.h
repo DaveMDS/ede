@@ -63,11 +63,24 @@ struct _Ede_Wave{
 };
 
 
-EAPI Ede_Level *ede_level_load_header(const char *name);
+typedef struct _Ede_Scenario Ede_Scenario;
+struct _Ede_Scenario {
+   const char *name;
+   const char *desc;
+   int order;
+   Eina_List *levels;
+   Eina_List *levels2;
+};
+
+EAPI Eina_Bool ede_level_init(void);
+EAPI Eina_Bool ede_level_shutdown(void);
+
 EAPI Eina_Bool  ede_level_load_data(Ede_Level *level);
 EAPI Ede_Level *ede_level_current_get(void);
 EAPI Eina_Bool  ede_level_walkable_get(int row, int col);
 EAPI void       ede_level_free(Ede_Level *level);
 EAPI void       ede_level_dump(Ede_Level *level);
+EAPI Eina_List *ede_level_scenario_list_get(void);
+EAPI void       ede_level_debug_info_fill(Eina_Strbuf *t);
 
 #endif /* EDE_LEVEL_H */

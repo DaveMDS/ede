@@ -69,6 +69,7 @@ main(int argc, char **argv)
       ERR("Failed to init gui. Exiting...");
       goto shutdown;
    }
+   ede_level_init();
    ede_pathfinder_init();
    ede_bullet_init();
    ede_enemy_init();
@@ -88,6 +89,7 @@ shutdown:
    ede_enemy_shutdown();
    ede_bullet_shutdown();
    ede_pathfinder_shutdown();
+   ede_level_shutdown();
    ede_gui_shutdown();
    ecore_shutdown();
 

@@ -1,0 +1,9 @@
+#
+# TODO
+#
+
+Name=Easy Levels
+Description=simple levels<br>for beginner users
+Order=0
+
+Level=asd2.txt

@@ -57,6 +57,11 @@ styles
       //~ tag:  "c" "+ align=center font_size=24 font=content_bd color=#A0D026A0 color2=#A0D026A0 style=GLOW";
       tag:  "h3" "+ align=center font_size=12 color=#CCC style=soft_shadow shadow_color=#0000003f";
    }
+   style { name: "ede_menu_style";
+      base: "font=Sans font_size=12 align=right color=#FFF";
+      tag:  "br" "\n";
+      tag:  "b" "+ font=Sans:style=Bold";
+   }
 }
 
 collections {
@@ -320,7 +325,7 @@ collections {
                }
             }
          }
-         /* stage swallow */
+         /* stage clipper */
          part { name: "stage.clipper";
             type: RECT;
             mouse_events:  0;
@@ -330,6 +335,126 @@ collections {
                rel2.offset: -11 -61;
             }
          }
+         /* main menu */
+         part { name: "menu.clip";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 0 0 0 0;
+               //~ color: 255 255 255 255;
+               rel1.offset: 220 90;
+               rel2.offset: -30 -90;
+            }
+            description { state: "visible" 0.0;
+               inherit: "default" 0.0;
+               color: 255 255 255 255;
+            }
+         }
+         part { name: "menu.bg";
+            type: RECT;
+            mouse_events:  0;
+            clip_to: "menu.clip";
+            description { state: "default" 0.0;
+               color: 66 66 150 255;
+               rel1.to: "menu.clip";
+               rel2.to: "menu.clip";
+            }
+         }
+         part { name: "menu.title";
+            type: TEXT;
+            mouse_events:  0;
+            clip_to: "menu.clip";
+            effect: FAR_SHADOW;
+            description { state: "default" 0.0;
+               color: 255 255 255 255;
+               rel1.to: "menu.clip";
+               rel2.to: "menu.clip";
+               rel1.offset: 0 15;
+               text {
+                  text: "EDE Tower Defense";
+                  font: "Sans";
+                  size: 24;
+                  align: 0.5 0.0;
+               }
+            }
+         }
+         part { name: "menu.box";
+            type: BOX;
+            mouse_events: 1;
+            repeat_events: 1;
+            clip_to: "menu.clip";
+            description { state: "default" 0.0;
+               rel1.to: "menu.clip";
+               rel2.to: "menu.clip";
+               rel1.offset: 0 80;
+               box {
+                  layout: "vertical";
+                  padding: 0 5;
+                  align: 0.5 0.0;
+                  min: 0 0;
+                }
+            }
+         }
+         /* level selector dialog */
+         part { name: "level_selector.clip";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 0 0 0 0;
+               rel1.offset: 220 90;
+               rel2.offset: -30 -90;
+            }
+            description { state: "visible" 0.0;
+               inherit: "default" 0.0;
+               color: 255 255 255 255;
+            }
+         }
+         part { name: "level_selector.bg";
+            type: RECT;
+            mouse_events:  0;
+            clip_to: "level_selector.clip";
+            description { state: "default" 0.0;
+               color: 66 66 150 255;
+               rel1.to: "level_selector.clip";
+               rel2.to: "level_selector.clip";
+            }
+         }
+         part { name: "level_selector.title";
+            type: TEXT;
+            mouse_events:  0;
+            clip_to: "level_selector.clip";
+            effect: FAR_SHADOW;
+            description { state: "default" 0.0;
+               color: 255 255 255 255;
+               rel1.to: "level_selector.clip";
+               rel2.to: "level_selector.clip";
+               rel1.offset: 0 15;
+               text {
+                  text: "Select Level";
+                  font: "Sans";
+                  size: 24;
+                  align: 0.5 0.0;
+               }
+            }
+         }
+         part { name: "level_selector.box";
+            type: BOX;
+            mouse_events: 1;
+            repeat_events: 1;
+            clip_to: "level_selector.clip";
+            description { state: "default" 0.0;
+               rel1.to: "level_selector.clip";
+               rel2.to: "level_selector.clip";
+               rel1.offset: 0 80;
+               box {
+                  layout: "vertical";
+                  padding: 0 5;
+                  align: 0.5 0.0;
+                  min: 0 0;
+                }
+            }
+         }
+
          /* Debug info panel */
          part { name: "debug.panel";
             type: RECT;
@@ -338,13 +463,13 @@ collections {
                color: 20 20 20 255;
                rel1.offset: -176 55;
                rel2.relative: 0.0 0.0;
-               rel2.offset: -1 360;
+               rel2.offset: -1 450;
 
             }
             description { state: "visible" 0.0;
                inherit: "default" 0.0;
                rel1.offset: 0 55;
-               rel2.offset: 175 360;
+               rel2.offset: 175 450;
             }
          }
          part { name: "debug.panel.text";
@@ -383,6 +508,31 @@ collections {
             action: STATE_SET "default" 0.0;
             transition: LINEAR 0.4;
             target: "debug.panel";
+         }
+         /* menu */
+         program {
+            signal: "menu,show";
+            source: "";
+            action: STATE_SET "visible" 0.0;
+            target: "menu.clip";
+         }
+         program {
+            signal: "menu,hide";
+            source: "";
+            action: STATE_SET "default" 0.0;
+            target: "menu.clip";
+         }
+         program {
+            signal: "level_selector,show";
+            source: "";
+            action: STATE_SET "visible" 0.0;
+            target: "level_selector.clip";
+         }
+         program {
+            signal: "level_selector,hide";
+            source: "";
+            action: STATE_SET "default" 0.0;
+            target: "level_selector.clip";
          }
          /* add buttons */
          program {
@@ -539,33 +689,6 @@ collections {
          }
       }
    }
-/******************************************************************************/
-  /* group { name: "ede/tower/normal";
-      min: 50 50;
-      parts {
-         /* base
-         part { name: "base";
-            type: IMAGE;
-            mouse_events:  0;
-            description { state: "default" 0.0;
-               image.normal: "tower_normal_base.png";
-            }
-         }
-      }
-   }
-   group { name: "ede/tower/normal/rot";
-      min: 50 50;
-      parts {
-         /* base
-         part { name: "base";
-            type: IMAGE;
-            mouse_events:  0;
-            description { state: "default" 0.0;
-               image.normal: "tower_normal_rotate.png";
-            }
-         }
-      }
-   }*/
 /******************************************************************************/
    group { name: "ede/cell_overlay";
       min: 25 25;
@@ -782,6 +905,90 @@ collections {
             action: STATE_SET "visible" 0.7;
             target: "direction";
          }
+      }
+   }
+
+/******************************************************************************/
+   group { name: "ede/menu_item";
+      min: 400 50;
+      parts {
+         part { name: "bg";
+            type: RECT;
+            mouse_events:  1;
+            description { state: "default" 0.0;
+               color: 200 0 140 200;
+            }
+            description { state: "over" 0.0;
+               color: 0 200 140 200;
+            }
+            description { state: "clicked" 0.0;
+               color: 0 0 0 200;
+            }
+         }
+         part { name: "label1.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 255 255 255 255;
+               rel1.offset: 10 0;
+               text {
+                  text: "Tutorial";
+                  font: "Sans";
+                  size: 20;
+                  align: 0.0 0.5;
+               }
+            }
+         }
+         part { name: "label2.text";
+            type: TEXTBLOCK;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+
+               rel1.offset: 0 4;
+               rel2.offset: -10 0;
+               //~ color: 255 255 255 255;
+               text {
+                  text: "Tutorial";
+                  //~ font: "Sans";
+                  //~ size: 10;
+                  //~ align: 1.0 0.5;
+                  style: "ede_menu_style";
+               }
+            }
+         }
+      }
+      programs {
+         program {
+            signal: "mouse,in";
+            source: "bg";
+            action: STATE_SET "over" 0.0;
+            transition: ACCELERATE 0.2;
+            target: "bg";
+         }
+         program {
+            signal: "mouse,out";
+            source: "bg";
+            action: STATE_SET "default" 0.0;
+            transition: ACCELERATE 0.2;
+            target: "bg";
+         }
+         program {
+            signal: "mouse,down,1";
+            source: "bg";
+            action: SIGNAL_EMIT "item,selected" "";
+            after: "menu_clicked";
+         }
+         program { name: "menu_clicked";
+            action: STATE_SET "clicked" 0.0;
+            target: "bg";
+         }
+         program {
+            signal: "mouse,up,1";
+            source: "bg";
+            action: STATE_SET "over" 0.0;
+            target: "bg";
+         }
+
       }
    }
 }

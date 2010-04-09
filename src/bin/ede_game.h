@@ -10,6 +10,7 @@
 #ifndef EDE_GAME_H
 #define EDE_GAME_H
 
+#include "ede_level.h"
 
 typedef enum _Ede_Game_State Ede_Game_State;
 enum _Ede_Game_State {
@@ -23,8 +24,12 @@ enum _Ede_Game_State {
 EAPI Eina_Bool ede_game_init(void);
 EAPI Eina_Bool ede_game_shutdown(void);
 
+EAPI void  ede_game_start(Ede_Level *level);
+EAPI void  ede_game_quit(void);
+
 EAPI void  ede_game_debug_hook(void);
 EAPI void  ede_game_debug_panel_enable(Eina_Bool enable);
+EAPI void  ede_game_debug_panel_update(double now);
 
 EAPI char *ede_game_time_get(double now);
 

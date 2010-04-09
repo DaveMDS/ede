@@ -24,52 +24,23 @@
 #define D(...)
 #endif
 
-#define MAX_LEVEL_COLS 1024
-#define MAX_LEVEL_ROWS 1024
+#define MAX_LEVEL_COLS 1024 /* this is just the lenght of the buffer used to
+                               read the lines from the level file
+                               Can be bigger*/
 
 
 /* Local subsystem vars */
+static Eina_List *scenarios = NULL;
 static Ede_Level *current_level = NULL;
 
 /* Local subsystem callbacks */
-
- static void
-_ede_level_wave_add(Ede_Level *level, int count, const char *type,
-                    int start_base, int speed, int energy, int bucks, int wait)
-{
-   Ede_Wave *wave;
-
-   wave = EDE_NEW(Ede_Wave);
-   if (!wave) return;
-
-   wave->total = count;
-   wave->type = eina_stringshare_add(type);
-   wave->start_base = start_base;
-   wave->speed = speed;
-   wave->energy = energy;
-   wave->bucks = bucks;
-   wave->wait = wait;
-
-   level->waves = eina_list_append(level->waves, wave);
-}
-
-static void
-_ede_wave_free(Ede_Wave *wave)
-{
-   EDE_STRINGSHARE_DEL(wave->type);
-   EDE_FREE(wave);
-}
-
-
-/* Externally accessible functions */
-
 /**
  * Load a level (just the header, not the data).
  * @param name Name of the level file, without the path
  * @return A newly allocated level with info filled
  */
-EAPI Ede_Level*
-ede_level_load_header(const char *name)
+static Ede_Level*
+_load_level_header(const char *name)
 {
    char buf[PATH_MAX];
    char str[1024];
@@ -148,6 +119,156 @@ ede_level_load_header(const char *name)
    }
 
    return level;
+}
+
+ static void
+_wave_add(Ede_Level *level, int count, const char *type,
+          int start_base, int speed, int energy, int bucks, int wait)
+{
+   Ede_Wave *wave;
+
+   wave = EDE_NEW(Ede_Wave);
+   if (!wave) return;
+
+   wave->total = count;
+   wave->type = eina_stringshare_add(type);
+   wave->start_base = start_base;
+   wave->speed = speed;
+   wave->energy = energy;
+   wave->bucks = bucks;
+   wave->wait = wait;
+
+   level->waves = eina_list_append(level->waves, wave);
+}
+
+static void
+_wave_free(Ede_Wave *wave)
+{
+   EDE_STRINGSHARE_DEL(wave->type);
+   EDE_FREE(wave);
+}
+
+static void
+_level_free(Ede_Level *level)
+{
+   Ede_Wave *wave;
+   D(" ");
+
+   EINA_LIST_FREE(level->waves, wave)
+      _wave_free(wave);
+
+   EDE_STRINGSHARE_DEL(level->file);
+   EDE_STRINGSHARE_DEL(level->name);
+   EDE_STRINGSHARE_DEL(level->description);
+   EDE_STRINGSHARE_DEL(level->author);
+
+   ede_array_free((int **)level->cells);
+
+   EDE_FREE(level);
+}
+
+static void
+_scenario_free(Ede_Scenario *sce)
+{
+   Ede_Level *level;
+
+   EINA_LIST_FREE(sce->levels, level)
+      _level_free(level);
+   EDE_STRINGSHARE_DEL(sce->name);
+   EDE_STRINGSHARE_DEL(sce->desc);
+   EDE_FREE(sce);
+}
+
+static void
+_parse_scenario(const char *path)
+{
+   Ede_Scenario *sce;
+   Ede_Level *level;
+   Eina_List *levels = NULL;
+   char line[PATH_MAX], name[64], desc[256], str[256];
+   int order = 10;
+   FILE *fp;
+
+   D("path: %s", path);
+
+   // open the scenario file
+   fp = fopen(path, "r");
+   if (fp == NULL) return;
+   // parse it
+   name[0] = desc[0] = '\0';
+   while (fgets(line, sizeof(line), fp) != NULL)
+   {
+      if (sscanf(line, "Name=%[^\n]", name) == 1) {}
+      else if(sscanf(line, "Description=%[^\n]", desc) == 1) {}
+      else if(sscanf(line, "Order=%d", &order) == 1) {}
+      else if(sscanf(line, "Level=%[^\n]", str) == 1)
+      {
+         level = _load_level_header(str);
+         levels = eina_list_append(levels, level);
+      }
+   }
+   //close
+   fclose(fp);
+
+   // alloc the Ede_Scenario struct
+   if (name[0] && desc[0] && eina_list_count(levels) > 0)
+   {
+      sce = EDE_NEW(Ede_Scenario);
+      if (!sce) goto error;
+      sce->name = eina_stringshare_add(name);
+      sce->desc = eina_stringshare_add(desc);
+      sce->order = order;
+      sce->levels = levels;
+      scenarios = eina_list_append(scenarios, sce);
+      return;
+   }
+
+error:
+   EINA_LIST_FREE(levels, level)
+      _level_free(level);
+}
+
+/* Externally accessible functions */
+/**
+ * Init all the scenarios and all the levels present in the scenarios.
+ * The level will only load header part, need to load level data before play
+ */
+EAPI Eina_Bool
+ede_level_init(void)
+{
+   Eina_List *files;
+   char buf[PATH_MAX];
+   char *f;
+   D(" ");
+
+   // TODO CHECK ALSO IN USER DIR
+   files = ecore_file_ls(PACKAGE_DATA_DIR"/levels/");
+   EINA_LIST_FREE(files, f)
+   {
+      if (eina_str_has_suffix(f, ".scenario"))
+      {
+         snprintf(buf, sizeof(buf),  PACKAGE_DATA_DIR"/levels/%s", f);
+         _parse_scenario(buf);
+      }
+      EDE_FREE(f);
+   }
+   return EINA_TRUE;
+}
+
+/**
+ * Shutdown level system.
+ * This will free all the scenarios, the levels and the waves
+ */
+EAPI Eina_Bool
+ede_level_shutdown(void)
+{
+   Ede_Scenario *sce;
+   D(" ");
+
+   EINA_LIST_FREE(scenarios, sce)
+      _scenario_free(sce);
+
+   return EINA_TRUE;
 }
 
 /**
@@ -231,7 +352,7 @@ ede_level_load_data(Ede_Level *level)
       // example line: "21 standard from base 1 [speed: 30 energy: 20 bucks: 15], wait 5"
       if (sscanf(line, "%d %s from base %d [speed: %d energy: %d bucks: %d], wait %d",
                     &count, type, &start_base, &speed, &energy, &bucks, &wait) == 7)
-         _ede_level_wave_add(level, count, type, start_base, speed, energy, bucks, wait);
+         _wave_add(level, count, type, start_base, speed, energy, bucks, wait);
    }
    fclose(fp);
 
@@ -245,7 +366,7 @@ ede_level_load_data(Ede_Level *level)
    }
 
    current_level = level;
-   ede_level_dump(level); // DBG
+   //~ ede_level_dump(level); // DBG
    return EINA_TRUE;
 }
 
@@ -255,34 +376,17 @@ ede_level_current_get(void)
    return current_level;
 }
 
+/**
+ * Check if the given cell (in the current level) is walkable
+ * NOTE: this need to be fast as it is called lots of time
+ * TODO maybe make thia a macro
+ */
 EAPI Eina_Bool
 ede_level_walkable_get(int row, int col)
 {
    if (row >= current_level->rows || col >= current_level->cols)
       return EINA_FALSE;
    return current_level->cells[row][col] <= CELL_EMPTY;
-}
-
-/**
- * Free all the level data structures
- */
-EAPI void
-ede_level_free(Ede_Level *level)
-{
-   Ede_Wave *wave;
-   D(" ");
-
-   EINA_LIST_FREE(level->waves, wave)
-      _ede_wave_free(wave);
-
-   EDE_STRINGSHARE_DEL(level->file);
-   EDE_STRINGSHARE_DEL(level->name);
-   EDE_STRINGSHARE_DEL(level->description);
-   EDE_STRINGSHARE_DEL(level->author);
-
-   ede_array_free((int **)level->cells);
-
-   EDE_FREE(level);
 }
 
 /**
@@ -339,4 +443,39 @@ ede_level_dump(Ede_Level *level)
              wave->speed, wave->energy);
    }
    INF("DUMP END");
+}
+
+/**
+ * Get the list of all the scenarios loaded.
+ */
+EAPI Eina_List *
+ede_level_scenario_list_get(void)
+{
+   return scenarios;
+}
+
+EAPI void
+ede_level_debug_info_fill(Eina_Strbuf *t)
+{
+   Ede_Scenario *sce;
+   Ede_Level *level;
+   Eina_List *l, *ll;
+   char buf[1024];
+   int level_count = 0;
+   int loaded_level_count = 0;
+
+   // count levels and loaded levels
+   EINA_LIST_FOREACH(scenarios, l, sce)
+      EINA_LIST_FOREACH(sce->levels, ll, level)
+      {
+         level_count ++;
+         if (level->cells)
+            loaded_level_count ++;
+      }
+
+   eina_strbuf_append(t, "<h3>Levels:</h3><br>");
+   snprintf(buf, sizeof(buf), "scenarios %d<br>levels %d  loaded %d<br>",
+            eina_list_count(scenarios), level_count, loaded_level_count);
+   eina_strbuf_append(t, buf);
+   eina_strbuf_append(t, "<br>");
 }

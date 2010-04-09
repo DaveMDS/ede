@@ -106,7 +106,7 @@ static void
 _window_delete_req_cq(Ecore_Evas *window)
 {
    D(" ");
-   ecore_main_loop_quit();
+  ede_game_quit();
 }
 
 static void
@@ -121,6 +121,19 @@ _add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const cha
 {
    D("'%s' '%s'", emission, source);
    ede_tower_add(source);
+}
+
+static void
+_menu_item_selected(void *data, Evas_Object *o, const char *emission, const char *source)
+{
+   void (*selected_cb)(void *data);
+   void *cb_data;
+
+   selected_cb = evas_object_data_get(o, "item_cb");
+   cb_data = evas_object_data_get(o, "item_data");
+
+   if (selected_cb)
+      selected_cb(cb_data);
 }
 
 EAPI void
@@ -147,6 +160,7 @@ _ecore_event_key_down_cb(void *data, int type, void *event)
       {
          edje_object_signal_emit(o_layout, "debug,panel,show", "");
          ede_game_debug_panel_enable(EINA_TRUE);
+         ede_game_debug_panel_update(0.0);
       }
       else
       {
@@ -185,8 +199,9 @@ _ecore_event_mouse_down_cb(void *data, int type, void *event)
    Eina_Bool on_a_tower = EINA_FALSE;
    int row, col;
 
-   inside_checkboard = _point_inside_checkboard(ev->x, ev->y);
+   if (state < GAME_STATE_PLAYING) return ECORE_CALLBACK_CANCEL;
 
+   inside_checkboard = _point_inside_checkboard(ev->x, ev->y);
    if (inside_checkboard)
    {
       ede_gui_cell_get_at_coords(ev->x, ev->y, &row, &col);
@@ -282,6 +297,7 @@ ede_gui_init(void)
    evas_object_show(o_layout);
    edje_object_signal_callback_add(o_layout, "button,pressed", "debug", _debug_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "tower,add", "*", _add_tower_button_cb, NULL);
+
 
    // create the checkboard object
    o_checkboard = edje_object_add(canvas);
@@ -430,6 +446,82 @@ ede_gui_score_set(int score)
    char buf[16];
    eina_convert_itoa(score, buf);
    edje_object_part_text_set(o_layout, "score.icon.text", buf);
+}
+
+EAPI void
+ede_gui_menu_item_add(const char *label1, const char *label2,
+                     void (*selected_cb)(void *data), void *data)
+{
+   Evas_Object *item;
+   int w, h;
+
+   item = edje_object_add(canvas);
+   edje_object_file_set(item, theme_file, "ede/menu_item");
+   edje_object_signal_callback_add(item, "item,selected", "",
+                                   _menu_item_selected, item);
+
+
+   edje_object_part_text_set(item, "label1.text", label1);
+   edje_object_part_text_set(item, "label2.text", label2);
+   evas_object_data_set(item, "item_cb", selected_cb);
+   evas_object_data_set(item, "item_data", data);
+
+   edje_object_size_min_get(item, &w, &h);
+   evas_object_resize(item, w, h);
+   evas_object_show(item);
+
+   edje_object_part_box_append(o_layout, "menu.box", item);
+}
+
+EAPI void
+ede_gui_menu_show(void)
+{
+   edje_object_signal_emit(o_layout, "menu,show", "");
+}
+
+EAPI void
+ede_gui_menu_hide(void)
+{
+   edje_object_part_box_remove_all(o_layout, "menu.box", EINA_TRUE);
+   edje_object_signal_emit(o_layout, "menu,hide", "");
+}
+
+EAPI void
+ede_gui_level_selector_item_add(const char *label,
+                     void (*selected_cb)(void *data), void *data)
+{
+   Evas_Object *item;
+   int w, h;
+
+   item = edje_object_add(canvas);
+   edje_object_file_set(item, theme_file, "ede/menu_item");
+   edje_object_signal_callback_add(item, "item,selected", "",
+                                   _menu_item_selected, item);
+
+
+   edje_object_part_text_set(item, "label1.text", label);
+   edje_object_part_text_set(item, "label2.text", "");
+   evas_object_data_set(item, "item_cb", selected_cb);
+   evas_object_data_set(item, "item_data", data);
+
+   edje_object_size_min_get(item, &w, &h);
+   evas_object_resize(item, w, h);
+   evas_object_show(item);
+
+   edje_object_part_box_append(o_layout, "level_selector.box", item);
+}
+
+EAPI void
+ede_gui_level_selector_show(void)
+{
+   edje_object_signal_emit(o_layout, "level_selector,show", "");
+}
+
+EAPI void
+ede_gui_level_selector_hide(void)
+{
+   edje_object_part_box_remove_all(o_layout, "level_selector.box", EINA_TRUE);
+   edje_object_signal_emit(o_layout, "level_selector,hide", "");
 }
 
 /**

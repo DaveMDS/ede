@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <Eina.h>
 #include <Ecore.h>
+#include <Ecore_File.h>
 
 #include "ede.h"
 #include "ede_game.h"
@@ -41,6 +42,62 @@ static Eina_Bool _debug_panel_enable = EINA_FALSE;
 static double _start_time;
 
 /* Local subsystem functions */
+static void
+_level_selected_cb(void *data)
+{
+   Ede_Level *level = data;
+   D("PLAY LEVEL %s", level->name);
+   ede_game_start(level);
+}
+
+static void
+_level_selector_populate(Ede_Scenario *sce)
+{
+   Eina_List *l;
+   Ede_Level *level;
+
+   D("POPULATE %s", sce->name);
+
+   // add all the scenarios to the mainmenu
+   EINA_LIST_FOREACH(sce->levels, l, level)
+      ede_gui_level_selector_item_add(level->name, _level_selected_cb, level);
+}
+
+static void
+_scenario_selected_cb(void *data)
+{
+   Ede_Scenario *sce = data;
+
+   // exit selected, quit the main loop
+   if (!sce)
+   {
+      ede_game_quit();
+      return;
+   }
+
+   // show the scenario menu
+   ede_gui_menu_hide();
+   _level_selector_populate(sce);
+   ede_gui_level_selector_show();
+}
+
+static void
+_mainmenu_populate(void)
+{
+   Eina_List *l;
+   Ede_Scenario *sce;
+
+   // add all the scenarios to the mainmenu
+   EINA_LIST_FOREACH(ede_level_scenario_list_get(), l, sce)
+      ede_gui_menu_item_add(sce->name, sce->desc, _scenario_selected_cb, sce);
+
+   // add the 'exit' item
+   ede_gui_menu_item_add("Exit", "", _scenario_selected_cb, NULL);
+
+   // show the menu
+   ede_gui_menu_show();
+}
+
 static int
 _game_loop(void *data)
 {
@@ -59,49 +116,9 @@ _game_loop(void *data)
    // recalc bullets
    ede_bullet_one_step_all(elapsed);
 
-   // update debug panel
-   if (_debug_panel_enable)
-   {
-      Eina_Strbuf *t;
-      char buf[1024];
-      char *ts;
-      static int last_second = 0;
-      static int fps_counter = 0;
-      static int FPS = 0;
+   // update debug panel (if visible)
+   ede_game_debug_panel_update(now);
 
-      // calc FPS
-      fps_counter++;
-      if ((int)now > last_second)
-      {
-         //~ D("last second %d %d", last_second, fps_counter);
-         last_second = now;
-         FPS = fps_counter;
-         fps_counter = 0;
-      }
-
-      t = eina_strbuf_new();
-
-      // game info
-      eina_strbuf_append(t, "<h3>game:</h3><br>");
-      ts = ede_game_time_get(now);
-      snprintf(buf, sizeof(buf), "FPS %d  time %s<br>", FPS,ts);
-      EDE_FREE(ts);
-      eina_strbuf_append(t, buf);
-      snprintf(buf, sizeof(buf), "waves %d  lives %d<br>",
-               current_wave_num, _player_lives);
-      eina_strbuf_append(t, buf);
-      snprintf(buf, sizeof(buf), "bucks %d<br>", _player_bucks);
-      eina_strbuf_append(t, buf);
-      eina_strbuf_append(t, "<br>");
-
-      // info from other components
-      ede_enemy_debug_info_fill(t);
-      ede_tower_debug_info_fill(t);
-      ede_bullet_debug_info_fill(t);
-
-      ede_gui_debug_text_set(eina_strbuf_string_get(t));
-      eina_strbuf_free(t);
-   }
 
    return ECORE_CALLBACK_RENEW;
 }
@@ -160,15 +177,49 @@ _next_wave(void *unused)
    return ECORE_CALLBACK_CANCEL;
 }
 
-static void
-_game_start(Ede_Level *level)
+/* Externally accessible functions */
+
+/**
+ * TODO
+ */
+EAPI Eina_Bool
+ede_game_init(void)
+{
+   D(" ");
+
+   // set debug level in the pathfinder
+   ede_pathfinder_info_set(EINA_FALSE, EINA_FALSE);
+
+   //show the main menu
+   _mainmenu_populate();
+
+   return EINA_TRUE;
+}
+
+/**
+ * TODO
+ */
+EAPI Eina_Bool
+ede_game_shutdown(void)
+{
+   D(" ");
+
+   return EINA_TRUE;
+}
+
+EAPI void
+ede_game_start(Ede_Level *level)
 {
    int row = 0, col = 0;
 
    D(" ");
 
-   ede_gui_level_init(level->rows, level->cols);
+   if (!level->cells)
+      ede_level_load_data(level);
 
+   current_level = level;
+
+   ede_gui_level_init(level->rows, level->cols);
 
    // populate the checkboard with walls, start points and home
    for (row = 0; row < level->rows; row++)
@@ -225,61 +276,71 @@ _game_start(Ede_Level *level)
    ecore_animator_add(_game_loop, NULL);
 }
 
-/* Local subsystem callbacks */
-
-
-/* Externally accessible functions */
-
-/**
- * TODO
- */
-EAPI Eina_Bool
-ede_game_init(void)
+EAPI void
+ede_game_quit(void)
 {
-   D(" ");
-
-   current_level = ede_level_load_header("asd.txt");
-
-   ede_level_load_data(current_level);
-   current_wave_num = 0;
-
-   // set debug level in the pathfinder
-   ede_pathfinder_info_set(EINA_FALSE, EINA_FALSE);
-
-   _game_start(current_level);
-
-
-   return EINA_TRUE;
+   ecore_main_loop_quit();
 }
-
-/**
- * TODO
- */
-EAPI Eina_Bool
-ede_game_shutdown(void)
-{
-   D(" ");
-
-   return EINA_TRUE;
-}
-
-/**
- * TODO
- */
 
 EAPI void
 ede_game_debug_hook(void)
 {
-   //~ _next_wave();
-   ede_tower_destroy_selected();
-
-
+   ede_gui_level_selector_hide();
+   _mainmenu_populate();
 }
 
 EAPI void
 ede_game_debug_panel_enable(Eina_Bool enable)
 {
    _debug_panel_enable = enable;
+}
+
+EAPI void
+ede_game_debug_panel_update(double now)
+{
+   Eina_Strbuf *t;
+   char buf[1024];
+   char *ts;
+   static int last_second = 0;
+   static int fps_counter = 0;
+   static int FPS = 0;
+
+   if (!_debug_panel_enable) return;
+
+   // calc FPS
+   fps_counter++;
+   if ((int)now > last_second)
+   {
+      //~ D("last second %d %d", last_second, fps_counter);
+      last_second = now;
+      FPS = fps_counter;
+      fps_counter = 0;
+   }
+
+   t = eina_strbuf_new();
+
+   // game info
+   eina_strbuf_append(t, "<h3>game:</h3><br>");
+   ts = ede_game_time_get(now);
+   snprintf(buf, sizeof(buf), "FPS %d  time %s<br>", FPS,ts);
+   EDE_FREE(ts);
+   eina_strbuf_append(t, buf);
+   snprintf(buf, sizeof(buf), "waves %d  lives %d<br>",
+            current_wave_num, _player_lives);
+   eina_strbuf_append(t, buf);
+   snprintf(buf, sizeof(buf), "bucks %d<br>", _player_bucks);
+   eina_strbuf_append(t, buf);
+   eina_strbuf_append(t, "<br>");
+
+   // info from other components
+   ede_enemy_debug_info_fill(t);
+   ede_tower_debug_info_fill(t);
+   ede_bullet_debug_info_fill(t);
+   ede_level_debug_info_fill(t);
+
+   ede_gui_debug_text_set(eina_strbuf_string_get(t));
+   eina_strbuf_free(t);
+
 }
 
 EAPI char *
