@@ -15,6 +15,8 @@
 typedef enum _Ede_Game_State Ede_Game_State;
 enum _Ede_Game_State {
    GAME_STATE_UNKNOW,
+   GAME_STATE_MAINMENU,
+   GAME_STATE_LEVELSELECTOR,
    GAME_STATE_PAUSE,
    GAME_STATE_PLAYING,
    GAME_STATE_AREA_REQUEST
@@ -24,6 +26,7 @@ enum _Ede_Game_State {
 EAPI Eina_Bool ede_game_init(void);
 EAPI Eina_Bool ede_game_shutdown(void);
 
+EAPI void  ede_game_mainmenu_populate(void);
 EAPI void  ede_game_start(Ede_Level *level);
 EAPI void  ede_game_quit(void);
 

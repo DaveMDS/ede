@@ -112,8 +112,16 @@ _window_delete_req_cq(Ecore_Evas *window)
 static void
 _debug_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
-   ede_game_debug_hook();
    D(" ");
+   ede_game_debug_hook();
+}
+
+
+static void
+_menu_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
+{
+   D(" ");
+   ede_game_mainmenu_populate();
 }
 
 static void
@@ -295,8 +303,9 @@ ede_gui_init(void)
    ecore_evas_object_associate(window, o_layout, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
    evas_object_resize(o_layout, WIN_W, WIN_H);
    evas_object_show(o_layout);
-   edje_object_signal_callback_add(o_layout, "button,pressed", "debug", _debug_button_cb, NULL);
+   edje_object_signal_callback_add(o_layout, "mouse,down,1", "a button", _debug_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "tower,add", "*", _add_tower_button_cb, NULL);
+   edje_object_signal_callback_add(o_layout, "mouse,down,1", "menu_button", _menu_button_cb, NULL);
 
 
    // create the checkboard object

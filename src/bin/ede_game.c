@@ -61,6 +61,8 @@ _level_selector_populate(Ede_Scenario *sce)
    // add all the scenarios to the mainmenu
    EINA_LIST_FOREACH(sce->levels, l, level)
       ede_gui_level_selector_item_add(level->name, _level_selected_cb, level);
+
+   _game_state = GAME_STATE_LEVELSELECTOR;
 }
 
 static void
@@ -81,11 +83,15 @@ _scenario_selected_cb(void *data)
    ede_gui_level_selector_show();
 }
 
-static void
-_mainmenu_populate(void)
+EAPI void
+ede_game_mainmenu_populate(void)
 {
    Eina_List *l;
    Ede_Scenario *sce;
+
+   if (_game_state == GAME_STATE_MAINMENU) return;
+   if (_game_state == GAME_STATE_LEVELSELECTOR)
+      ede_gui_level_selector_hide();
 
    // add all the scenarios to the mainmenu
    EINA_LIST_FOREACH(ede_level_scenario_list_get(), l, sce)
@@ -96,6 +102,8 @@ _mainmenu_populate(void)
 
    // show the menu
    ede_gui_menu_show();
+
+   ede_game_state_set(GAME_STATE_MAINMENU);
 }
 
 static int
@@ -191,7 +199,7 @@ ede_game_init(void)
    ede_pathfinder_info_set(EINA_FALSE, EINA_FALSE);
 
    //show the main menu
-   _mainmenu_populate();
+   ede_game_mainmenu_populate();
 
    return EINA_TRUE;
 }
@@ -218,6 +226,9 @@ ede_game_start(Ede_Level *level)
       ede_level_load_data(level);
 
    current_level = level;
+
+   ede_gui_level_selector_hide();
+   ede_gui_menu_hide();
 
    ede_gui_level_init(level->rows, level->cols);
 
@@ -285,8 +296,8 @@ ede_game_quit(void)
 EAPI void
 ede_game_debug_hook(void)
 {
-   ede_gui_level_selector_hide();
-   _mainmenu_populate();
+   //~ ede_gui_level_selector_hide();
+   //~ _mainmenu_populate();
 }
 
 EAPI void
