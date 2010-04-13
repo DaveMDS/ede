@@ -93,6 +93,9 @@ ede_game_mainmenu_populate(void)
    if (_game_state == GAME_STATE_LEVELSELECTOR)
       ede_gui_level_selector_hide();
 
+   // show the menu
+   ede_gui_menu_show();
+
    // add all the scenarios to the mainmenu
    EINA_LIST_FOREACH(ede_level_scenario_list_get(), l, sce)
       ede_gui_menu_item_add(sce->name, sce->desc, _scenario_selected_cb, sce);
@@ -100,8 +103,7 @@ ede_game_mainmenu_populate(void)
    // add the 'exit' item
    ede_gui_menu_item_add("Exit", "", _scenario_selected_cb, NULL);
 
-   // show the menu
-   ede_gui_menu_show();
+
 
    ede_game_state_set(GAME_STATE_MAINMENU);
 }

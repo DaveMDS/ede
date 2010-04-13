@@ -39,7 +39,9 @@ static Evas_Object ***overlays = NULL; /** 2D dynamic array of Evas_Object point
 static const char *theme_file; /** full path to the theme file */
 static Ecore_Evas *window;     /** window handle */
 static Evas *canvas;           /** evas canvas */
-static Evas_Object *o_layout;    /** main edje object containing the interface */
+static Evas_Object *o_layout;  /** main edje object containing the interface */
+static Evas_Object *o_menu;           /** main menu edje object (group: ede/menu) */
+static Evas_Object *o_levelselector;  /** levelselector menu  (group: ede/levelselector) */
 
 static Eina_List *event_handlers; /** list of connected event handlers */
 
@@ -103,7 +105,7 @@ _point_inside_checkboard(int x, int y)
 
 /* Local subsystem callbacks */
 static void
-_window_delete_req_cq(Ecore_Evas *window)
+_window_delete_req_cb(Ecore_Evas *window)
 {
    D(" ");
   ede_game_quit();
@@ -115,7 +117,6 @@ _debug_button_cb(void *data, Evas_Object *o, const char *emission, const char *s
    D(" ");
    ede_game_debug_hook();
 }
-
 
 static void
 _menu_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
@@ -276,7 +277,7 @@ ede_gui_init(void)
    ecore_evas_size_min_set(window, WIN_W, WIN_H);
    ecore_evas_size_step_set(window, 50, 50);
    ecore_evas_title_set(window, "EFL Defender Game");
-   ecore_evas_callback_delete_request_set(window, _window_delete_req_cq);
+   ecore_evas_callback_delete_request_set(window, _window_delete_req_cb);
    INF("Using evas engine: %s", ecore_evas_engine_name_get(window));
    ecore_evas_show(window);
    canvas = ecore_evas_get(window);
@@ -328,6 +329,17 @@ ede_gui_init(void)
    evas_object_clip_set(o_circle, clipper);
 
 
+   // create the mainmenu object
+   o_menu = edje_object_add(canvas);
+   edje_object_file_set(o_menu, theme_file, "ede/menu");
+   evas_object_move(o_menu, 200, 80); //TODO FIXME
+   evas_object_resize(o_menu, 400, 400); //TODO FIXME
+
+   // create the levelselector menu object
+   o_levelselector = edje_object_add(canvas);
+   edje_object_file_set(o_levelselector, theme_file, "ede/levelselector");
+   evas_object_move(o_levelselector, 200, 80); //TODO FIXME
+   evas_object_resize(o_levelselector, 400, 400); //TODO FIXME
 
    // connect keyboard & mouse event
    event_handlers = eina_list_append(event_handlers,
@@ -457,6 +469,14 @@ ede_gui_score_set(int score)
    edje_object_part_text_set(o_layout, "score.icon.text", buf);
 }
 
+/**********   MAIN MENU   *****************************************************/
+EAPI void
+ede_gui_menu_show(void)
+{
+   evas_object_show(o_menu);
+   evas_object_raise(o_menu);
+}
+
 EAPI void
 ede_gui_menu_item_add(const char *label1, const char *label2,
                      void (*selected_cb)(void *data), void *data)
@@ -479,20 +499,22 @@ ede_gui_menu_item_add(const char *label1, const char *label2,
    evas_object_resize(item, w, h);
    evas_object_show(item);
 
-   edje_object_part_box_append(o_layout, "menu.box", item);
-}
-
-EAPI void
-ede_gui_menu_show(void)
-{
-   edje_object_signal_emit(o_layout, "menu,show", "");
+   edje_object_part_box_append(o_menu, "menu.box", item);
 }
 
 EAPI void
 ede_gui_menu_hide(void)
 {
-   edje_object_part_box_remove_all(o_layout, "menu.box", EINA_TRUE);
-   edje_object_signal_emit(o_layout, "menu,hide", "");
+   edje_object_part_box_remove_all(o_menu, "menu.box", EINA_TRUE);
+   evas_object_hide(o_menu);
+}
+
+/**********   LEVEL SELECTOR   ************************************************/
+EAPI void
+ede_gui_level_selector_show(void)
+{
+   evas_object_show(o_levelselector);
+   evas_object_raise(o_levelselector);
 }
 
 EAPI void
@@ -517,20 +539,14 @@ ede_gui_level_selector_item_add(const char *label,
    evas_object_resize(item, w, h);
    evas_object_show(item);
 
-   edje_object_part_box_append(o_layout, "level_selector.box", item);
-}
-
-EAPI void
-ede_gui_level_selector_show(void)
-{
-   edje_object_signal_emit(o_layout, "level_selector,show", "");
+   edje_object_part_box_append(o_levelselector, "level_selector.box", item);
 }
 
 EAPI void
 ede_gui_level_selector_hide(void)
 {
-   edje_object_part_box_remove_all(o_layout, "level_selector.box", EINA_TRUE);
-   edje_object_signal_emit(o_layout, "level_selector,hide", "");
+   edje_object_part_box_remove_all(o_levelselector, "level_selector.box", EINA_TRUE);
+   evas_object_hide(o_levelselector);
 }
 
 /**
