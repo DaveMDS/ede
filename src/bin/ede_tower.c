@@ -292,10 +292,7 @@ ede_tower_one_step_all(double time)
 EAPI void
 ede_tower_debug_info_fill(Eina_Strbuf *t)
 {
-   char buf[1024];
-
    eina_strbuf_append(t, "<h3>towers:</h3><br>");
-   snprintf(buf, sizeof(buf), "count %d<br>",eina_list_count(towers));
-   eina_strbuf_append(t, buf);
+   eina_strbuf_append_printf(t, "count %d<br>", eina_list_count(towers));
    eina_strbuf_append(t, "<br>");
 }

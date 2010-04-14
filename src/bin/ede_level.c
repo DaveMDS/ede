@@ -461,7 +461,6 @@ ede_level_debug_info_fill(Eina_Strbuf *t)
    Ede_Scenario *sce;
    Ede_Level *level;
    Eina_List *l, *ll;
-   char buf[1024];
    int level_count = 0;
    int loaded_level_count = 0;
 
@@ -475,8 +474,7 @@ ede_level_debug_info_fill(Eina_Strbuf *t)
       }
 
    eina_strbuf_append(t, "<h3>Levels:</h3><br>");
-   snprintf(buf, sizeof(buf), "scenarios %d<br>levels %d  loaded %d<br>",
-            eina_list_count(scenarios), level_count, loaded_level_count);
-   eina_strbuf_append(t, buf);
+   eina_strbuf_append_printf(t, "scenarios %d<br>levels %d  loaded %d<br>",
+                  eina_list_count(scenarios), level_count, loaded_level_count);
    eina_strbuf_append(t, "<br>");
 }

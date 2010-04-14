@@ -398,16 +398,12 @@ ede_enemy_path_recalc_all(void)
 EAPI void
 ede_enemy_debug_info_fill(Eina_Strbuf *t)
 {
-   char buf[1024];
-
    eina_strbuf_append(t, "<h3>enemies:</h3><br>");
-   snprintf(buf, sizeof(buf), "on %.3d  off %.3d [max: %d]<br>",
-            eina_list_count(alives), eina_list_count(deads),
-            eina_list_count(alives) + eina_list_count(deads));
-   eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "spawned %d  killed %d<br>",
-            _count_spawned, _count_killed);
-   eina_strbuf_append(t, buf);
+   eina_strbuf_append_printf(t, "on %.3d  off %.3d [max: %d]<br>",
+                             eina_list_count(alives), eina_list_count(deads),
+                             eina_list_count(alives) + eina_list_count(deads));
+   eina_strbuf_append_printf(t, "spawned %d  killed %d<br>",
+                             _count_spawned, _count_killed);
    eina_strbuf_append(t, "<br>");
 }
 

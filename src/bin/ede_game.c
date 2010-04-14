@@ -205,21 +205,20 @@ _game_loop(void *data)
       // recalc every bullets
       ede_bullet_one_step_all(elapsed);
 
-      // no more lives ? YOU LOST
+      // no more lives ? LOOSER !!
       if (_player_lives < 0)
       {
          D(" YOU LOST ");
          _game_state = GAME_STATE_PAUSE;
       }
 
-      // no more enemies ? YOU WIN
+      // no more enemies ? WINNER !!
       if (!_current_wave && num_enemies < 1)
       {
          D(" YOU WIN ");
          _game_state = GAME_STATE_PAUSE;
       }
    }
-
 
    // update debug panel (if visible)
    ede_game_debug_panel_update(now);
@@ -365,7 +364,6 @@ EAPI void
 ede_game_debug_panel_update(double now)
 {
    Eina_Strbuf *t;
-   char buf[1024];
    char *ts;
    static int last_second = 0;
    static int fps_counter = 0;
@@ -387,18 +385,15 @@ ede_game_debug_panel_update(double now)
 
    // game info
    eina_strbuf_append(t, "<h3>game:</h3><br>");
-   ts = ede_game_time_get(now);
-   snprintf(buf, sizeof(buf), "FPS %d  time %s<br>", FPS,ts);
-   EDE_FREE(ts);
-   eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "lives %d<br>", _player_lives);
-   eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "bucks %d<br>", _player_bucks);
-   eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "waves %d [current %d]<br>",
-            eina_list_count(current_level->waves), _current_wave_num);
-   eina_strbuf_append(t, buf);
 
+   ts = ede_game_time_get(now);
+   eina_strbuf_append_printf(t, "FPS %d  time %s<br>", FPS, ts);
+   EDE_FREE(ts);
+
+   eina_strbuf_append_printf(t, "lives %d<br>bucks %d<br>",
+                             _player_lives, _player_bucks);
+   eina_strbuf_append_printf(t, "waves %d [current %d]<br>",
+                     eina_list_count(current_level->waves), _current_wave_num);
    eina_strbuf_append(t, "<br>");
 
    // info from other components

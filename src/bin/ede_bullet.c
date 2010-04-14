@@ -169,14 +169,10 @@ ede_bullet_one_step_all(double time)
 EAPI void
 ede_bullet_debug_info_fill(Eina_Strbuf *t)
 {
-   char buf[1024];
-
    eina_strbuf_append(t, "<h3>bullets:</h3><br>");
-   snprintf(buf, sizeof(buf), "on %.3d  off %.3d [max %d]<br>",
-            eina_list_count(bullets), eina_list_count(inactives),
-            eina_list_count(bullets) + eina_list_count(inactives));
-   eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "fired %d  lost %d<br>", _count_fired, _count_lost);
-   eina_strbuf_append(t, buf);
+   eina_strbuf_append_printf(t, "on %.3d  off %.3d [max %d]<br>",
+                        eina_list_count(bullets), eina_list_count(inactives),
+                        eina_list_count(bullets) + eina_list_count(inactives));
+   eina_strbuf_append_printf(t, "fired %d  lost %d<br>", _count_fired, _count_lost);
    eina_strbuf_append(t, "<br>");
 }
