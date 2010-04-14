@@ -208,7 +208,6 @@ _ecore_event_mouse_down_cb(void *data, int type, void *event)
 {
    Ecore_Event_Mouse_Button *ev = event;
    Ede_Game_State state = ede_game_state_get();
-   Ede_Level *level = ede_level_current_get();
    Eina_Bool inside_checkboard;
    Eina_Bool on_a_tower = EINA_FALSE;
    int row, col;
@@ -219,7 +218,7 @@ _ecore_event_mouse_down_cb(void *data, int type, void *event)
    if (inside_checkboard)
    {
       ede_gui_cell_get_at_coords(ev->x, ev->y, &row, &col);
-      on_a_tower = (level->cells[row][col] == CELL_TOWER);
+      on_a_tower = (cells[row][col] == CELL_TOWER);
    }
 
    if (state == GAME_STATE_AREA_REQUEST)
@@ -808,7 +807,7 @@ static void
 _area_request_mouse_down(int x, int y,
                          Eina_Bool inside_checkboard, Eina_Bool on_a_tower)
 {
-   Ede_Level *level = ede_level_current_get();;
+   Ede_Level *level = ede_level_current_get();
    Eina_List *l;
    int mouse_row, mouse_col;
    int row, col, i, j;
@@ -848,7 +847,7 @@ _area_request_mouse_down(int x, int y,
    // set all the needed cells to a temporary (unwalkable) value
    for (i = 0; i < area_req_cols; i++)
       for (j = 0; j < area_req_rows; j++)
-         level->cells[mouse_row + j][mouse_col + i] += 100;
+         cells[mouse_row + j][mouse_col + i] += 100;
 
    for (i = 0; i < 10; i++) // Base 0..9
    {
@@ -875,7 +874,7 @@ end_loop:
    // restore all the needed cells values to the original state
    for (i = 0; i < area_req_cols; i++)
       for (j = 0; j < area_req_rows; j++)
-         level->cells[mouse_row + j][mouse_col + i] -= 100;
+         cells[mouse_row + j][mouse_col + i] -= 100;
 
    if (selection_ok)
    {

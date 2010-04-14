@@ -291,8 +291,11 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
    // calc the initial position/rotation and show the enemy
    _enemy_step(e, 0.0);
    evas_object_show(e->obj);
+   evas_object_raise(e->obj);
    evas_object_show(e->o_gauge1);
+   evas_object_raise(e->o_gauge1);
    evas_object_show(e->o_gauge2);
+   evas_object_raise(e->o_gauge2);
 
    // global counter
    _count_spawned++;
@@ -317,6 +320,24 @@ ede_enemy_kill(Ede_Enemy *e)
    evas_object_hide(e->obj);
    evas_object_hide(e->o_gauge1);
    evas_object_hide(e->o_gauge2);
+}
+
+EAPI void
+ede_enemy_reset(void)
+{
+   Ede_Enemy *e;
+
+   while (alives)
+   {
+      e = EINA_LIST_POP(alives);
+      e->killed = EINA_TRUE;
+      evas_object_hide(e->obj);
+      evas_object_hide(e->o_gauge1);
+      evas_object_hide(e->o_gauge2);
+
+      EINA_LIST_PUSH(deads, e);
+   }
+   _count_spawned = _count_killed = 0;
 }
 
 EAPI void

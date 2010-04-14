@@ -42,12 +42,9 @@ struct _Ede_Level
    int         lives;
    int         bucks;
    int         data_start_at_line;
-   Ede_Level_Cell **cells; // access as: level->cells[row][col]
    int         home_row, home_col;
 
-
    Eina_List *starts[10]; // 10 lists of enemy starting points (row, col, row, col, etc..)
-   Eina_List *waves;
 };
 
 typedef struct _Ede_Wave Ede_Wave;
@@ -72,6 +69,10 @@ struct _Ede_Scenario {
    Eina_List *levels;
    Eina_List *levels2;
 };
+
+extern Ede_Level_Cell **cells;
+extern Eina_List *waves; // TODO remove this export
+
 
 EAPI Eina_Bool ede_level_init(void);
 EAPI Eina_Bool ede_level_shutdown(void);

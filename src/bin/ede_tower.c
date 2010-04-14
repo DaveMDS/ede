@@ -76,7 +76,6 @@ static void
 _tower_add_real(int row, int col, int rows, int cols, void *data)
 {
    Ede_Tower_Type tt = (Ede_Tower_Type)data;
-   Ede_Level *level = ede_level_current_get();
    Ede_Tower *tower;
    int x, y, i, j;
    char buf[64];
@@ -124,7 +123,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    // mark all the tower cells as unwalkable
    for (i = col; i < col + cols; i++)
       for (j = row; j < row + rows; j++)
-         level->cells[j][i] = CELL_TOWER;
+         cells[j][i] = CELL_TOWER;
 
    // tell the enemies that the grid has changed
    ede_enemy_path_recalc_all();
@@ -143,7 +142,7 @@ _tower_del(Ede_Tower *tower)
    level = ede_level_current_get();
    for (i = tower->col; i < tower->col + tower->cols; i++)
       for (j = tower->row; j < tower->row + tower->rows; j++)
-         level->cells[j][i] = CELL_EMPTY;
+         cells[j][i] = CELL_EMPTY;
 
    // tell the enemies that the grid has changed
    ede_enemy_path_recalc_all();
@@ -276,6 +275,21 @@ ede_tower_select_at(int row, int col)
          return;
       }
    }
+}
+
+EAPI void
+ede_tower_reset(void)
+{
+   Ede_Tower *tower;
+
+   ede_gui_selection_hide();
+   EINA_LIST_FREE(towers, tower)
+   {
+      EDE_OBJECT_DEL(tower->o_base);
+      EDE_OBJECT_DEL(tower->o_cannon);
+      EDE_FREE(tower);
+   }
+   selected_tower = NULL;
 }
 
 EAPI void

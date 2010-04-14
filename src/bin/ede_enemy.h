@@ -40,6 +40,7 @@ EAPI Eina_Bool ede_enemy_shutdown(void);
 EAPI void ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
                           int start_row, int start_col, int end_row, int end_col);
 EAPI void ede_enemy_kill(Ede_Enemy *e);
+EAPI void ede_enemy_reset(void);
 EAPI void ede_enemy_hit(Ede_Enemy *e, int damage);
 EAPI int  ede_enemy_one_step_all(double time);
 EAPI void ede_enemy_path_recalc_all(void);

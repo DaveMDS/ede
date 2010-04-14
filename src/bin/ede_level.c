@@ -32,6 +32,8 @@
 /* Local subsystem vars */
 static Eina_List *scenarios = NULL;
 static Ede_Level *current_level = NULL;
+Ede_Level_Cell **cells = NULL;
+Eina_List *waves = NULL;
 
 /* Local subsystem callbacks */
 /**
@@ -139,7 +141,7 @@ _wave_add(Ede_Level *level, int count, const char *type, int time,
    wave->wait = wait;
    wave->delay = (double)time / (double)count;
 
-   level->waves = eina_list_append(level->waves, wave);
+   waves = eina_list_append(waves, wave);
 }
 
 static void
@@ -152,18 +154,12 @@ _wave_free(Ede_Wave *wave)
 static void
 _level_free(Ede_Level *level)
 {
-   Ede_Wave *wave;
    D(" ");
-
-   EINA_LIST_FREE(level->waves, wave)
-      _wave_free(wave);
 
    EDE_STRINGSHARE_DEL(level->file);
    EDE_STRINGSHARE_DEL(level->name);
    EDE_STRINGSHARE_DEL(level->description);
    EDE_STRINGSHARE_DEL(level->author);
-
-   ede_array_free((int **)level->cells);
 
    EDE_FREE(level);
 }
@@ -264,7 +260,15 @@ EAPI Eina_Bool
 ede_level_shutdown(void)
 {
    Ede_Scenario *sce;
+   Ede_Wave *wave;
    D(" ");
+
+   EINA_LIST_FREE(waves, wave)
+      _wave_free(wave);
+
+   ede_array_free((int **)cells);
+
+
 
    EINA_LIST_FREE(scenarios, sce)
       _scenario_free(sce);
@@ -283,6 +287,7 @@ ede_level_load_data(Ede_Level *level)
    char line[MAX_LEVEL_COLS];
    int count = 0;
    int col, row;
+   Ede_Wave *wave;
 
    if (!level) return EINA_FALSE;
    //~ D("%s [%d]", level->file, level->data_start_at_line);
@@ -291,8 +296,9 @@ ede_level_load_data(Ede_Level *level)
    fp = fopen(level->file, "r");
    if (fp == NULL) return EINA_FALSE;
 
-   // alloc the 2D array for the cell data
-   level->cells = (Ede_Level_Cell**)ede_array_new(level->rows, level->cols);
+   // free/alloc the 2D array for the cell data
+   if (cells) ede_array_free((int **)cells);
+   cells = (Ede_Level_Cell**)ede_array_new(level->rows, level->cols);
 
    // read the DATA part
    row = col = 0;
@@ -315,9 +321,9 @@ ede_level_load_data(Ede_Level *level)
          switch (line[col])
          {
             // cell empty
-            case '.': level->cells[row][col] = CELL_EMPTY; break;
+            case '.': cells[row][col] = CELL_EMPTY; break;
             // wall
-            case '#': level->cells[row][col] = CELL_WALL; break;
+            case '#': cells[row][col] = CELL_WALL; break;
             // player home
             case '@': level->home_row = row; level->home_col = col; break;
             /* Enemy Start Base 0..9
@@ -329,15 +335,19 @@ ede_level_load_data(Ede_Level *level)
             case '5':case '6': case '7': case '8': case '9':
                level->starts[line[col] - '0'] = eina_list_append(level->starts[line[col] - '0'], (void*)row);
                level->starts[line[col] - '0'] = eina_list_append(level->starts[line[col] - '0'], (void*)col);
-               level->cells[row][col] = CELL_START0 + line[col] - '0';
+               cells[row][col] = CELL_START0 + line[col] - '0';
                break;
 
             // TODO place turrets here
-            default : level->cells[row][col] = CELL_EMPTY; break;
+            default : cells[row][col] = CELL_EMPTY; break;
          }
       }
       row++;
    }
+
+   // free the old waves
+   EINA_LIST_FREE(waves, wave)
+      _wave_free(wave);
 
    // read the WAVES part
    while (fgets(line, sizeof(line), fp) != NULL)
@@ -360,9 +370,7 @@ ede_level_load_data(Ede_Level *level)
    if (row != level->rows)
    {
       ERR("Error parsing level");
-      //TODO is this the right way to free all the array? right?
-      EDE_FREE(*level->cells);
-      EDE_FREE(level->cells);
+      ede_array_free((int **)cells);
       return EINA_FALSE;
    }
 
@@ -387,7 +395,7 @@ ede_level_walkable_get(int row, int col)
 {
    if (row >= current_level->rows || col >= current_level->cols)
       return EINA_FALSE;
-   return current_level->cells[row][col] <= CELL_EMPTY;
+   return cells[row][col] <= CELL_EMPTY;
 }
 
 /**
@@ -410,13 +418,13 @@ ede_level_dump(Ede_Level *level)
    printf(" Version: '%d'\n", level->version);
    printf(" Size: '%dx%d'\n", level->cols, level->rows);
 
-   if (level->cells)
+   if (cells)
    {
       printf("\nLEVEL GRID\n");
       for (row = 0; row < level->rows; row++)
       {
          for (col = 0; col < level->cols; col++)
-            printf("%.2d ", level->cells[row][col]);
+            printf("%.2d ", cells[row][col]);
          printf("\n");
       }
    }
@@ -437,7 +445,7 @@ ede_level_dump(Ede_Level *level)
 
    printf("\nWAVES:\n");
    i = 0;
-   EINA_LIST_FOREACH(level->waves, l, wave)
+   EINA_LIST_FOREACH(waves, l, wave)
    {
       printf("#%.3d: %d '%s' (delay %.3f) from base %d [s:%d e:%d b:%d]\n", i++,
              wave->total, wave->type, wave->delay, wave->start_base,
@@ -469,7 +477,7 @@ ede_level_debug_info_fill(Eina_Strbuf *t)
       EINA_LIST_FOREACH(sce->levels, ll, level)
       {
          level_count ++;
-         if (level->cells)
+         if (cells)
             loaded_level_count ++;
       }
 

@@ -83,6 +83,21 @@ ede_bullet_shutdown(void)
 }
 
 EAPI void
+ede_bullet_reset(void)
+{
+   Ede_Bulllet *b;
+   D(" ");
+
+   EINA_LIST_FREE(inactives, b)
+      _bullet_del(b);
+   EINA_LIST_FREE(bullets, b)
+      _bullet_del(b);
+
+   _count_fired = _count_lost = 0;
+
+}
+
+EAPI void
 ede_bullet_add(int start_x, int start_y, Ede_Enemy *target, int speed, int damage)
 {
    Ede_Bulllet *b;

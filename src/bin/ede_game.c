@@ -71,17 +71,39 @@ _scenario_selected_cb(void *data)
 {
    Ede_Scenario *sce = data;
 
-   // exit selected, quit the main loop
-   if (!sce)
-   {
-      ede_game_quit();
-      return;
-   }
-
    // show the scenario menu
    ede_gui_menu_hide();
    _level_selector_populate(sce);
    ede_gui_level_selector_show();
+}
+
+static void
+_restart_level_cb(void *data)
+{
+   D(" ");
+   ede_enemy_reset();
+   ede_tower_reset();
+   ede_bullet_reset();
+   ede_gui_level_clear();
+   ede_game_start(current_level);
+}
+
+static void
+_mainmenu_cb(void *data)
+{
+   D(" ");
+}
+
+static void
+_exit_game_cb(void *data)
+{
+   ede_game_quit();
+}
+
+static void
+_continue_game_cb(void *data)
+{
+   ede_game_quit();
 }
 
 EAPI void
@@ -97,14 +119,21 @@ ede_game_mainmenu_populate(void)
    // show the menu
    ede_gui_menu_show();
 
-   // add all the scenarios to the mainmenu
-   EINA_LIST_FOREACH(ede_level_scenario_list_get(), l, sce)
-      ede_gui_menu_item_add(sce->name, sce->desc, _scenario_selected_cb, sce);
+   if (_game_state >= GAME_STATE_PAUSE)
+   {
+      ede_gui_menu_item_add("Continue current game (TODO)", "", _continue_game_cb, NULL);
+      ede_gui_menu_item_add("Restart level", "", _restart_level_cb, NULL);
+      ede_gui_menu_item_add("Exit to main menu (TODO)", "", _mainmenu_cb, NULL);
+   }
+   else
+   {
+      // add all the scenarios to the mainmenu
+      EINA_LIST_FOREACH(ede_level_scenario_list_get(), l, sce)
+         ede_gui_menu_item_add(sce->name, sce->desc, _scenario_selected_cb, sce);
+   }
 
    // add the 'exit' item
-   ede_gui_menu_item_add("Exit", "", _scenario_selected_cb, NULL);
-
-
+   ede_gui_menu_item_add("Exit game", "", _exit_game_cb, NULL);
 
    ede_game_state_set(GAME_STATE_MAINMENU);
 }
@@ -145,7 +174,7 @@ static void
 _next_wave(void)
 {
    D("NEXT WAVE");
-   _current_wave = eina_list_nth(current_level->waves, _current_wave_num);
+   _current_wave = eina_list_nth(waves, _current_wave_num);
    if (!_current_wave) return;
 
    _current_wave->count = _current_wave->total;
@@ -192,7 +221,7 @@ _game_loop(void *data)
    elapsed = last_time ? now - last_time : 0.0;
    last_time = now;
 
-   if (_game_state != GAME_STATE_PAUSE)
+   if (_game_state >= GAME_STATE_PLAYING)
    {
       // keep track of play time
       _play_time += elapsed;
@@ -267,8 +296,8 @@ ede_game_start(Ede_Level *level)
 
    D(" ");
 
-   if (!level->cells)
-      ede_level_load_data(level);
+
+   ede_level_load_data(level);
 
    current_level = level;
 
@@ -296,7 +325,7 @@ ede_game_start(Ede_Level *level)
          // DBG
 
          //~ printf("%d\n", level->cells[row][col]);
-         switch (level->cells[row][col])
+         switch (cells[row][col])
          {
             case CELL_WALL:
                ede_gui_cell_overlay_add(OVERLAY_IMAGE_WALL, row, col);
@@ -305,7 +334,7 @@ ede_game_start(Ede_Level *level)
             case CELL_START4:case CELL_START5:case CELL_START6:case CELL_START7:
             case CELL_START8:case CELL_START9:
                ede_gui_cell_overlay_add(OVERLAY_COLOR_RED, row, col);
-               ede_gui_cell_overlay_text_set(row, col, level->cells[row][col] - CELL_START0, 1);
+               ede_gui_cell_overlay_text_set(row, col, cells[row][col] - CELL_START0, 1);
                break;
             default:
                break;
@@ -329,13 +358,15 @@ ede_game_start(Ede_Level *level)
    _next_wave();
 
    ecore_animator_frametime_set(1.0 / MAX_FPS);
-   _animator = ecore_animator_add(_game_loop, NULL);
+
+   if (!_animator)
+      _animator = ecore_animator_add(_game_loop, NULL);
 }
 
 EAPI void
 ede_game_pause(void)
 {
-   if (_game_state == GAME_STATE_PLAYING)
+   if (_game_state >= GAME_STATE_PLAYING)
       _game_state = GAME_STATE_PAUSE;
    else if (_game_state == GAME_STATE_PAUSE)
       _game_state = GAME_STATE_PLAYING;
@@ -393,7 +424,7 @@ ede_game_debug_panel_update(double now)
    eina_strbuf_append_printf(t, "lives %d<br>bucks %d<br>",
                              _player_lives, _player_bucks);
    eina_strbuf_append_printf(t, "waves %d [current %d]<br>",
-                     eina_list_count(current_level->waves), _current_wave_num);
+                     eina_list_count(waves), _current_wave_num);
    eina_strbuf_append(t, "<br>");
 
    // info from other components

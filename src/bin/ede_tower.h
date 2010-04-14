@@ -25,6 +25,7 @@ EAPI Eina_Bool ede_tower_init(void);
 EAPI Eina_Bool ede_tower_shutdown(void);
 
 EAPI void ede_tower_add(const char *type);
+EAPI void ede_tower_reset(void);
 EAPI void ede_tower_destroy_selected(void);
 EAPI void ede_tower_select_at(int row, int col);
 EAPI void ede_tower_deselect(void);
