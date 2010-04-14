@@ -57,60 +57,6 @@ DATA
 .....###################
 
 WAVES
-10 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
-30 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
-40 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
-60 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
-20 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
-60 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
-30 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
-40 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 1 [speed: 30 energy: 55 bucks: 15], wait 5
-30 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 3 [speed: 30 energy: 50 5ucks: 15], wait 5
-50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
-66 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
-30 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
-70 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
-55 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
-55 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 1 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 2 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 3 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 4 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 5 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 6 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 7 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 8 [speed: 30 energy: 50 bucks: 15], wait 5
-50 standard from base 9 [speed: 30 energy: 50 bucks: 15], wait 5
-
-
+10 standard in 3s from base 1 [speed:30 energy:50 bucks:15], wait 4s
+20 standard in 2s from base 2 [speed:30 energy:50 bucks:15], wait 5s
 

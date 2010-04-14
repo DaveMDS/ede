@@ -161,6 +161,11 @@ _ecore_event_key_down_cb(void *data, int type, void *event)
    {
       D("D [destroy]");
    }
+   if (!strcmp(ev->key, "p"))
+   {
+      D("P [pause]");
+      ede_game_pause();
+   }
    else if (!strcmp(ev->key, "F12"))
    {
       D("F12: toggle debug panel");

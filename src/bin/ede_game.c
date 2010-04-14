@@ -34,14 +34,15 @@
 /* Local subsystem vars */
 static Ede_Game_State _game_state;
 static Ede_Level *current_level = NULL;
-static int current_wave_num = 0;
+
 static int _player_lives;
 static int _player_bucks;
 static int _player_score;
 static Eina_Bool _debug_panel_enable = EINA_FALSE;
-static double _start_time;
+static double _play_time;
+static Ecore_Animator *_animator = NULL;
 
-/* Local subsystem functions */
+/**********   Menu Stuff   ****************************************************/
 static void
 _level_selected_cb(void *data)
 {
@@ -108,35 +109,16 @@ ede_game_mainmenu_populate(void)
    ede_game_state_set(GAME_STATE_MAINMENU);
 }
 
-static int
-_game_loop(void *data)
+/**********   Wave spawning stuff   ******************************************/
+
+static Ede_Wave *_current_wave = NULL;
+static int       _current_wave_num = 0;
+static double    _next_wave_accumulator;
+static double    _next_enemy_accumulator;
+
+static void
+_spawn_one_enemy(Ede_Wave *wave)
 {
-   static double last_time = 0;
-   double elapsed, now;
-
-   // calc time between each frame
-   now = ecore_loop_time_get();
-   elapsed = now - last_time;
-   last_time = now;
-
-   // recalc enemys
-   ede_enemy_one_step_all(elapsed);
-   // recalc towers
-   ede_tower_one_step_all(elapsed);
-   // recalc bullets
-   ede_bullet_one_step_all(elapsed);
-
-   // update debug panel (if visible)
-   ede_game_debug_panel_update(now);
-
-
-   return ECORE_CALLBACK_RENEW;
-}
-
-static int
-_delayed_spawn(void *data)
-{
-   Ede_Wave *wave = data;
    int count;
    int start_row, start_col;
    Eina_List *points;
@@ -157,35 +139,97 @@ _delayed_spawn(void *data)
    ede_enemy_spawn(wave->type, wave->speed, wave->energy, wave->bucks,
                    start_row, start_col,
                    current_level->home_row, current_level->home_col);
-
-   if (wave->count <= 0 )
-      return ECORE_CALLBACK_CANCEL;
-   else
-      return ECORE_CALLBACK_RENEW;
 }
 
-static int
-_next_wave(void *unused)
+static void
+_next_wave(void)
 {
-   Ede_Wave *wave;
+   D("NEXT WAVE");
+   _current_wave = eina_list_nth(current_level->waves, _current_wave_num);
+   if (!_current_wave) return;
 
-   wave = eina_list_nth(current_level->waves, current_wave_num);
-   if (!wave)
+   _current_wave->count = _current_wave->total;
+   _next_wave_accumulator = _next_enemy_accumulator = 0.0;
+   _current_wave_num++;
+}
+
+static void
+_wave_step(double time)
+{
+   if (!_current_wave) return;
+
+   // new wave to spawn?
+   _next_enemy_accumulator += time;
+   if (_next_enemy_accumulator >=  _current_wave->wait)
    {
-      D("   !!! YOU WON !!!");
-      return ECORE_CALLBACK_CANCEL;
+      _next_wave();
+      return;
    }
 
-   // spawn 2 enemy per second ... hmmmm not good
-   wave->count = wave->total;
-   ecore_timer_add(0.5, _delayed_spawn, wave); // TODO Also clear this timer
-
-   // wait, and then spawn the next wave
-   current_wave_num++;
-   ecore_timer_add(wave->wait, _next_wave, NULL); //TODO need to clear this timer when exit, abort, ... pause???
-
-   return ECORE_CALLBACK_CANCEL;
+   // Enemy to spawn in the current wave?
+   if (_current_wave->count > 0)
+   {
+      _next_wave_accumulator += time;
+      if (_next_wave_accumulator >=  _current_wave->delay)
+      {
+         _next_wave_accumulator = 0.0;
+         _spawn_one_enemy(_current_wave);
+         return;
+      }
+   }
 }
+
+/**********   Main Game Animator Loop   **************************************/
+static int
+_game_loop(void *data)
+{
+   static double last_time = 0;
+   double elapsed, now;
+   int num_enemies;
+
+   // calc time between each frame
+   now = ecore_loop_time_get();
+   elapsed = last_time ? now - last_time : 0.0;
+   last_time = now;
+
+   if (_game_state != GAME_STATE_PAUSE)
+   {
+      // keep track of play time
+      _play_time += elapsed;
+      // spawn wave/enemy as required
+      _wave_step(elapsed);
+      // recalc every enemys
+      num_enemies = ede_enemy_one_step_all(elapsed);
+      // recalc every towers
+      ede_tower_one_step_all(elapsed);
+      // recalc every bullets
+      ede_bullet_one_step_all(elapsed);
+
+      // no more lives ? YOU LOST
+      if (_player_lives < 0)
+      {
+         D(" YOU LOST ");
+         _game_state = GAME_STATE_PAUSE;
+      }
+
+      // no more enemies ? YOU WIN
+      if (!_current_wave && num_enemies < 1)
+      {
+         D(" YOU WIN ");
+         _game_state = GAME_STATE_PAUSE;
+      }
+   }
+
+
+   // update debug panel (if visible)
+   ede_game_debug_panel_update(now);
+
+   return ECORE_CALLBACK_RENEW;
+}
+
+
+
+
 
 /* Externally accessible functions */
 
@@ -271,22 +315,31 @@ ede_game_start(Ede_Level *level)
    }
    ede_gui_cell_overlay_add(OVERLAY_COLOR_GREEN, level->home_row, level->home_col);
 
-
-   _start_time = ecore_loop_time_get();
    _player_lives = level->lives;
    _player_bucks = level->bucks;
-   _player_score = 2;
+   _player_score = 0;
+   _play_time = 0.0;
 
    ede_gui_lives_set(_player_lives);
    ede_gui_bucks_set(_player_lives);
    ede_gui_score_set(_player_score);
    ede_game_state_set(GAME_STATE_PLAYING);
 
-   // spawn the first wave (that will spawn the others, in chain)
-   _next_wave(NULL);
+   // spawn the first wave (others will be spawned from the _wave_step() at the right time)
+   _current_wave_num = 0;
+   _next_wave();
 
    ecore_animator_frametime_set(1.0 / MAX_FPS);
-   ecore_animator_add(_game_loop, NULL);
+   _animator = ecore_animator_add(_game_loop, NULL);
+}
+
+EAPI void
+ede_game_pause(void)
+{
+   if (_game_state == GAME_STATE_PLAYING)
+      _game_state = GAME_STATE_PAUSE;
+   else if (_game_state == GAME_STATE_PAUSE)
+      _game_state = GAME_STATE_PLAYING;
 }
 
 EAPI void
@@ -338,11 +391,14 @@ ede_game_debug_panel_update(double now)
    snprintf(buf, sizeof(buf), "FPS %d  time %s<br>", FPS,ts);
    EDE_FREE(ts);
    eina_strbuf_append(t, buf);
-   snprintf(buf, sizeof(buf), "waves %d  lives %d<br>",
-            current_wave_num, _player_lives);
+   snprintf(buf, sizeof(buf), "lives %d<br>", _player_lives);
    eina_strbuf_append(t, buf);
    snprintf(buf, sizeof(buf), "bucks %d<br>", _player_bucks);
    eina_strbuf_append(t, buf);
+   snprintf(buf, sizeof(buf), "waves %d [current %d]<br>",
+            eina_list_count(current_level->waves), _current_wave_num);
+   eina_strbuf_append(t, buf);
+
    eina_strbuf_append(t, "<br>");
 
    // info from other components
@@ -362,7 +418,7 @@ ede_game_time_get(double now)
    char buf[16];
    int seconds, minutes, hours;
 
-   seconds = (int)(now - _start_time);
+   seconds = (int)(_play_time);
    minutes = seconds / 60;
    hours = minutes / 60;
 
@@ -391,9 +447,8 @@ ede_game_state_get(void)
 EAPI void
 ede_game_home_violated(void)
 {
-   if (_player_lives-- <= 0)
-      D("YOU LOOSE");
-   else
+   _player_lives--;
+   if (_player_lives >= 0)
       ede_gui_lives_set(_player_lives);
 }
 

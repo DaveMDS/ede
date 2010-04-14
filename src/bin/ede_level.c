@@ -122,7 +122,7 @@ _load_level_header(const char *name)
 }
 
  static void
-_wave_add(Ede_Level *level, int count, const char *type,
+_wave_add(Ede_Level *level, int count, const char *type, int time,
           int start_base, int speed, int energy, int bucks, int wait)
 {
    Ede_Wave *wave;
@@ -137,6 +137,7 @@ _wave_add(Ede_Level *level, int count, const char *type,
    wave->energy = energy;
    wave->bucks = bucks;
    wave->wait = wait;
+   wave->delay = (double)time / (double)count;
 
    level->waves = eina_list_append(level->waves, wave);
 }
@@ -342,17 +343,17 @@ ede_level_load_data(Ede_Level *level)
    while (fgets(line, sizeof(line), fp) != NULL)
    {
       char type[32];
-      int start_base, speed, energy, wait, bucks;
+      int start_base, time, speed, energy, wait, bucks;
 
       // skip comments, blank lines and too short lines
       if (strlen(line) < 5 || line[0] == '#')
          continue;
 
       // read and add the new wave to the level
-      // example line: "21 standard from base 1 [speed: 30 energy: 20 bucks: 15], wait 5"
-      if (sscanf(line, "%d %s from base %d [speed: %d energy: %d bucks: %d], wait %d",
-                    &count, type, &start_base, &speed, &energy, &bucks, &wait) == 7)
-         _wave_add(level, count, type, start_base, speed, energy, bucks, wait);
+      // example line: "10 standard in 5s from base 1 [speed:30 energy:50 bucks:15], wait 15s"
+      if (sscanf(line, "%d %s in %ds from base %d [speed:%d energy:%d bucks:%d], wait %ds",
+                    &count, type, &time,  &start_base, &speed, &energy, &bucks, &wait) == 8)
+         _wave_add(level, count, type, time, start_base, speed, energy, bucks, wait);
    }
    fclose(fp);
 
@@ -366,7 +367,7 @@ ede_level_load_data(Ede_Level *level)
    }
 
    current_level = level;
-   //~ ede_level_dump(level); // DBG
+   ede_level_dump(level); // DBG
    return EINA_TRUE;
 }
 
@@ -438,9 +439,9 @@ ede_level_dump(Ede_Level *level)
    i = 0;
    EINA_LIST_FOREACH(level->waves, l, wave)
    {
-      printf("#%.3d:  wait %d, spawn %.3d %s from base %d [s:%d e:%d]\n", i++,
-             wave->wait,wave->total, wave->type, wave->start_base,
-             wave->speed, wave->energy);
+      printf("#%.3d: %d '%s' (delay %.3f) from base %d [s:%d e:%d b:%d]\n", i++,
+             wave->total, wave->type, wave->delay, wave->start_base,
+             wave->speed, wave->energy, wave->bucks);
    }
    INF("DUMP END");
 }

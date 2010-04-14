@@ -55,6 +55,7 @@ struct _Ede_Wave{
    int total; // number of enemy in this wave
    int count; // just used as counter by the game engine
    const char *type;
+   double delay; // time between each enemy (in sec)
    int start_base;
    int speed;
    int energy;

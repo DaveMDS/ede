@@ -370,7 +370,7 @@ ede_enemy_nearest_get(int x, int y, int *angle, int *distance)
    return nearest;
 }
 
-EAPI void
+EAPI int
 ede_enemy_one_step_all(double time)
 {
    Ede_Enemy *e;
@@ -380,6 +380,7 @@ ede_enemy_one_step_all(double time)
    EINA_LIST_FOREACH_SAFE(alives, l, ll, e)
      _enemy_step(e, time);
 
+   return eina_list_count(alives);
 }
 
 EAPI void

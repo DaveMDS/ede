@@ -28,6 +28,7 @@ EAPI Eina_Bool ede_game_shutdown(void);
 
 EAPI void  ede_game_mainmenu_populate(void);
 EAPI void  ede_game_start(Ede_Level *level);
+EAPI void  ede_game_pause(void);
 EAPI void  ede_game_quit(void);
 
 EAPI void  ede_game_debug_hook(void);
