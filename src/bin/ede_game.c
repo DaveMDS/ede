@@ -92,6 +92,13 @@ static void
 _mainmenu_cb(void *data)
 {
    D(" ");
+   ede_enemy_reset();
+   ede_tower_reset();
+   ede_bullet_reset();
+   ede_gui_level_clear();
+   ede_gui_menu_hide();
+   _game_state = GAME_STATE_LEVELSELECTOR;
+   ede_game_mainmenu_populate();
 }
 
 static void
@@ -103,7 +110,8 @@ _exit_game_cb(void *data)
 static void
 _continue_game_cb(void *data)
 {
-   ede_game_quit();
+   ede_gui_menu_hide();
+   _game_state = GAME_STATE_PLAYING;
 }
 
 EAPI void
@@ -121,9 +129,9 @@ ede_game_mainmenu_populate(void)
 
    if (_game_state >= GAME_STATE_PAUSE)
    {
-      ede_gui_menu_item_add("Continue current game (TODO)", "", _continue_game_cb, NULL);
+      ede_gui_menu_item_add("Continue current game", "", _continue_game_cb, NULL);
       ede_gui_menu_item_add("Restart level", "", _restart_level_cb, NULL);
-      ede_gui_menu_item_add("Exit to main menu (TODO)", "", _mainmenu_cb, NULL);
+      ede_gui_menu_item_add("Exit to main menu", "", _mainmenu_cb, NULL);
    }
    else
    {
@@ -135,7 +143,7 @@ ede_game_mainmenu_populate(void)
    // add the 'exit' item
    ede_gui_menu_item_add("Exit game", "", _exit_game_cb, NULL);
 
-   ede_game_state_set(GAME_STATE_MAINMENU);
+   _game_state = GAME_STATE_MAINMENU;
 }
 
 /**********   Wave spawning stuff   ******************************************/
