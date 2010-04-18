@@ -27,7 +27,7 @@
 #endif
 
 #define TOWER_DEFAULT_DAMAGE 10
-#define TOWER_DEFAULT_RANGE 200
+#define TOWER_DEFAULT_RANGE 50
 #define TOWER_DEFAULT_RELOAD 1
 
 typedef struct _Ede_Tower Ede_Tower;
@@ -167,8 +167,8 @@ _tower_select(Ede_Tower *tower)
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
    ede_gui_tower_info_set(_type_long_name[tower->type], _type_name[tower->type], buf);
-   ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols, tower->range);
    ede_gui_selection_type_set(SELECTION_TOWER);
+   ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols, tower->range);
 }
 
 static void

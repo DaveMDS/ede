@@ -7,6 +7,7 @@ Optimizations
 Bugs
 
  * pause while placing tower leave a lost selection
+ * selecting towers make strange things with the circle :/
 
 New stuff
 

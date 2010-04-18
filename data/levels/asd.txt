@@ -57,6 +57,6 @@ DATA
 .....###################
 
 WAVES
-10 standard in 3s from base 2 [speed:30 energy:50 bucks:15], wait 4s
-20 standard in 2s from base 2 [speed:30 energy:50 bucks:15], wait 5s
+33 standard in 3s from base 1 [speed:100 energy:50 bucks:15], wait 4s
+
 

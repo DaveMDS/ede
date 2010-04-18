@@ -33,7 +33,8 @@
 
 /* Local subsystem vars */
 static Ede_Game_State _game_state;
-static Ede_Level *current_level = NULL;
+static Ede_Level *_current_level = NULL;
+static Ede_Scenario *_current_scenario = NULL;
 
 static int _player_lives;
 static int _player_bucks;
@@ -58,6 +59,8 @@ _level_selector_populate(Ede_Scenario *sce)
    Ede_Level *level;
 
    D("POPULATE %s", sce->name);
+   _current_scenario = sce;
+   ede_game_reset();
 
    // add all the scenarios to the mainmenu
    EINA_LIST_FOREACH(sce->levels, l, level)
@@ -81,21 +84,15 @@ static void
 _restart_level_cb(void *data)
 {
    D(" ");
-   ede_enemy_reset();
-   ede_tower_reset();
-   ede_bullet_reset();
-   ede_gui_level_clear();
-   ede_game_start(current_level);
+   ede_game_reset();
+   ede_game_start(_current_level);
 }
 
 static void
 _mainmenu_cb(void *data)
 {
    D(" ");
-   ede_enemy_reset();
-   ede_tower_reset();
-   ede_bullet_reset();
-   ede_gui_level_clear();
+   ede_game_reset();
    ede_gui_menu_hide();
    _game_state = GAME_STATE_LEVELSELECTOR;
    ede_game_mainmenu_populate();
@@ -125,7 +122,7 @@ ede_game_mainmenu_populate(void)
       ede_gui_level_selector_hide();
 
    // show the menu
-   ede_gui_menu_show();
+   ede_gui_menu_show("Main Menu");
 
    if (_game_state >= GAME_STATE_PAUSE)
    {
@@ -164,7 +161,7 @@ _spawn_one_enemy(Ede_Wave *wave)
    wave->count--;
 
    // get number of cells that are starting point for this start_base
-   points = current_level->starts[wave->start_base];
+   points = _current_level->starts[wave->start_base];
    count = eina_list_count(points) / 2; // two elements for each point (row, col)
 
    // choose a random starting point from the list
@@ -175,7 +172,7 @@ _spawn_one_enemy(Ede_Wave *wave)
    // spaw the new enemy
    ede_enemy_spawn(wave->type, wave->speed, wave->energy, wave->bucks,
                    start_row, start_col,
-                   current_level->home_row, current_level->home_col);
+                   _current_level->home_row, _current_level->home_col);
 }
 
 static void
@@ -245,14 +242,21 @@ _game_loop(void *data)
       // no more lives ? LOOSER !!
       if (_player_lives < 0)
       {
-         D(" YOU LOST ");
+         ede_gui_menu_show("Looser !!");
+         ede_gui_menu_item_add("Retry Level", "", _restart_level_cb, NULL);
+         ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
+         ede_gui_menu_item_add("Level Selector", "", _scenario_selected_cb, _current_scenario);
          _game_state = GAME_STATE_PAUSE;
       }
 
       // no more enemies ? WINNER !!
       if (!_current_wave && num_enemies < 1)
       {
-         D(" YOU WIN ");
+         ede_gui_menu_show("Victory !!");
+         ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
+         ede_gui_menu_item_add("Level selector", "", _scenario_selected_cb, _current_scenario);
+         ede_gui_menu_item_add("Retry Level", "", _restart_level_cb, NULL);
+
          _game_state = GAME_STATE_PAUSE;
       }
    }
@@ -262,9 +266,6 @@ _game_loop(void *data)
 
    return ECORE_CALLBACK_RENEW;
 }
-
-
-
 
 
 /* Externally accessible functions */
@@ -307,7 +308,7 @@ ede_game_start(Ede_Level *level)
 
    ede_level_load_data(level);
 
-   current_level = level;
+   _current_level = level;
 
    ede_gui_level_selector_hide();
    ede_gui_menu_hide();
@@ -369,6 +370,16 @@ ede_game_start(Ede_Level *level)
 
    if (!_animator)
       _animator = ecore_animator_add(_game_loop, NULL);
+}
+
+EAPI void
+ede_game_reset(void)
+{
+   D(" ");
+   ede_enemy_reset();
+   ede_tower_reset();
+   ede_bullet_reset();
+   ede_gui_level_clear();
 }
 
 EAPI void

@@ -77,15 +77,16 @@ _circle_recalc(Evas_Object *obj, int center_x, int center_y, int radius)
 {
    int x, y, r2;
 
+   D("Circle recalc x: %d  y: %d  radius: %d", center_x, center_y, radius);
    evas_object_polygon_points_clear(obj);
 
    r2 = radius * radius;
-   for (x = -radius; x <= radius; x+=2)
+   for (x = -radius; x <= radius; x += 2)
    {
-      y = (int) (sqrt(r2 - x*x) + 0.5);
+      y = (int)(sqrt(r2 - x*x) + 0.5);
       evas_object_polygon_point_add(obj, center_x + x, center_y + y);
    }
-   for (x = radius; x > -radius; x-=2)
+   for (x = radius; x > -radius; x -= 2)
    {
       y = (int) (sqrt(r2 - x*x) + 0.5);
       evas_object_polygon_point_add(obj, center_x + x, center_y - y);
@@ -449,6 +450,28 @@ ede_gui_level_clear(void)
    checkboard_rows = checkboard_cols = 0;
 }
 
+/**********   UI UPDATE FUNCS  ************************************************/
+/**
+ * Change the tower information box
+ */
+EAPI void
+ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
+{
+   D(" ");
+
+   if (!name)
+   {
+      edje_object_part_text_set(o_layout, "tower.name", "");
+      edje_object_part_text_set(o_layout, "tower.info", "");
+      edje_object_signal_emit(o_layout, "tower,icon,set", "hide");
+      return;
+   }
+
+   edje_object_part_text_set(o_layout, "tower.name", name);
+   edje_object_part_text_set(o_layout, "tower.info", text);
+   edje_object_signal_emit(o_layout, "tower,icon,set", icon);
+}
+
 EAPI void
 ede_gui_lives_set(int lives)
 {
@@ -475,8 +498,9 @@ ede_gui_score_set(int score)
 
 /**********   MAIN MENU   *****************************************************/
 EAPI void
-ede_gui_menu_show(void)
+ede_gui_menu_show(const char *title)
 {
+   edje_object_part_text_set(o_menu, "menu.title", title);
    evas_object_show(o_menu);
    evas_object_raise(o_menu);
 }
@@ -553,27 +577,7 @@ ede_gui_level_selector_hide(void)
    evas_object_hide(o_levelselector);
 }
 
-/**
- * Change the tower information box
- */
-EAPI void
-ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
-{
-   D(" ");
-
-   if (!name)
-   {
-      edje_object_part_text_set(o_layout, "tower.name", "");
-      edje_object_part_text_set(o_layout, "tower.info", "");
-      edje_object_signal_emit(o_layout, "tower,icon,set", "hide");
-      return;
-   }
-
-   edje_object_part_text_set(o_layout, "tower.name", name);
-   edje_object_part_text_set(o_layout, "tower.info", text);
-   edje_object_signal_emit(o_layout, "tower,icon,set", icon);
-}
-
+/**********   UTILS   *********************************************************/
 /**
  * Get the screen coordinates (x,y) of the given level cell
  * If center is EINA_FALSE that the top-left corner of the cell is returned,
@@ -589,7 +593,6 @@ ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
    if (y) *y = (row * CELL_H + STAGE_OFFSET_Y) + (center * CELL_H / 2);
    return EINA_TRUE;
 }
-
 
 /**
  * Get the cell (row,col) at the given screen coords (in pixel)
@@ -713,7 +716,7 @@ EAPI void
 ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
 {
    int x, y, dx, dy;
-   //~ D("%d %d %d %d", row, col, rows, cols);
+   D("%d %d %d %d (radius %d)", row, col, rows, cols, radius);
    evas_object_raise(o_selection);
 
    // selection rect
@@ -721,7 +724,7 @@ ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
    evas_object_resize(o_selection, cols * CELL_W, rows * CELL_H);
    evas_object_show(o_selection);
 
-   if (radius)
+   if (radius > 0)
    {
       ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
       ede_gui_cell_coords_get(row + rows, col + cols, &dx, &dy, EINA_FALSE);

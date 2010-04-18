@@ -55,13 +55,16 @@ EAPI Evas       *ede_gui_canvas_get(void);
 EAPI const char *ede_gui_theme_get(void);
 EAPI Eina_Bool   ede_gui_level_init(int rows, int cols);
 EAPI void        ede_gui_level_clear(void);
+
 EAPI void        ede_gui_lives_set(int lives);
 EAPI void        ede_gui_bucks_set(int bucks);
 EAPI void        ede_gui_score_set(int score);
-EAPI void        ede_gui_menu_show(void);
+
+EAPI void        ede_gui_menu_show(const char *title);
 EAPI void        ede_gui_menu_hide(void);
 EAPI void        ede_gui_menu_item_add(const char *label1, const char *label2,
                                        void (*selected_cb)(void *data), void *data);
+
 EAPI void        ede_gui_level_selector_show(void);
 EAPI void        ede_gui_level_selector_hide(void);
 EAPI void        ede_gui_level_selector_item_add(const char *label,

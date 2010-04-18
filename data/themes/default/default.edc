@@ -933,8 +933,6 @@ collections {
             mouse_events:  0;
             description { state: "default" 0.0;
                color: 255 255 255 255;
-               //~ rel1.offset: 220 90;
-               //~ rel2.offset: -30 -90;
             }
          }
          part { name: "level_selector.bg";
