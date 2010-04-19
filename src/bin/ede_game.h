@@ -10,7 +10,6 @@
 #ifndef EDE_GAME_H
 #define EDE_GAME_H
 
-#include "ede_level.h"
 
 typedef enum _Ede_Game_State Ede_Game_State;
 enum _Ede_Game_State {
@@ -27,7 +26,7 @@ EAPI Eina_Bool ede_game_init(void);
 EAPI Eina_Bool ede_game_shutdown(void);
 
 EAPI void  ede_game_mainmenu_populate(void);
-EAPI void  ede_game_start(Ede_Level *level);
+EAPI void  ede_game_start(void);
 EAPI void  ede_game_reset(void);
 EAPI void  ede_game_pause(void);
 EAPI void  ede_game_quit(void);

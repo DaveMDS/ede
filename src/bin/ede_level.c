@@ -16,6 +16,7 @@
 #include "ede.h"
 #include "ede_level.h"
 #include "ede_utils.h"
+#include "ede_gui.h"
 
 #define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
@@ -463,6 +464,127 @@ ede_level_scenario_list_get(void)
    return scenarios;
 }
 
+
+/********   WAVE STUFF   *******************************************/
+static Eina_List *_current_wave_l = NULL; /** list pointer to the current wave */
+static Ede_Wave  *_current_wave = NULL;   /** current wave pointer */
+static Ede_Wave  *_next_wave = NULL;      /** next wave pointer */
+static double     _next_wave_accumulator; /** count the time between waves */
+static double     _next_enemy_accumulator;/** count the time between enemies */
+static int        _total_waves;           /** total number of waves in this level */
+static int        _current_wave_num;      /** current wave number */
+
+static void
+_send_single_enemy(Ede_Wave *wave)
+{
+   int count;
+   int start_row, start_col;
+   Eina_List *points;
+   //~ D(" ");
+
+   wave->count--;
+
+   // get number of cells that are starting point for this start_base
+   points = current_level->starts[wave->start_base];
+   count = eina_list_count(points) / 2; // two elements for each point (row, col)
+
+   // choose a random starting point from the list
+   count = rand() % count;
+   start_row = (int)eina_list_nth(points, count * 2);
+   start_col = (int)eina_list_nth(points, count * 2 + 1);
+
+   // spaw the new enemy
+   ede_enemy_spawn(wave->type, wave->speed, wave->energy, wave->bucks,
+                   start_row, start_col,
+                   current_level->home_row, current_level->home_col);
+
+   _next_enemy_accumulator = 0.0;
+}
+
+static void
+_send_wave(void)
+{
+   // get & init current wave
+   _current_wave = eina_list_data_get(_current_wave_l);
+   if (_current_wave) _current_wave->count = _current_wave->total;
+   _next_wave_accumulator = _next_enemy_accumulator = 0.0;
+
+   // get next wave
+   _current_wave_num++;
+   _current_wave_l = eina_list_next(_current_wave_l);
+   _next_wave = eina_list_data_get(_current_wave_l);
+
+   // Show in gui the next wave to come
+   if (_next_wave)
+   {
+      ede_gui_wave_info_set(_total_waves, _current_wave_num,
+                            _next_wave->total, _next_wave->type);
+   }
+   else
+   {
+      ede_gui_wave_info_set(_total_waves, _total_waves, 0, NULL); //TODO
+      ede_gui_wave_timer_update(0); // TODO disable button here
+   }
+}
+
+EAPI void
+ede_wave_start(void)
+{
+   D(" ");
+
+   _total_waves = eina_list_count(waves);
+   _current_wave_num = 0;
+   _current_wave_l = waves;
+
+   _current_wave = eina_list_data_get(_current_wave_l);
+   ede_gui_wave_info_set(_total_waves, 1, _current_wave->total, _current_wave->type);
+
+   _current_wave = _next_wave = NULL;
+}
+
+EAPI void
+ede_wave_send(void)
+{
+   // check if the last wave is fully started
+   if (_current_wave && _current_wave->count > 0)
+      return;
+
+   _send_wave();
+}
+
+/**
+ * @return number of remaining waves
+ */
+EAPI int
+ede_wave_step(double time)
+{
+   if (!_current_wave) return _total_waves; // user has not yet sended the first wave
+
+   // Enemy to spawn in the current wave
+   if (_current_wave->count > 0)
+   {
+      _next_enemy_accumulator += time;
+
+      if (_next_enemy_accumulator >=  _current_wave->delay)
+         _send_single_enemy(_current_wave);
+   }
+
+   // new wave to spawn?
+   if (_next_wave)
+   {
+      // update wave timer TODO do this only once per second, not every frame
+      ede_gui_wave_timer_update(_current_wave->wait - (int)_next_wave_accumulator);
+
+      _next_wave_accumulator += time;
+
+      if ((int)_next_wave_accumulator > _current_wave->wait)
+         _send_wave();
+   }
+
+   return _total_waves - _current_wave_num;
+}
+
+/********   DEBUG INFO   *******************************************/
 EAPI void
 ede_level_debug_info_fill(Eina_Strbuf *t)
 {
@@ -484,5 +606,7 @@ ede_level_debug_info_fill(Eina_Strbuf *t)
    eina_strbuf_append(t, "<h3>Levels:</h3><br>");
    eina_strbuf_append_printf(t, "scenarios %d<br>levels %d  loaded %d<br>",
                   eina_list_count(scenarios), level_count, loaded_level_count);
+   eina_strbuf_append_printf(t, "waves %d [current %d]<br>",
+                     _total_waves, _current_wave_num);
    eina_strbuf_append(t, "<br>");
 }

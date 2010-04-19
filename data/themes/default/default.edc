@@ -9,7 +9,10 @@
 
 #define COMP LOSSY 80
 
-#define FONT_COLOR_1 200 200 200 255
+//~ #define FONT_COLOR_1 200 200 200 255
+#define UI_FONT "Sans"
+#define UI_FONT_BOLD "Sans:style=Bold"
+#define MENU_FONT "Sans"
 
 images {
    image: "layout.png" COMP;
@@ -78,6 +81,7 @@ collections {
                image.border: 180 10 60 60;
             }
          }
+
          /* a button for debug */
          part { name: "a button";
             type: RECT;
@@ -89,6 +93,7 @@ collections {
                align: 0.95 0.03;
             }
          }
+
          /* menu button */
          part { name: "menu_button";
             type: RECT;
@@ -108,7 +113,7 @@ collections {
                rel2.to: "menu_button";
                text {
                   text: "menu";
-                  font: "Sans";
+                  font: UI_FONT;
                   size: 8;
                }
             }
@@ -228,6 +233,7 @@ collections {
                image.normal: "tower_normal_icon.png";
             }
          }
+
          /* add ghost tower button */
          part { name: "btn_tower_add_ghost";
             type: IMAGE;
@@ -239,6 +245,7 @@ collections {
                image.normal: "tower_ghost_icon.png";
             }
          }
+
          /* add slowdown tower button */
          part { name: "btn_tower_add_slowdown";
             type: IMAGE;
@@ -250,6 +257,7 @@ collections {
                image.normal: "tower_normal_icon.png";
             }
          }
+
          /* add powerup tower button */
          part { name: "btn_tower_add_powerup";
             type: IMAGE;
@@ -261,7 +269,8 @@ collections {
                image.normal: "tower_normal_icon.png";
             }
          }
-         /* side bar */
+
+         /* side bar (tower info) */
          part { name: "side_bar";
             type: RECT;
             mouse_events:  0;
@@ -283,8 +292,8 @@ collections {
                rel1.to: "side_bar";
                rel2.to: "side_bar";
                text {
-                  text: "Standad Tower";
-                  font: "Sans";
+                  text: "";
+                  font: UI_FONT_BOLD;
                   size: 12;
                   align: 0.0 0.0;
 
@@ -326,12 +335,11 @@ collections {
                rel1.offset: 45 15;
                rel1.to: "side_bar";
                rel2.to: "side_bar";
-               text {
-                  text: "Power 100";
-                  style: "ede_style";
-               }
+               text.style: "ede_style";
             }
          }
+
+         /* Tower upgrade panel */
          part { name: "tower.upgrade.text";
             type: TEXT;
             mouse_events:  0;
@@ -344,8 +352,83 @@ collections {
                rel2.to: "side_bar";
                text {
                   text: "Upgrades";
-                  font: "Sans";
+                  font: UI_FONTUI;
                   size: 14;
+               }
+            }
+         }
+
+         /* Wave controls */
+         part { name: "waves.bg";
+            type: RECT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 20 200 0 100;
+               rel1.offset: 12 440;
+               rel2.relative: 0.0 1.0;
+               rel2.offset: 168 -65;
+            }
+         }
+         part { name: "waves.title";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 200 200 255;
+               rel1.to: "waves.bg";
+               rel2.to: "waves.bg";
+               text {
+                  font: UI_FONT_BOLD;
+                  size: 14;
+                  align: 0.5 0.0;
+               }
+            }
+         }
+         part { name: "wave.next.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 200 200 200 255;
+               rel1.to: "waves.bg";
+               rel2.to: "waves.bg";
+               text {
+                  font: UI_FONT;
+                  size: 12;
+                  align: 0.5 0.3;
+               }
+            }
+         }
+         part { name: "wave.button";
+            type: RECT;
+            mouse_events: 1;
+            description { state: "default" 0.0;
+               min: 100 20;
+               max: 100 20;
+               align: 0.5 0.8;
+               color: 200 200 200 255;
+               rel1.to: "waves.bg";
+               rel2.to: "waves.bg";
+            }
+            description { state: "over" 0.0;
+               inherit: "default" 0.0;
+               color: 0 0 200 255;
+            }
+            description { state: "down" 0.0;
+               inherit: "default" 0.0;
+               color: 0 0 0 255;
+            }
+         }
+         part { name: "wave.button.text";
+            type: TEXT;
+            mouse_events:  0;
+            description { state: "default" 0.0;
+               color: 0 0 0 255;
+               rel1.to: "wave.button";
+               rel2.to: "wave.button";
+               text {
+                  text: "SEND";
+                  font: UI_FONT;
+                  size: 12;
+                  //~ align: 0.5 0.3;
                }
             }
          }
@@ -359,6 +442,7 @@ collections {
                rel2.offset: -11 -61;
             }
          }
+
          /* Debug info panel */
          part { name: "debug.panel";
             type: RECT;
@@ -447,6 +531,36 @@ collections {
             source: "hide";
             action: STATE_SET "default" 0.0;
             target: "tower.icon";
+         }
+         /* waves */
+         program {
+            signal: "mouse,in";
+            source: "wave.button";
+            action: STATE_SET "over" 0.0;
+            target: "wave.button";
+         }
+         program {
+            signal: "mouse,out";
+            source: "wave.button";
+            action: STATE_SET "default" 0.0;
+            target: "wave.button";
+         }
+         program {
+            signal: "mouse,down,1";
+            source: "wave.button";
+            action: STATE_SET "down" 0.0;
+            target: "wave.button";
+         }
+         program {
+            signal: "mouse,up,1";
+            source: "wave.button";
+            action: STATE_SET "over" 0.0;
+            target: "wave.button";
+            after: "next_wave_emit";
+         }
+         program {
+            name: "next_wave_emit";
+            action: SIGNAL_EMIT "send,next,wave" "";
          }
       }
    }
@@ -817,7 +931,7 @@ collections {
                rel1.offset: 0 15;
                text {
                   text: "EDE Tower Defense";
-                  font: "Sans";
+                  font: MENU_FONT;
                   size: 24;
                   align: 0.5 0.0;
                }
@@ -867,7 +981,7 @@ collections {
                rel1.offset: 10 0;
                text {
                   text: "Tutorial";
-                  font: "Sans";
+                  font: MENU_FONT;
                   size: 20;
                   align: 0.0 0.5;
                }
@@ -883,7 +997,7 @@ collections {
                //~ color: 255 255 255 255;
                text {
                   text: "Tutorial";
-                  //~ font: "Sans";
+                  //~ font: MENU_FONT;
                   //~ size: 10;
                   //~ align: 1.0 0.5;
                   style: "ede_menu_style";
@@ -957,7 +1071,7 @@ collections {
                rel1.offset: 0 15;
                text {
                   text: "Select Level";
-                  font: "Sans";
+                  font: MENU_FONT;
                   size: 24;
                   align: 0.5 0.0;
                }

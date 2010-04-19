@@ -85,4 +85,8 @@ EAPI void       ede_level_dump(Ede_Level *level);
 EAPI Eina_List *ede_level_scenario_list_get(void);
 EAPI void       ede_level_debug_info_fill(Eina_Strbuf *t);
 
+EAPI void ede_wave_start(void);
+EAPI void ede_wave_send(void);
+EAPI int  ede_wave_step(double time);
+
 #endif /* EDE_LEVEL_H */

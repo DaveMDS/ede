@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <Eina.h>
 #include <Ecore.h>
-#include <Ecore_File.h>
 
 #include "ede.h"
 #include "ede_game.h"
@@ -33,12 +32,9 @@
 
 /* Local subsystem vars */
 static Ede_Game_State _game_state;
-static Ede_Level *_current_level = NULL;
 static Ede_Scenario *_current_scenario = NULL;
 
-static int _player_lives;
-static int _player_bucks;
-static int _player_score;
+static int _player_lives, _player_bucks, _player_score;
 static Eina_Bool _debug_panel_enable = EINA_FALSE;
 static double _play_time;
 static Ecore_Animator *_animator = NULL;
@@ -49,7 +45,8 @@ _level_selected_cb(void *data)
 {
    Ede_Level *level = data;
    D("PLAY LEVEL %s", level->name);
-   ede_game_start(level);
+   ede_level_load_data(level);
+   ede_game_start();
 }
 
 static void
@@ -85,7 +82,7 @@ _restart_level_cb(void *data)
 {
    D(" ");
    ede_game_reset();
-   ede_game_start(_current_level);
+   ede_game_start();
 }
 
 static void
@@ -143,76 +140,6 @@ ede_game_mainmenu_populate(void)
    _game_state = GAME_STATE_MAINMENU;
 }
 
-/**********   Wave spawning stuff   ******************************************/
-
-static Ede_Wave *_current_wave = NULL;
-static int       _current_wave_num = 0;
-static double    _next_wave_accumulator;
-static double    _next_enemy_accumulator;
-
-static void
-_spawn_one_enemy(Ede_Wave *wave)
-{
-   int count;
-   int start_row, start_col;
-   Eina_List *points;
-   //~ D(" ");
-
-   wave->count--;
-
-   // get number of cells that are starting point for this start_base
-   points = _current_level->starts[wave->start_base];
-   count = eina_list_count(points) / 2; // two elements for each point (row, col)
-
-   // choose a random starting point from the list
-   count = rand() % count;
-   start_row = (int)eina_list_nth(points, count * 2);
-   start_col = (int)eina_list_nth(points, count * 2 + 1);
-
-   // spaw the new enemy
-   ede_enemy_spawn(wave->type, wave->speed, wave->energy, wave->bucks,
-                   start_row, start_col,
-                   _current_level->home_row, _current_level->home_col);
-}
-
-static void
-_next_wave(void)
-{
-   D("NEXT WAVE");
-   _current_wave = eina_list_nth(waves, _current_wave_num);
-   if (!_current_wave) return;
-
-   _current_wave->count = _current_wave->total;
-   _next_wave_accumulator = _next_enemy_accumulator = 0.0;
-   _current_wave_num++;
-}
-
-static void
-_wave_step(double time)
-{
-   if (!_current_wave) return;
-
-   // new wave to spawn?
-   _next_enemy_accumulator += time;
-   if (_next_enemy_accumulator >=  _current_wave->wait)
-   {
-      _next_wave();
-      return;
-   }
-
-   // Enemy to spawn in the current wave?
-   if (_current_wave->count > 0)
-   {
-      _next_wave_accumulator += time;
-      if (_next_wave_accumulator >=  _current_wave->delay)
-      {
-         _next_wave_accumulator = 0.0;
-         _spawn_one_enemy(_current_wave);
-         return;
-      }
-   }
-}
-
 /**********   Main Game Animator Loop   **************************************/
 static int
 _game_loop(void *data)
@@ -220,6 +147,7 @@ _game_loop(void *data)
    static double last_time = 0;
    double elapsed, now;
    int num_enemies;
+   int remaining_waves;
 
    // calc time between each frame
    now = ecore_loop_time_get();
@@ -230,8 +158,9 @@ _game_loop(void *data)
    {
       // keep track of play time
       _play_time += elapsed;
+
       // spawn wave/enemy as required
-      _wave_step(elapsed);
+      remaining_waves = ede_wave_step(elapsed);
       // recalc every enemys
       num_enemies = ede_enemy_one_step_all(elapsed);
       // recalc every towers
@@ -246,15 +175,17 @@ _game_loop(void *data)
          ede_gui_menu_item_add("Retry Level", "", _restart_level_cb, NULL);
          ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
          ede_gui_menu_item_add("Level Selector", "", _scenario_selected_cb, _current_scenario);
+
          _game_state = GAME_STATE_PAUSE;
       }
 
       // no more enemies ? WINNER !!
-      if (!_current_wave && num_enemies < 1)
+      if (remaining_waves < 1 && num_enemies < 1)
       {
          ede_gui_menu_show("Victory !!");
          ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
-         ede_gui_menu_item_add("Level selector", "", _scenario_selected_cb, _current_scenario);
+         ede_gui_menu_item_add("Level selector", "", _scenario_selected_cb,
+                                                     _current_scenario);
          ede_gui_menu_item_add("Retry Level", "", _restart_level_cb, NULL);
 
          _game_state = GAME_STATE_PAUSE;
@@ -294,21 +225,19 @@ EAPI Eina_Bool
 ede_game_shutdown(void)
 {
    D(" ");
-
+   if (_animator) ecore_animator_del(_animator);
    return EINA_TRUE;
 }
 
 EAPI void
-ede_game_start(Ede_Level *level)
+ede_game_start(void)
 {
+   Ede_Level *level;
    int row = 0, col = 0;
 
    D(" ");
 
-
-   ede_level_load_data(level);
-
-   _current_level = level;
+   level = ede_level_current_get();
 
    ede_gui_level_selector_hide();
    ede_gui_menu_hide();
@@ -362,9 +291,7 @@ ede_game_start(Ede_Level *level)
    ede_gui_score_set(_player_score);
    ede_game_state_set(GAME_STATE_PLAYING);
 
-   // spawn the first wave (others will be spawned from the _wave_step() at the right time)
-   _current_wave_num = 0;
-   _next_wave();
+   ede_wave_start();
 
    ecore_animator_frametime_set(1.0 / MAX_FPS);
 
@@ -442,8 +369,6 @@ ede_game_debug_panel_update(double now)
 
    eina_strbuf_append_printf(t, "lives %d<br>bucks %d<br>",
                              _player_lives, _player_bucks);
-   eina_strbuf_append_printf(t, "waves %d [current %d]<br>",
-                     eina_list_count(waves), _current_wave_num);
    eina_strbuf_append(t, "<br>");
 
    // info from other components

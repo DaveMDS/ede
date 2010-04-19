@@ -134,6 +134,13 @@ _add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const cha
 }
 
 static void
+_next_wave_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
+{
+   D(" ");
+   ede_wave_send();
+}
+
+static void
 _menu_item_selected(void *data, Evas_Object *o, const char *emission, const char *source)
 {
    void (*selected_cb)(void *data);
@@ -311,6 +318,7 @@ ede_gui_init(void)
    evas_object_show(o_layout);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "a button", _debug_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "tower,add", "*", _add_tower_button_cb, NULL);
+   edje_object_signal_callback_add(o_layout, "send,next,wave", "", _next_wave_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "menu_button", _menu_button_cb, NULL);
 
 
@@ -473,6 +481,34 @@ ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
 }
 
 EAPI void
+ede_gui_wave_info_set(int tot, int cur, int num, const char *type)
+{
+   char buf[32];
+
+   D(" ");
+   snprintf(buf, sizeof(buf), "Wave %d/%d", cur, tot);
+   edje_object_part_text_set(o_layout, "waves.title", buf);
+
+   if (num > 0)
+   {
+      snprintf(buf, sizeof(buf), "%d x %s", num, type);
+      edje_object_part_text_set(o_layout, "wave.next.text", buf);
+   }
+   else
+      edje_object_part_text_set(o_layout, "wave.next.text", "");
+}
+
+EAPI void
+ede_gui_wave_timer_update(int secs)
+{
+   char buf[32];
+   D(" ");
+
+   snprintf(buf, sizeof(buf), "SEND (%d)", secs);
+   edje_object_part_text_set(o_layout, "wave.button.text", buf);
+}
+
+EAPI void
 ede_gui_lives_set(int lives)
 {
    char buf[16];
@@ -618,7 +654,7 @@ ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col)
 {
    Evas_Object *obj;
 
-   D("%d %d [%p]", col, row, overlays[row][col]);
+   //~ D("%d %d [%p]", col, row, overlays[row][col]);
 
    // if the object is not yet in the array create it
    if (!overlays[row][col])

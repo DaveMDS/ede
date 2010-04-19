@@ -72,6 +72,9 @@ EAPI void        ede_gui_level_selector_item_add(const char *label,
                                                  void *data);
 
 EAPI void        ede_gui_tower_info_set(const char *name, const char *icon, const char *text);
+EAPI void        ede_gui_wave_info_set(int tot, int cur, int num, const char *type);
+EAPI void        ede_gui_wave_timer_update(int secs);
+
 
 EAPI void      ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col);
 EAPI void      ede_gui_cell_overlay_text_set(int row, int col, int val, int pos);
