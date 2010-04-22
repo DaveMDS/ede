@@ -20,6 +20,13 @@
 #define WIN_W 800
 #define WIN_H 600
 
+#define LAYER_TOWER 1
+#define LAYER_WALKER 2
+#define LAYER_SELECTION 3
+#define LAYER_FLYER 4
+#define LAYER_BULLET 5
+#define LAYER_MENU 6
+
 
 typedef enum {
    OVERLAY_NONE,

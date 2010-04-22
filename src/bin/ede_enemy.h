@@ -31,6 +31,7 @@ struct _Ede_Enemy
    int dest_x, dest_y; // this is the pos of the next hop (the one we are approaching)
 
    Eina_Bool killed;
+   void (*step_func)(Ede_Enemy *e, double time); // function called every frame to update the enemy
 };
 
 

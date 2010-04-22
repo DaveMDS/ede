@@ -106,6 +106,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->o_base = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_base, buf, NULL);
    evas_object_pass_events_set(tower->o_base, EINA_TRUE);
+   evas_object_layer_set(tower->o_base, LAYER_TOWER);
    evas_object_resize(tower->o_base, CELL_W * cols, CELL_H * rows);
    evas_object_show(tower->o_base);
    evas_object_move(tower->o_base, x, y);
@@ -116,6 +117,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->o_cannon = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
    evas_object_image_file_set(tower->o_cannon, buf, NULL);
+   evas_object_layer_set(tower->o_cannon, LAYER_TOWER);
    evas_object_resize(tower->o_cannon, CELL_W * cols, CELL_H * rows);
    evas_object_show(tower->o_cannon);
    evas_object_move(tower->o_cannon, x, y);

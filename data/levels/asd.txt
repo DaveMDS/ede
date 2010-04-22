@@ -37,7 +37,7 @@ Size=24x19
 
 DATA
 ########################
-#@..........11111......#
+#...........11111......#
 #...######.#...........#
 #..........#...........#
 #........#####.####.....
@@ -48,7 +48,7 @@ DATA
 #..........#.#.#.......#
 #..........#.#.#.......#
 #..........#.#.#.......#
-...........#.#.#.......#
+@..........#.#.#.......#
 3............#.#.......#
 ##############.#.......#
 .4..4..........#....2..#
@@ -57,10 +57,8 @@ DATA
 .....###################
 
 WAVES
-10 standard in 5s from base 5 [speed:50 energy:50 bucks:15], wait 8s
-2 standard in 1s from base 6 [speed:50 energy:50 bucks:15], wait 4s
-3 standard in 1s from base 7 [speed:50 energy:50 bucks:15], wait 4s
-4 standard in 1s from base 8 [speed:50 energy:50 bucks:15], wait 4s
-5 standard in 1s from base 9 [speed:50 energy:50 bucks:15], wait 4s
-
+10 standard in 2s from base 5 [speed:50 energy:25 bucks:15], wait 4s
+10 flyer in 5s from base 2 [speed:25 energy:50 bucks:30], wait 6s
+10 standard in 2s from base 5 [speed:50 energy:25 bucks:15], wait 4s
+10 flyer in 5s from base 2 [speed:25 energy:50 bucks:30], wait 6s
 

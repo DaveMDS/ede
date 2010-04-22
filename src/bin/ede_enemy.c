@@ -94,7 +94,7 @@ _gauge_recalc(Ede_Enemy *e)
 }
 
 static void
-_enemy_step(Ede_Enemy *e, double time)
+_standard_enemy_step(Ede_Enemy *e, double time)
 {
    int row, col;
    int dx, dy;
@@ -197,11 +197,56 @@ _enemy_step(Ede_Enemy *e, double time)
    dy = (int)(e->y + 0.5) - e->h / 2;
    evas_object_move(e->obj, dx, dy);
 
-   // TODO need to optimize rotation...or made prerotaded edje version :(
+   // TODO need to optimize rotation...or made prerotated edje version :(
    ede_util_obj_rotate(e->obj, e->angle);// TODO really I need to rotate everytime ???
+}
 
-   // update the energy meter (pos & value)
-   _gauge_recalc(e);
+static void
+_flyer_enemy_step(Ede_Enemy *e, double time)
+{
+   int row, col;
+   float distance;
+
+   if (!e->dest_x)
+   {
+      // if the path list is empty then the target is reached !
+      if (eina_list_count(e->path) < 2)
+      {
+         ede_game_home_violated();
+         ede_enemy_kill(e);
+         return;
+      }
+
+      // pop 2 elements (row & col of the next path hop) from the path list
+      row = (int)(long)EINA_LIST_POP(e->path);
+      col = (int)(long)EINA_LIST_POP(e->path);
+
+      // get destination center point in pixel
+      ede_gui_cell_coords_get(row, col, &e->dest_x, &e->dest_y, EINA_TRUE);
+      //~ D("New destination: row:%d col:%d (%d,%d)", row, col, e->dest_x, e->dest_y);
+
+      // calc direction angle
+      e->angle = ede_util_angle_calc(e->x, e->y, e->dest_x, e->dest_y);
+   }
+
+   // calc distance from target
+   distance = ede_util_distance_calc(e->dest_x, e->dest_y, e->x, e->y);
+
+   // destination reached
+   if (distance < 10)
+   {
+      e->x = e->dest_x; e->y = e->dest_y; e->dest_x = 0;
+   }
+   else
+   {
+      // calc new position
+      e->x += (e->dest_x - e->x) / distance * time * e->speed; // TODO a simpler way ??
+      e->y += (e->dest_y - e->y) / distance * time * e->speed;
+
+      evas_object_move(e->obj, e->x - e->w / 2 + 0.5, e->y - e->h / 2 + 0.5);
+      // TODO need to optimize rotation...or made prerotated edje version :(
+      ede_util_obj_rotate(e->obj, e->angle);// TODO really I need to rotate everytime ???
+   }
 }
 
 /* Externally accessible functions */
@@ -232,6 +277,7 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
 {
    Ede_Level *level;
    Ede_Enemy *e;
+   char buf[PATH_MAX];
 
    //~ D("alives %d  deads %d", eina_list_count(alives), eina_list_count(deads));
 
@@ -243,11 +289,8 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
       e = EDE_NEW(Ede_Enemy);
       if (!e) return;
 
+      // main image
       e->obj = evas_object_image_filled_add(ede_gui_canvas_get());
-      evas_object_image_file_set(e->obj, PACKAGE_DATA_DIR"/themes/enemy_standard.png", NULL);
-      e->w = 25;
-      e->h = 25;
-      evas_object_resize(e->obj, e->w, e->h);
 
       // create the 2 rects used for the energy meter
       e->o_gauge1 = evas_object_rectangle_add(ede_gui_canvas_get());
@@ -260,6 +303,11 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
       evas_object_color_set(e->o_gauge2, 0, 200, 0, 255);
    }
 
+   // load correct image (evas cache this)
+   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/enemy_%s.png", type);
+   evas_object_image_file_set(e->obj, buf, NULL);
+   evas_object_image_size_get(e->obj, &e->w, &e->h);
+   evas_object_resize(e->obj, e->w, e->h);
 
    //~ D("SPAW ENEMEY ID: %d", e->id);
 
@@ -282,20 +330,34 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
    // put the enemy in the alives list
    EINA_LIST_PUSH(alives, e);
 
-   // calc the route using the A* pathfinder
-   level = ede_level_current_get();
-   e->path = ede_pathfinder(level->rows, level->cols,
-                  start_row, start_col, end_row, end_col,
-                  ede_level_walkable_get, 0, EINA_FALSE);
+   if (!strcmp(type, "flyer"))
+   {
+      e->step_func = _flyer_enemy_step;
+      // go directly to the target, ignoring walls
+      EINA_LIST_PUSH(e->path, (void*)e->target_col);
+      EINA_LIST_PUSH(e->path, (void*)e->target_row);
+      evas_object_layer_set(e->obj, LAYER_FLYER);
+      evas_object_layer_set(e->o_gauge1, LAYER_FLYER);
+      evas_object_layer_set(e->o_gauge2, LAYER_FLYER);
+   }
+   else
+   {
+      e->step_func = _standard_enemy_step;
+      // calc the route using the A* pathfinder
+      level = ede_level_current_get();
+      e->path = ede_pathfinder(level->rows, level->cols,
+                               start_row, start_col, end_row, end_col,
+                               ede_level_walkable_get, 0, EINA_FALSE);
+      evas_object_layer_set(e->obj, LAYER_WALKER);
+      evas_object_layer_set(e->o_gauge1, LAYER_WALKER);
+      evas_object_layer_set(e->o_gauge2, LAYER_WALKER);
+   }
 
    // calc the initial position/rotation and show the enemy
-   _enemy_step(e, 0.0);
+   e->step_func(e, 0.0);
    evas_object_show(e->obj);
-   evas_object_raise(e->obj);
    evas_object_show(e->o_gauge1);
-   evas_object_raise(e->o_gauge1);
    evas_object_show(e->o_gauge2);
-   evas_object_raise(e->o_gauge2);
 
    // global counter
    _count_spawned++;
@@ -399,7 +461,10 @@ ede_enemy_one_step_all(double time)
 
    // calc every alive enemy
    EINA_LIST_FOREACH_SAFE(alives, l, ll, e)
-     _enemy_step(e, time);
+   {
+      e->step_func(e, time);
+      _gauge_recalc(e);
+   }
 
    return eina_list_count(alives);
 }

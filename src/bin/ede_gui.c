@@ -332,6 +332,7 @@ ede_gui_init(void)
    // create the selection object
    o_selection = edje_object_add(canvas);
    edje_object_file_set(o_selection, theme_file, "ede/selection");
+   evas_object_layer_set(o_selection, LAYER_SELECTION);
    evas_object_pass_events_set(o_selection, EINA_TRUE);
    // selection circle
    o_circle = evas_object_polygon_add(canvas);
@@ -345,6 +346,7 @@ ede_gui_init(void)
    // create the mainmenu object
    o_menu = edje_object_add(canvas);
    edje_object_file_set(o_menu, theme_file, "ede/menu");
+   evas_object_layer_set(o_menu, LAYER_MENU);
    evas_object_move(o_menu, 200, 80); //TODO FIXME
    evas_object_resize(o_menu, 400, 400); //TODO FIXME
 
@@ -538,7 +540,6 @@ ede_gui_menu_show(const char *title)
 {
    edje_object_part_text_set(o_menu, "menu.title", title);
    evas_object_show(o_menu);
-   evas_object_raise(o_menu);
 }
 
 EAPI void
@@ -578,7 +579,6 @@ EAPI void
 ede_gui_level_selector_show(void)
 {
    evas_object_show(o_levelselector);
-   evas_object_raise(o_levelselector);
 }
 
 EAPI void
@@ -753,7 +753,6 @@ ede_gui_selection_show_at(int row, int col, int rows, int cols, int radius)
 {
    int x, y, dx, dy;
    D("%d %d %d %d (radius %d)", row, col, rows, cols, radius);
-   evas_object_raise(o_selection);
 
    // selection rect
    _move_at(o_selection, row, col);

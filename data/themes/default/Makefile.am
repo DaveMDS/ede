@@ -8,6 +8,7 @@ EDJE_FLAGS = -v -id $(top_srcdir)/data/themes/$(THEME_NAME)/images \
 filesdir = $(pkgdatadir)/themes
 files_DATA = $(THEME_NAME).edj \
              images/enemy_standard.png \
+             images/enemy_flyer.png \
              images/tower_normal_base.png \
              images/tower_normal_cannon.png \
              images/tower_ghost_base.png \
@@ -15,7 +16,7 @@ files_DATA = $(THEME_NAME).edj \
              images/bullet1.png
 
 EXTRA_DIST = $(THEME_NAME).edc
-             
+
 
 $(THEME_NAME).edj: Makefile $(EXTRA_DIST)
 	$(EDJE_CC) $(EDJE_FLAGS) \
