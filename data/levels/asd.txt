@@ -57,8 +57,10 @@ DATA
 .....###################
 
 WAVES
-10 standard in 2s from base 5 [speed:50 energy:25 bucks:15], wait 4s
+100 standard in 2s from base 5 [speed:50 energy:25 bucks:15], wait 4s
+100 standard in 2s from base 4 [speed:5 energy:25 bucks:15], wait 4s
+100 standard in 2s from base 6 [speed:25 energy:25 bucks:15], wait 4s
 10 flyer in 5s from base 2 [speed:25 energy:50 bucks:30], wait 6s
-10 standard in 2s from base 5 [speed:50 energy:25 bucks:15], wait 4s
+1000 standard in 2s from base 5 [speed:50 energy:25 bucks:15], wait 4s
 10 flyer in 5s from base 2 [speed:25 energy:50 bucks:30], wait 6s
 

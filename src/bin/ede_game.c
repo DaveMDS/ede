@@ -306,6 +306,7 @@ ede_game_reset(void)
    ede_enemy_reset();
    ede_tower_reset();
    ede_bullet_reset();
+   ede_level_load_data(ede_level_current_get());
    ede_gui_level_clear();
 }
 

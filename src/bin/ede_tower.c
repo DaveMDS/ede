@@ -26,10 +26,11 @@
 #define D(...)
 #endif
 
-#define TOWER_DEFAULT_DAMAGE 10
-#define TOWER_DEFAULT_RANGE 50
+#define TOWER_DEFAULT_DAMAGE 40
+#define TOWER_DEFAULT_RANGE 250
 #define TOWER_DEFAULT_RELOAD 1
 
+/* structure to define a single tower */
 typedef struct _Ede_Tower Ede_Tower;
 struct _Ede_Tower {
    Ede_Tower_Type type;
@@ -44,21 +45,19 @@ struct _Ede_Tower {
    double reload_counter; // accumulator for reloading
 };
 
-// tower type names
-static const char *_type_name[TOWER_TYPE_NUM] = {
-   "unknow",
-   "normal",
-   "ghost",
-   "powerup",
-   "slowdown",
+
+/* define all the various type of towers */
+enum _tower_types_fields {
+   TYPE_NAME,
+   TYPE_LABEL,
+   TYPE_FIELDS_NUM
 };
-// tower type long names
-static const char *_type_long_name[TOWER_TYPE_NUM] = {
-   "unknow",
-   "Normal Tower",
-   "Ghost Tower",
-   "DamageUP Tower",
-   "SlowDown Tower",
+static const char *_tower_types[TOWER_TYPE_NUM][TYPE_FIELDS_NUM] = {
+   {"unknow", "Unknow Tower"},
+   {"normal", "Normal Tower"},
+   {"ghost", "Ghost Tower"},
+   {"powerup", "DamageUP Tower"},
+   {"slowdown", "SlowDown Tower"},
 };
 
 
@@ -80,7 +79,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    int x, y, i, j;
    char buf[64];
 
-   D("%s tower at: %d %d", _type_name[tt], row, col);
+   D("%s tower at: %d %d", _tower_types[tt][TYPE_NAME], row, col);
 
    if (tt == TOWER_UNKNOW) return;
 
@@ -102,7 +101,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 
    // add the base sprite
    snprintf(buf, sizeof(buf),
-            PACKAGE_DATA_DIR"/themes/tower_%s_base.png", _type_name[tt]);
+            PACKAGE_DATA_DIR"/themes/tower_%s_base.png", _tower_types[tt][TYPE_NAME]);
    tower->o_base = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_base, buf, NULL);
    evas_object_pass_events_set(tower->o_base, EINA_TRUE);
@@ -113,7 +112,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 
    // add the rotating sprite
    snprintf(buf, sizeof(buf),
-            PACKAGE_DATA_DIR"/themes/tower_%s_cannon.png", _type_name[tt]);
+            PACKAGE_DATA_DIR"/themes/tower_%s_cannon.png", _tower_types[tt][TYPE_NAME]);
    tower->o_cannon = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
    evas_object_image_file_set(tower->o_cannon, buf, NULL);
@@ -168,7 +167,14 @@ _tower_select(Ede_Tower *tower)
    selected_tower = tower;
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
-   ede_gui_tower_info_set(_type_long_name[tower->type], _type_name[tower->type], buf);
+   ede_gui_tower_info_set(_tower_types[tower->type][TYPE_LABEL], _tower_types[tower->type][TYPE_NAME], buf);
+
+   ede_gui_upgrade_box_hide_all();
+   ede_gui_upgrade_box_set(0, "Level UP");
+   ede_gui_upgrade_box_set(1, "Damage");
+   ede_gui_upgrade_box_set(2, "Range");
+   ede_gui_upgrade_box_set(3, "Reload");
+
    ede_gui_selection_type_set(SELECTION_TOWER);
    ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols, tower->range);
 }
@@ -235,7 +241,7 @@ ede_tower_add(const char *type)
    // set tower_type
    tt = TOWER_UNKNOW;
    for (i = 0; i < TOWER_TYPE_NUM; i++)
-      if (!strcmp(type, _type_name[i]))
+      if (!strcmp(type, _tower_types[i][TYPE_NAME]))
          tt = TOWER_UNKNOW + i;
 
    ede_gui_request_area(2, 2, _tower_add_real, (void*)tt);
@@ -293,6 +299,14 @@ ede_tower_reset(void)
    }
    selected_tower = NULL;
 }
+
+EAPI void
+ede_tower_upgrade(int button_num)
+{
+   if (!selected_tower) return;
+   printf("UPGRADE %d\n", button_num);
+}
+
 
 EAPI void
 ede_tower_one_step_all(double time)

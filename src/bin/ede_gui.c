@@ -127,6 +127,18 @@ _menu_button_cb(void *data, Evas_Object *o, const char *emission, const char *so
 }
 
 static void
+_upgrade_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
+{
+   int num;
+
+   D(" as");
+
+   num = atoi(source);
+   printf("ASD %s %d\n", source, num);
+   ede_tower_upgrade(num);
+}
+
+static void
 _add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
    D("'%s' '%s'", emission, source);
@@ -320,7 +332,8 @@ ede_gui_init(void)
    edje_object_signal_callback_add(o_layout, "tower,add", "*", _add_tower_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "send,next,wave", "", _next_wave_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "menu_button", _menu_button_cb, NULL);
-
+   edje_object_signal_callback_add(o_layout, "upgrade,pressed", "*", _upgrade_button_cb, NULL);
+   ede_gui_upgrade_box_hide_all();
 
    // create the checkboard object
    o_checkboard = edje_object_add(canvas);
@@ -508,6 +521,27 @@ ede_gui_wave_timer_update(int secs)
 
    snprintf(buf, sizeof(buf), "SEND (%d)", secs);
    edje_object_part_text_set(o_layout, "wave.button.text", buf);
+}
+
+EAPI void
+ede_gui_upgrade_box_set(int pos, const char *name)
+{
+   char buf[32];
+   D(" ");
+   
+   snprintf(buf, sizeof(buf), "upgrade.%d.name", pos);
+   edje_object_part_text_set(o_layout, buf, name);
+
+   snprintf(buf, sizeof(buf), "%d", pos);
+   edje_object_signal_emit(o_layout, "upgrade,show", buf);
+}
+
+EAPI void
+ede_gui_upgrade_box_hide_all(void)
+{
+   D(" ");
+
+   edje_object_signal_emit(o_layout, "upgrade,hide,all", "");
 }
 
 EAPI void

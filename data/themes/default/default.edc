@@ -358,12 +358,113 @@ collections {
             }
          }
 
+#define UPGRADE_BUTTON(NUM) \
+         part { name: "upgrade."NUM".clip"; \
+            type: RECT; \
+            description { state: "default" 0.0; \
+               color: 255 255 255 255; \
+               rel1.to: "side_bar"; \
+               rel2.to: "side_bar"; \
+               rel1.offset: 0 (110 + NUM * 45); \
+               max: 155 40; \
+               align: 0.0 0.0; \
+            } \
+            description { state: "hidden" 0.0; \
+               inherit: "default" 0.0; \
+               color: 0 0 0 0; \
+            } \
+         } \
+         part { name: "upgrade."NUM".name"; \
+            type: TEXT; \
+            mouse_events:  0; \
+            clip_to: "upgrade."NUM".clip"; \
+            description { state: "default" 0.0; \
+               color: 0 0 200 255; \
+               rel1.offset: 35 0; \
+               rel1.to: "upgrade."NUM".clip"; \
+               rel2.to: "upgrade."NUM".clip"; \
+               text { \
+                  text: "CIAO"; \
+                  font: UI_FONTUI; \
+                  size: 14; \
+                  align: 0.0 0.0; \
+               } \
+            } \
+         } \
+         part { name: "upgrade."NUM".desc"; \
+            type: TEXT; \
+            mouse_events:  0; \
+            clip_to: "upgrade."NUM".clip"; \
+            description { state: "default" 0.0; \
+               color: 0 0 200 255; \
+               rel1.offset: 35 20; \
+               rel1.to: "upgrade."NUM".clip"; \
+               rel2.to: "upgrade."NUM".clip"; \
+               text { \
+                  text: "piccolo +10"; \
+                  font: UI_FONTUI; \
+                  size: 12; \
+                  align: 0.0 0.0; \
+               } \
+            } \
+         } \
+         part { name: "upgrade."NUM".icon"; \
+            type: RECT; \
+            mouse_events:  0; \
+            clip_to: "upgrade."NUM".clip"; \
+            description { state : "default" 0.0; \
+               color: 0 0 200 255; \
+               max: 30 30; \
+               align: 0.0 0.5; \
+               rel1.to: "upgrade."NUM".clip"; \
+               rel2.to: "upgrade."NUM".clip"; \
+            } \
+         } \
+         part { name: "upgrade."NUM".button"; \
+            type: RECT; \
+            mouse_events:  1; \
+            clip_to: "upgrade."NUM".clip"; \
+            description { state: "default" 0.0; \
+               color: 200 200 0 255; \
+               max: 40 30; \
+               align: 1.0 0.5; \
+               rel1.to: "upgrade."NUM".clip"; \
+               rel2.to: "upgrade."NUM".clip"; \
+            } \
+            description { state: "down" 0.0; \
+               inherit: "default" 0.0; \
+               color: 0 200 200 255; \
+            } \
+         } \
+         part { name: "upgrade."NUM".cost"; \
+            type: TEXT; \
+            mouse_events:  0; \
+            clip_to: "upgrade."NUM".clip"; \
+            description { state: "default" 0.0; \
+               color: 0 255 255 255; \
+               rel1.to: "upgrade."NUM".button"; \
+               rel2.to: "upgrade."NUM".button"; \
+               text { \
+                  text: "999"; \
+                  font: UI_FONTUI; \
+                  size: 16; \
+               } \
+            } \
+         } \
+         
+         UPGRADE_BUTTON(0)
+         UPGRADE_BUTTON(1)
+         UPGRADE_BUTTON(2)
+         UPGRADE_BUTTON(3)
+         UPGRADE_BUTTON(4)
+         UPGRADE_BUTTON(5)
+         
          /* Wave controls */
          part { name: "waves.bg";
             type: RECT;
             mouse_events:  0;
             description { state: "default" 0.0;
-               color: 20 200 0 100;
+               color: 20 200 0 40;
                rel1.offset: 12 440;
                rel2.relative: 0.0 1.0;
                rel2.offset: 168 -65;
@@ -531,6 +632,49 @@ collections {
             source: "hide";
             action: STATE_SET "default" 0.0;
             target: "tower.icon";
+         }
+         /* upgrades */
+#define UPGRADE_BUTTON_PROGS(NUM) \
+         program { \
+            signal: "mouse,down,1"; \
+            source: "upgrade."NUM".button"; \
+            action: STATE_SET "down" 0.0; \
+            target: "upgrade."NUM".button"; \
+         } \
+         program { \
+            signal: "mouse,up,1"; \
+            source: "upgrade."NUM".button"; \
+            action: STATE_SET "default" 0.0; \
+            target: "upgrade."NUM".button"; \
+            after: "upgrade."NUM".button.signal"; \
+         } \
+         program { \
+            name: "upgrade."NUM".button.signal"; \
+            action: SIGNAL_EMIT "upgrade,pressed" NUM; \
+         } \
+         program { \
+            signal: "upgrade,show"; \
+            source: NUM; \
+            action: STATE_SET "default" 0.0; \
+            target: "upgrade."NUM".clip"; \
+         } \
+         
+         UPGRADE_BUTTON_PROGS(0)
+         UPGRADE_BUTTON_PROGS(1)
+         UPGRADE_BUTTON_PROGS(2)
+         UPGRADE_BUTTON_PROGS(3)
+         UPGRADE_BUTTON_PROGS(4)
+         UPGRADE_BUTTON_PROGS(5)
+
+         program {
+            signal: "upgrade,hide,all";
+            action: STATE_SET "hidden" 0.0;
+            target: "upgrade.0.clip";
+            target: "upgrade.1.clip";
+            target: "upgrade.2.clip";
+            target: "upgrade.3.clip";
+            target: "upgrade.4.clip";
+            target: "upgrade.5.clip";
          }
          /* waves */
          program {
