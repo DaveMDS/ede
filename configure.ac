@@ -41,12 +41,12 @@ AM_GNU_GETTEXT([external])
 # Mandatory Libs #
 ##################
 PKG_CHECK_MODULES( [EDE],
-   [eina-0 >= 0.9.9.063]
-   [evas >= 0.9.9.063]
-   [ecore >= 0.9.9.063]
-   [ecore-evas >= 0.9.9.063]
-   [ecore-file >= 0.9.9.063]
-   [edje >= 0.9.93.063]
+   [eina >= 1.0]
+   [evas >= 1.0]
+   [ecore >= 1.0]
+   [ecore-evas >= 1.0]
+   [ecore-file >= 1.0]
+   [edje >= 1.0]
 )
 
 
