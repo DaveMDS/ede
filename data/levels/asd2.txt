@@ -2,7 +2,7 @@
 # First ede level
 # Just for debugging purpose
 
-Name=level2
+Name=level2 (NOTWORKING)
 Description=anothe desciption
 Author=DaveMDS
 Version=1
