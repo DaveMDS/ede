@@ -143,7 +143,7 @@ _add_tower_add_button_cb(void *data, Evas_Object *o, Evas *e, void *event_info)
 {
    Ede_Tower_Class *tc = data;
    D("'%s'", tc->engine);
-   ede_tower_add(tc->engine);
+   ede_tower_add(tc);
 }
 
 static void

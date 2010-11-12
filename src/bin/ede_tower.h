@@ -18,7 +18,7 @@ typedef enum {
    TOWER_POWERUP,
    TOWER_SLOWDOWN,
    TOWER_TYPE_NUM
-}Ede_Tower_Type;
+}Ede_Tower_Engine;
 
 /* structure to define a class of towers */
 typedef struct _Ede_Tower_Class Ede_Tower_Class;
@@ -41,7 +41,7 @@ EAPI Eina_Bool ede_tower_shutdown(void);
 
 EAPI Ede_Tower_Class *ede_tower_class_get_by_id(const char *id);
 
-EAPI void ede_tower_add(const char *type);
+EAPI void ede_tower_add(Ede_Tower_Class *tc);
 EAPI void ede_tower_reset(void);
 EAPI void ede_tower_upgrade(int button_num);
 EAPI void ede_tower_destroy_selected(void);

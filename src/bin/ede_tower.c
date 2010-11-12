@@ -34,7 +34,7 @@
 /* structure to define a single tower */
 typedef struct _Ede_Tower Ede_Tower;
 struct _Ede_Tower {
-   Ede_Tower_Type type;
+   Ede_Tower_Engine engine;
 
    Evas_Object *o_base;
    Evas_Object *o_cannon;
@@ -76,20 +76,20 @@ static Ede_Tower *selected_tower = NULL;
 static void
 _tower_add_real(int row, int col, int rows, int cols, void *data)
 {
-   Ede_Tower_Type tt = (Ede_Tower_Type)data;
+   Ede_Tower_Class *tc = data;
    Ede_Tower *tower;
    int x, y, i, j;
    char buf[64];
 
-   D("%s tower at: %d %d", _tower_types[tt][TYPE_NAME], row, col);
+   if (!tc) return;
 
-   if (tt == TOWER_UNKNOW) return;
+   D("%s tower at: %d %d", tc->id, row, col);
 
    // alloc & fill tower structure
    tower = EDE_NEW(Ede_Tower);
    if (!tower) return;
 
-   tower->type = tt;
+   //~ tower->engine = tc->engine;
    tower->row = row;
    tower->col = col;
    tower->cols = cols;
@@ -103,7 +103,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 
    // add the base sprite
    snprintf(buf, sizeof(buf),
-            PACKAGE_DATA_DIR"/themes/tower_%s_base.png", _tower_types[tt][TYPE_NAME]);
+            PACKAGE_DATA_DIR"/themes/%s", tc->image1);
    tower->o_base = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_image_file_set(tower->o_base, buf, NULL);
    evas_object_pass_events_set(tower->o_base, EINA_TRUE);
@@ -114,7 +114,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 
    // add the rotating sprite
    snprintf(buf, sizeof(buf),
-            PACKAGE_DATA_DIR"/themes/tower_%s_cannon.png", _tower_types[tt][TYPE_NAME]);
+            PACKAGE_DATA_DIR"/themes/%s", tc->image2);
    tower->o_cannon = evas_object_image_filled_add(ede_gui_canvas_get());
    evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
    evas_object_image_file_set(tower->o_cannon, buf, NULL);
@@ -169,7 +169,7 @@ _tower_select(Ede_Tower *tower)
    selected_tower = tower;
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
-   ede_gui_tower_info_set(_tower_types[tower->type][TYPE_LABEL], _tower_types[tower->type][TYPE_NAME], buf);
+   ede_gui_tower_info_set(_tower_types[tower->engine][TYPE_LABEL], _tower_types[tower->engine][TYPE_NAME], buf);
 
    ede_gui_upgrade_box_hide_all();
    ede_gui_upgrade_box_set(0, "Level UP");
@@ -360,20 +360,18 @@ ede_tower_class_get_by_id(const char *id)
 }
 
 EAPI void
-ede_tower_add(const char *type)
+ede_tower_add(Ede_Tower_Class *tc)
 {
    int i;
-   Ede_Tower_Type tt;
-
-   D("%s", type);
+   Ede_Tower_Engine tt;
 
    // set tower_type
    tt = TOWER_UNKNOW;
    for (i = 0; i < TOWER_TYPE_NUM; i++)
-      if (!strcmp(type, _tower_types[i][TYPE_NAME]))
+      if (streql(tc->engine, _tower_types[i][TYPE_NAME]))
          tt = TOWER_UNKNOW + i;
 
-   ede_gui_request_area(2, 2, _tower_add_real, (void*)tt);
+   ede_gui_request_area(2, 2, _tower_add_real, tc);
 }
 
 EAPI void
