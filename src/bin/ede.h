@@ -21,7 +21,7 @@
 #define PATH_MAX 4096
 #endif
 
-
+#define streql(s1,s2) (strcmp(s1, s2) == 0)
 
 #define EINA_LIST_PUSH(LIST, ELEM) \
    LIST = eina_list_prepend(LIST, ELEM);

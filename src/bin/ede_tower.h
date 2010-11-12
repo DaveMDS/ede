@@ -20,9 +20,26 @@ typedef enum {
    TOWER_TYPE_NUM
 }Ede_Tower_Type;
 
+/* structure to define a class of towers */
+typedef struct _Ede_Tower_Class Ede_Tower_Class;
+struct _Ede_Tower_Class {
+   const char *id;
+   const char *name;
+   const char *engine;
+   const char *desc;
+   const char *icon;
+   const char *image1; // base
+   const char *image2; // cannon
+   const char *image3; // unused
+   int cost;
+   double sell_factor;
+};
+
 
 EAPI Eina_Bool ede_tower_init(void);
 EAPI Eina_Bool ede_tower_shutdown(void);
+
+EAPI Ede_Tower_Class *ede_tower_class_get_by_id(const char *id);
 
 EAPI void ede_tower_add(const char *type);
 EAPI void ede_tower_reset(void);

@@ -1,2 +1,2 @@
 MAINTAINERCLEANFILES = Makefile.in
-SUBDIRS = desktop themes levels
+SUBDIRS = desktop themes levels towers

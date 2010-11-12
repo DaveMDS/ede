@@ -60,7 +60,7 @@ EAPI Eina_Bool ede_gui_shutdown(void);
 
 EAPI Evas       *ede_gui_canvas_get(void);
 EAPI const char *ede_gui_theme_get(void);
-EAPI Eina_Bool   ede_gui_level_init(int rows, int cols);
+EAPI Eina_Bool   ede_gui_level_init(int rows, int cols, const char *towers);
 EAPI void        ede_gui_level_clear(void);
 
 EAPI void        ede_gui_lives_set(int lives);
@@ -98,6 +98,9 @@ EAPI void      ede_gui_selection_hide(void);
 
 EAPI void      ede_gui_request_area(int w, int h, void (*done_cb)(int row, int col, int w, int h, void *data), void *data);
 EAPI void      ede_gui_request_area_end(void);
+
+EAPI void      ede_gui_tower_button_add(const char *tower_class_id);
+EAPI void      ede_gui_tower_button_box_clear(void);
 
 EAPI void      ede_gui_debug_text_set(const char *text);
 

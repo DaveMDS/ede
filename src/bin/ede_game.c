@@ -242,7 +242,7 @@ ede_game_start(void)
    ede_gui_level_selector_hide();
    ede_gui_menu_hide();
 
-   ede_gui_level_init(level->rows, level->cols);
+   ede_gui_level_init(level->rows, level->cols, level->towers);
 
    // populate the checkboard with walls, start points and home
    for (row = 0; row < level->rows; row++)
@@ -308,6 +308,7 @@ ede_game_reset(void)
    ede_bullet_reset();
    ede_level_load_data(ede_level_current_get());
    ede_gui_level_clear();
+   ede_gui_tower_button_box_clear();
 }
 
 EAPI void

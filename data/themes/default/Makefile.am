@@ -11,8 +11,10 @@ files_DATA = $(THEME_NAME).edj \
              images/enemy_flyer.png \
              images/tower_normal_base.png \
              images/tower_normal_cannon.png \
+             images/tower_normal_icon.png \
              images/tower_ghost_base.png \
              images/tower_ghost_cannon.png \
+             images/tower_ghost_icon.png \
              images/bullet1.png
 
 EXTRA_DIST = $(THEME_NAME).edc

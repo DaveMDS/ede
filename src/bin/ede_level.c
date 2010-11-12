@@ -18,7 +18,7 @@
 #include "ede_utils.h"
 #include "ede_gui.h"
 
-#define LOCAL_DEBUG 1
+#define LOCAL_DEBUG 0
 #if LOCAL_DEBUG
 #define D DBG
 #else
@@ -96,6 +96,8 @@ _load_level_header(const char *name)
          level->description = eina_stringshare_add(str);
       else if (sscanf(buf, "Author=%[^\n]", str) == 1)
          level->author = eina_stringshare_add(str);
+      else if (sscanf(buf, "Towers=%[^\n]", str) == 1)
+         level->towers = eina_stringshare_add(str);
       else if (sscanf(buf, "Version=%d", &level->version) == 1)
          {}
       else if (sscanf(buf, "Size=%dx%d", &level->cols, &level->rows) == 2)
@@ -161,6 +163,7 @@ _level_free(Ede_Level *level)
    EDE_STRINGSHARE_DEL(level->name);
    EDE_STRINGSHARE_DEL(level->description);
    EDE_STRINGSHARE_DEL(level->author);
+   EDE_STRINGSHARE_DEL(level->towers);
 
    EDE_FREE(level);
 }
@@ -418,6 +421,7 @@ ede_level_dump(Ede_Level *level)
    printf(" Author: '%s'\n", level->author);
    printf(" Version: '%d'\n", level->version);
    printf(" Size: '%dx%d'\n", level->cols, level->rows);
+   printf(" Towers: '%s'\n", level->towers);
 
    if (cells)
    {

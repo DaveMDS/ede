@@ -82,6 +82,7 @@ data/desktop/Makefile
 data/themes/Makefile
 data/themes/default/Makefile
 data/levels/Makefile
+data/towers/Makefile
 po/Makefile.in
 ])
 

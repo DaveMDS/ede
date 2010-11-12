@@ -139,10 +139,11 @@ _upgrade_button_cb(void *data, Evas_Object *o, const char *emission, const char 
 }
 
 static void
-_add_tower_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
+_add_tower_add_button_cb(void *data, Evas_Object *o, Evas *e, void *event_info)
 {
-   D("'%s' '%s'", emission, source);
-   ede_tower_add(source);
+   Ede_Tower_Class *tc = data;
+   D("'%s'", tc->engine);
+   ede_tower_add(tc->engine);
 }
 
 static void
@@ -329,7 +330,6 @@ ede_gui_init(void)
    evas_object_resize(o_layout, WIN_W, WIN_H);
    evas_object_show(o_layout);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "a button", _debug_button_cb, NULL);
-   edje_object_signal_callback_add(o_layout, "tower,add", "*", _add_tower_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "send,next,wave", "", _next_wave_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "menu_button", _menu_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "upgrade,pressed", "*", _upgrade_button_cb, NULL);
@@ -433,19 +433,34 @@ ede_gui_theme_get(void)
 
 /**
  * This function actually show the checkboard background at the right size.
- * And create the array for store all the Evas_Object * of the overlays
+ * And create the array for store all the Evas_Object * of the overlays.
+ * Also the towers buttons are created according the level requested towers
  */
 EAPI Eina_Bool
-ede_gui_level_init(int rows, int cols)
+ede_gui_level_init(int rows, int cols, const char *towers)
 {
+   char **split;
+   int i = 0;
+
    D("%d %d", rows, cols);
+   
+   // resize the checkboard
    evas_object_resize(o_checkboard, cols * CELL_W, rows * CELL_H);
 
+   // resize the overlays array
    ede_array_free((int **)overlays);
    overlays = (Evas_Object ***)ede_array_new(rows, cols);
    if (!overlays) return EINA_FALSE;
    checkboard_rows = rows;
    checkboard_cols = cols;
+
+   // add the buttons for the requested towers class
+   split = eina_str_split(towers, ",", 0);
+   while (split[i])
+      ede_gui_tower_button_add(split[i++]);
+   free(split[0]);
+   free(split);
+
    return EINA_TRUE;
 }
 
@@ -471,6 +486,46 @@ ede_gui_level_clear(void)
    // hide the checkboard
    evas_object_resize(o_checkboard, 0, 0);
    checkboard_rows = checkboard_cols = 0;
+}
+
+/**********   TOWER BUTTONS FUNCS  *******************************************/
+/**
+ * Add a new button to add a tower
+ */
+EAPI void
+ede_gui_tower_button_add(const char *tower_class_id)
+{
+   Evas_Object *obj;
+   Ede_Tower_Class *tc;
+   char buf[PATH_MAX];
+
+   tc = ede_tower_class_get_by_id(tower_class_id);
+   if (!tc)
+   {
+      ERR("Can't find tower class: %s", tower_class_id);
+      return;
+   }
+
+   // create the image object (button)
+   obj = evas_object_image_filled_add(ede_gui_canvas_get());
+   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/%s", tc->icon);
+   evas_object_image_file_set(obj, buf, NULL);
+   evas_object_resize(obj, 30, 30); // TODO fixme, should be themable
+   evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_UP,
+                                  _add_tower_add_button_cb, tc);
+   evas_object_show(obj);
+
+   // put the button in the edje box
+   edje_object_part_box_append(o_layout, "towers_btn_box", obj);
+}
+
+/**
+ * Clear the edje box that contain all the tower-add buttons
+ */
+EAPI void
+ede_gui_tower_button_box_clear(void)
+{
+   edje_object_part_box_remove_all(o_layout, "towers_btn_box", EINA_TRUE);
 }
 
 /**********   UI UPDATE FUNCS  ************************************************/

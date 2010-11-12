@@ -9,6 +9,7 @@ Version=1
 Lives=20
 Bucks=200
 Size=24x19
+Towers=normal,ghost
 
 # DIDASCALIA
 #

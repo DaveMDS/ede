@@ -37,6 +37,7 @@ struct _Ede_Level
    const char *name;
    const char *description;
    const char *author;
+   const char *towers;
    int         version;
    int         cols, rows;
    int         lives;

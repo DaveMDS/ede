@@ -30,6 +30,7 @@
 #define TOWER_DEFAULT_RANGE 250
 #define TOWER_DEFAULT_RELOAD 1
 
+
 /* structure to define a single tower */
 typedef struct _Ede_Tower Ede_Tower;
 struct _Ede_Tower {
@@ -62,7 +63,8 @@ static const char *_tower_types[TOWER_TYPE_NUM][TYPE_FIELDS_NUM] = {
 
 
 /* Local subsystem vars */
-static Eina_List *towers = NULL;
+static Eina_List *tower_classes = NULL;
+static Eina_List *towers = NULL; // TODO rename to alive_towers
 static Ede_Tower *selected_tower = NULL;
 
 
@@ -139,7 +141,7 @@ _tower_del(Ede_Tower *tower)
    Ede_Level *level;
    int i, j;
 
-   // mark all the tower cells as unwalkable
+   // mark all the tower cells as empty
    level = ede_level_current_get();
    for (i = tower->col; i < tower->col + tower->cols; i++)
       for (j = tower->row; j < tower->row + tower->rows; j++)
@@ -208,12 +210,122 @@ _tower_step(Ede_Tower *tower, double time)
    }
 }
 
+/* tower class stuff */
+static void
+_tower_class_del(Ede_Tower_Class *tc)
+{
+   // free stuff
+   if (tc->id) eina_stringshare_del(tc->id);
+   if (tc->name) eina_stringshare_del(tc->name);
+   if (tc->engine) eina_stringshare_del(tc->engine);
+   if (tc->desc) eina_stringshare_del(tc->desc);
+   if (tc->icon) eina_stringshare_del(tc->icon);
+   if (tc->image1) eina_stringshare_del(tc->image1);
+   if (tc->image2) eina_stringshare_del(tc->image2);
+   if (tc->image3) eina_stringshare_del(tc->image3);
+   EDE_FREE(tc);
+}
+static void
+_parse_tower_class_file(const char *path)
+{
+   Ede_Tower_Class *tc;
+   //~ Ede_Level *level;
+   //~ Eina_List *levels = NULL;
+   char line[PATH_MAX], id[64], name[64], eng[64], desc[256];//, str[256];
+   char icon[64], im1[64], im2[64], im3[64];
+   int cost = 0;
+   double sell_factor = 1.0;
+   FILE *fp;
+
+   D("parse tower from file: %s", path);
+
+   // open the tower file
+   fp = fopen(path, "r");
+   if (fp == NULL) return;
+   // parse it
+   id[0] = name[0] = eng[0] = desc[0] = icon[0] = im1[0] = im2[0] = im3[0] = '\0';
+   while (fgets(line, sizeof(line), fp) != NULL)
+   {
+      //~ D("%s", line);
+      if (line[0] == '#') continue;
+
+      if (sscanf(line, "ID=%[^\n]", id) == 1) {}
+      if (sscanf(line, "Name=%[^\n]", name) == 1) {}
+      else if(sscanf(line, "Engine=%[^\n]", eng) == 1) {}
+      else if(sscanf(line, "Description=%[^\n]", desc) == 1) {}
+      else if(sscanf(line, "Icon=%[^\n]", icon) == 1) {}
+      else if(sscanf(line, "Image1=%[^\n]", im1) == 1) {}
+      else if(sscanf(line, "Image2=%[^\n]", im2) == 1) {}
+      else if(sscanf(line, "Image3=%[^\n]", im3) == 1) {}
+      else if(sscanf(line, "Cost=%d", &cost) == 1) {}
+      else if(sscanf(line, "SellFactor=%lf", &sell_factor) == 1) {}
+      //~ else if(sscanf(line, "Level=%[^\n]", str) == 1)
+      //~ {
+         //~ level = _load_level_header(str);
+         //~ levels = eina_list_append(levels, level);
+      //~ }
+   }
+   //close
+   fclose(fp);
+
+   // alloc the Ede_Tower_Class struct
+   if (id[0] && name[0] && eng[0] && desc[0] && icon[0])
+   {
+      tc = EDE_NEW(Ede_Tower_Class);
+      if (!tc) return;
+      tc->id = eina_stringshare_add(id);
+      tc->name = eina_stringshare_add(name);
+      tc->engine = eina_stringshare_add(eng);
+      tc->desc = eina_stringshare_add(desc);
+      tc->icon = eina_stringshare_add(icon);
+      if (im1[0]) tc->image1 = eina_stringshare_add(im1);
+      if (im2[0]) tc->image2 = eina_stringshare_add(im2);
+      if (im3[0]) tc->image3 = eina_stringshare_add(im3);
+      tc->cost = cost;
+      tc->sell_factor = sell_factor;
+      //~ sce->levels = levels;
+      tower_classes = eina_list_append(tower_classes, tc);
+      return;
+   }
+}
 
 /* Externally accessible functions */
 EAPI Eina_Bool
 ede_tower_init(void)
 {
+   Eina_Iterator *files;
+   char *f;
    D(" ");
+
+   // read all the classes from the '.towers' files in the 'towers/' dir
+   // and fill the tower_classes list
+   files = eina_file_ls(PACKAGE_DATA_DIR"/towers/");
+   EINA_ITERATOR_FOREACH(files, f)
+      if (eina_str_has_suffix(f, ".tower"))
+         _parse_tower_class_file(f);
+   eina_iterator_free(files);
+   // TODO CHECK ALSO IN USER DIR
+
+   // TODO FREE THE tower_classes list at the end
+   
+   // DEBUG  dump classes
+   Eina_List *l;
+   Ede_Tower_Class *tc;
+   EINA_LIST_FOREACH(tower_classes, l, tc)
+   {
+      D("********************");
+      D("id: %s", tc->id);
+      D("name: %s", tc->name);
+      D("engine: %s", tc->engine);
+      D("desc: %s", tc->desc);
+      D("icon: %s", tc->icon);
+      D("image1: %s", tc->image1);
+      D("image2: %s", tc->image2);
+      D("image3: %s", tc->image3);
+      D("cost: %d", tc->cost);
+      D("sell factor: %.2f", tc->sell_factor);
+   }
+   // END DEBUG
 
    return EINA_TRUE;
 }
@@ -222,12 +334,29 @@ EAPI Eina_Bool
 ede_tower_shutdown(void)
 {
    Ede_Tower *tower;
+   Ede_Tower_Class *tc;
    D(" ");
 
    EINA_LIST_FREE(towers, tower)
       _tower_del(tower);
 
+   EINA_LIST_FREE(tower_classes, tc)
+      _tower_class_del(tc);
+
    return EINA_TRUE;
+}
+
+EAPI Ede_Tower_Class *
+ede_tower_class_get_by_id(const char *id)
+{
+   Ede_Tower_Class *tc;
+   Eina_List *l;
+
+   EINA_LIST_FOREACH(tower_classes, l, tc)
+      if (strcmp(tc->id, id) == 0)
+         return tc;
+
+   return NULL;
 }
 
 EAPI void

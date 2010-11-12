@@ -45,7 +45,7 @@ main(int argc, char **argv)
    ecore_init();
 
    // init log domain
-   //~ eina_log_level_set(EINA_LOG_LEVEL_DBG);
+   eina_log_level_set(EINA_LOG_LEVEL_DBG);
    ede_log_domain = eina_log_domain_register("ede", EINA_COLOR_GREEN);
    if (ede_log_domain < 0)
    {

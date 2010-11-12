@@ -222,51 +222,21 @@ collections {
             }
          }
 
-         /* add standard tower button */
-         part { name: "btn_tower_add_normal";
-            type: IMAGE;
+         /* tower buttons box */
+         part { name: "towers_btn_box";
+            type: BOX;
             mouse_events:  1;
             description { state: "default" 0.0;
-               max: 30 30;
+               max: 400 30;
                align: 0.0 0.0;
                rel1.offset: 200 15;
-               image.normal: "tower_normal_icon.png";
-            }
-         }
-
-         /* add ghost tower button */
-         part { name: "btn_tower_add_ghost";
-            type: IMAGE;
-            mouse_events:  1;
-            description { state: "default" 0.0;
-               max: 30 30;
-               align: 0.0 0.0;
-               rel1.offset: 240 15;
-               image.normal: "tower_ghost_icon.png";
-            }
-         }
-
-         /* add slowdown tower button */
-         part { name: "btn_tower_add_slowdown";
-            type: IMAGE;
-            mouse_events:  1;
-            description { state: "default" 0.0;
-               max: 30 30;
-               align: 0.0 0.0;
-               rel1.offset: 280 15;
-               image.normal: "tower_normal_icon.png";
-            }
-         }
-
-         /* add powerup tower button */
-         part { name: "btn_tower_add_powerup";
-            type: IMAGE;
-            mouse_events:  1;
-            description { state: "default" 0.0;
-               max: 30 30;
-               align: 0.0 0.0;
-               rel1.offset: 320 15;
-               image.normal: "tower_normal_icon.png";
+               //~ image.normal: "tower_normal_icon.png";
+               box {
+                  layout: "horizontal";
+                  //~ padding: 0 2;
+                  align: 0.0 0.5;
+                  min: 1 1;
+                }
             }
          }
 
