@@ -11,21 +11,21 @@
 #define EDE_TOWER_H
 
 
-typedef enum {
-   TOWER_UNKNOW,
-   TOWER_NORMAL,
-   TOWER_GHOST,
-   TOWER_POWERUP,
-   TOWER_SLOWDOWN,
-   TOWER_TYPE_NUM
-}Ede_Tower_Engine;
+//~ typedef enum {
+   //~ TOWER_UNKNOW,
+   //~ TOWER_NORMAL,
+   //~ TOWER_GHOST,
+   //~ TOWER_POWERUP,
+   //~ TOWER_SLOWDOWN,
+   //~ TOWER_TYPE_NUM
+//~ }Ede_Tower_Engine;
 
 /* structure to define a class of towers */
 typedef struct _Ede_Tower_Class Ede_Tower_Class;
 struct _Ede_Tower_Class {
-   const char *id;
-   const char *name;
-   const char *engine;
+   const char *id;     // ex: ghost
+   const char *name;   // ex: Anti-air
+   const char *engine; // ex: ghost
    const char *desc;
    const char *icon;
    const char *image1; // base
@@ -33,6 +33,20 @@ struct _Ede_Tower_Class {
    const char *image3; // unused
    int cost;
    double sell_factor;
+   Eina_List *params;  // list of Ede_Tower_Class_Param*
+};
+
+typedef struct _Ede_Tower_Class_Param Ede_Tower_Class_Param;
+struct _Ede_Tower_Class_Param {
+   const char *name;     // param name.  ex: Damage
+   Eina_List *upgrades;  // list of Ede_Tower_Class_Param_Upgrade*
+};
+
+typedef struct _Ede_Tower_Class_Param_Upgrade Ede_Tower_Class_Param_Upgrade;
+struct _Ede_Tower_Class_Param_Upgrade {
+   const char *name; // upgrade level name.  ex: level 1
+   int value;        // upgrade level value. ex: 60
+   int bucks;        // upgrade cost
 };
 
 

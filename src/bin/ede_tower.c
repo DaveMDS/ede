@@ -191,7 +191,9 @@ _tower_step(Ede_Tower *tower, double time)
 static void
 _tower_class_del(Ede_Tower_Class *tc)
 {
-   // free stuff
+   Ede_Tower_Class_Param *par;
+   Ede_Tower_Class_Param_Upgrade *up;
+   
    if (tc->id) eina_stringshare_del(tc->id);
    if (tc->name) eina_stringshare_del(tc->name);
    if (tc->engine) eina_stringshare_del(tc->engine);
@@ -200,18 +202,26 @@ _tower_class_del(Ede_Tower_Class *tc)
    if (tc->image1) eina_stringshare_del(tc->image1);
    if (tc->image2) eina_stringshare_del(tc->image2);
    if (tc->image3) eina_stringshare_del(tc->image3);
+   EINA_LIST_FREE(tc->params, par)
+   {
+      if (par->name) eina_stringshare_del(par->name);
+      EINA_LIST_FREE(par->upgrades, up)
+      {
+         if (up->name) eina_stringshare_del(up->name);
+         EDE_FREE(up);
+      }
+      EDE_FREE(par);
+   }
    EDE_FREE(tc);
 }
 static void
 _parse_tower_class_file(const char *path)
 {
-   Ede_Tower_Class *tc;
-   //~ Ede_Level *level;
-   //~ Eina_List *levels = NULL;
-   char line[PATH_MAX], id[64], name[64], eng[64], desc[256];//, str[256];
-   char icon[64], im1[64], im2[64], im3[64];
-   int cost = 0;
-   double sell_factor = 1.0;
+   Eina_List *params = NULL;
+   char line[PATH_MAX], id[64], name[64], eng[64], desc[256];
+   char icon[64], im1[64], im2[64], im3[64], param[256];
+   int cost = -1;
+   double sell_factor = -1.0;
    FILE *fp;
 
    D("parse tower from file: %s", path);
@@ -219,28 +229,60 @@ _parse_tower_class_file(const char *path)
    // open the tower file
    fp = fopen(path, "r");
    if (fp == NULL) return;
+
    // parse it
-   id[0] = name[0] = eng[0] = desc[0] = icon[0] = im1[0] = im2[0] = im3[0] = '\0';
+   id[0] = name[0] = eng[0] = desc[0] = '\0';
+   icon[0] = im1[0] = im2[0] = im3[0] = '\0';
    while (fgets(line, sizeof(line), fp) != NULL)
    {
-      //~ D("%s", line);
+      // skip comment
       if (line[0] == '#') continue;
 
-      if (sscanf(line, "ID=%[^\n]", id) == 1) {}
-      if (sscanf(line, "Name=%[^\n]", name) == 1) {}
-      else if(sscanf(line, "Engine=%[^\n]", eng) == 1) {}
-      else if(sscanf(line, "Description=%[^\n]", desc) == 1) {}
-      else if(sscanf(line, "Icon=%[^\n]", icon) == 1) {}
-      else if(sscanf(line, "Image1=%[^\n]", im1) == 1) {}
-      else if(sscanf(line, "Image2=%[^\n]", im2) == 1) {}
-      else if(sscanf(line, "Image3=%[^\n]", im3) == 1) {}
-      else if(sscanf(line, "Cost=%d", &cost) == 1) {}
-      else if(sscanf(line, "SellFactor=%lf", &sell_factor) == 1) {}
-      //~ else if(sscanf(line, "Level=%[^\n]", str) == 1)
-      //~ {
-         //~ level = _load_level_header(str);
-         //~ levels = eina_list_append(levels, level);
-      //~ }
+      // parse header
+      if (!id[0] && (sscanf(line, "ID=%[^\n]", id) == 1)) {}
+      else if(!name[0] && (sscanf(line, "Name=%[^\n]", name) == 1)) {}
+      else if(!eng[0] && (sscanf(line, "Engine=%[^\n]", eng) == 1)) {}
+      else if(!desc[0] && (sscanf(line, "Description=%[^\n]", desc) == 1)) {}
+      else if(!icon[0] && (sscanf(line, "Icon=%[^\n]", icon) == 1)) {}
+      else if(!im1[0] && (sscanf(line, "Image1=%[^\n]", im1) == 1)) {}
+      else if(!im2[0] && (sscanf(line, "Image2=%[^\n]", im2) == 1)) {}
+      else if(!im3[0] && (sscanf(line, "Image3=%[^\n]", im3) == 1)) {}
+      else if((cost == -1) && (sscanf(line, "Cost=%d", &cost) == 1)) {}
+      else if((sell_factor == -1.0) && (sscanf(line, "SellFactor=%lf", &sell_factor) == 1)) {}
+      else if(sscanf(line, "PARAM=%[^\n]", param) == 1)
+      {
+         Ede_Tower_Class_Param *par;
+
+         // new param, create it
+         par = EDE_NEW(Ede_Tower_Class_Param);
+         if (!par) return;
+         par->name = eina_stringshare_add(param);
+         par->upgrades = NULL;
+         params = eina_list_append(params, par);
+
+         // parse upgrades info until empty line
+         while (fgets(line, sizeof(line), fp) != NULL)
+         {
+            char _name[64];
+            int _value, _bucks;
+
+            if (line[0] == '\n') break;
+
+            _name[0] = '\0'; _value = _bucks = 0;
+            if (3 == sscanf(line, "%[^:]: value=%d bucks=%d",
+                            _name, &_value, &_bucks))
+            {
+               Ede_Tower_Class_Param_Upgrade *up;
+
+               up = EDE_NEW(Ede_Tower_Class_Param_Upgrade);
+               if (!up) return;
+               up->name = eina_stringshare_add(_name);
+               up->value = _value;
+               up->bucks = _bucks;
+               par->upgrades = eina_list_append(par->upgrades, up);
+            }
+         }
+      }
    }
    //close
    fclose(fp);
@@ -248,6 +290,8 @@ _parse_tower_class_file(const char *path)
    // alloc the Ede_Tower_Class struct
    if (id[0] && name[0] && eng[0] && desc[0] && icon[0])
    {
+      Ede_Tower_Class *tc;
+
       tc = EDE_NEW(Ede_Tower_Class);
       if (!tc) return;
       tc->id = eina_stringshare_add(id);
@@ -260,9 +304,8 @@ _parse_tower_class_file(const char *path)
       if (im3[0]) tc->image3 = eina_stringshare_add(im3);
       tc->cost = cost;
       tc->sell_factor = sell_factor;
-      //~ sce->levels = levels;
+      tc->params = params;
       tower_classes = eina_list_append(tower_classes, tc);
-      return;
    }
 }
 
@@ -283,12 +326,12 @@ ede_tower_init(void)
    eina_iterator_free(files);
    // TODO CHECK ALSO IN USER DIR
 
-   // TODO FREE THE tower_classes list at the end
-   
    // DEBUG  dump classes
-   Eina_List *l;
+   Eina_List *l1, *l2, *l3;
    Ede_Tower_Class *tc;
-   EINA_LIST_FOREACH(tower_classes, l, tc)
+   Ede_Tower_Class_Param *par;
+   Ede_Tower_Class_Param_Upgrade *up;
+   EINA_LIST_FOREACH(tower_classes, l1, tc)
    {
       D("********************");
       D("id: %s", tc->id);
@@ -301,6 +344,13 @@ ede_tower_init(void)
       D("image3: %s", tc->image3);
       D("cost: %d", tc->cost);
       D("sell factor: %.2f", tc->sell_factor);
+      EINA_LIST_FOREACH(tc->params, l2, par)
+      {
+         D("PARAM: '%s'", par->name);
+         EINA_LIST_FOREACH(par->upgrades, l3, up)
+            D(" + '%s' val: %d  bucks: %d", up->name, up->value, up->bucks);
+      }
+      D("********************");
    }
    // END DEBUG
 
