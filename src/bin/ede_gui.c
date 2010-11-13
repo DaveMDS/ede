@@ -139,7 +139,7 @@ _upgrade_button_cb(void *data, Evas_Object *o, const char *emission, const char 
 }
 
 static void
-_add_tower_add_button_cb(void *data, Evas_Object *o, Evas *e, void *event_info)
+_tower_add_button_cb(void *data, Evas *e, Evas_Object *o, void *event_info)
 {
    Ede_Tower_Class *tc = data;
    ede_tower_add(tc);
@@ -171,22 +171,22 @@ ede_gui_debug_text_set(const char *text)
    edje_object_part_text_set(o_layout, "debug.panel.text", text);
 }
 
-static int
+static Eina_Bool
 _ecore_event_key_down_cb(void *data, int type, void *event)
 {
    Ecore_Event_Key *ev = event;
    static Eina_Bool dpanel_visible = EINA_FALSE;
 
-   if (!strcmp(ev->key, "d"))
+   if (streql(ev->key, "d"))
    {
       D("D [destroy]");
    }
-   if (!strcmp(ev->key, "p"))
+   else if (streql(ev->key, "p"))
    {
       D("P [pause]");
       ede_game_pause();
    }
-   else if (!strcmp(ev->key, "F12"))
+   else if (streql(ev->key, "F12"))
    {
       D("F12: toggle debug panel");
       dpanel_visible = !dpanel_visible;
@@ -202,16 +202,15 @@ _ecore_event_key_down_cb(void *data, int type, void *event)
          ede_game_debug_panel_enable(EINA_FALSE);
       }
    }
-   else if (!strcmp(ev->key, "Escape"))
+   else if (streql(ev->key, "Escape"))
    {
       D("ESC");
    }
 
-
    return ECORE_CALLBACK_CANCEL;
 }
 
-static int
+static Eina_Bool
 _ecore_event_mouse_move_cb(void *data, int type, void *event)
 {
    Ecore_Event_Mouse_Move *ev = event;
@@ -223,7 +222,7 @@ _ecore_event_mouse_move_cb(void *data, int type, void *event)
    return ECORE_CALLBACK_CANCEL;
 }
 
-static int
+static Eina_Bool
 _ecore_event_mouse_down_cb(void *data, int type, void *event)
 {
    Ecore_Event_Mouse_Button *ev = event;
@@ -508,7 +507,7 @@ ede_gui_tower_button_add(const char *tower_class_id)
    obj = ede_gui_image_load(tc->icon);
    evas_object_resize(obj, 30, 30); // TODO fixme, should be themable
    evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_UP,
-                                  _add_tower_add_button_cb, tc);
+                                  _tower_add_button_cb, tc);
    evas_object_show(obj);
 
    // put the button in the edje box

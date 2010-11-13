@@ -330,7 +330,7 @@ ede_tower_class_get_by_id(const char *id)
    Eina_List *l;
 
    EINA_LIST_FOREACH(tower_classes, l, tc)
-      if (strcmp(tc->id, id) == 0)
+      if (streql(tc->id, id))
          return tc;
 
    return NULL;

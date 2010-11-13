@@ -141,7 +141,7 @@ ede_game_mainmenu_populate(void)
 }
 
 /**********   Main Game Animator Loop   **************************************/
-static int
+static Eina_Bool
 _game_loop(void *data)
 {
    static double last_time = 0;

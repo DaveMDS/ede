@@ -330,7 +330,7 @@ ede_enemy_spawn(const char *type, int speed, int strength, int bucks,
    // put the enemy in the alives list
    EINA_LIST_PUSH(alives, e);
 
-   if (!strcmp(type, "flyer"))
+   if (streql(type, "flyer"))
    {
       e->step_func = _flyer_enemy_step;
       // go directly to the target, ignoring walls
