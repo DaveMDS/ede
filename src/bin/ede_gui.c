@@ -142,7 +142,6 @@ static void
 _add_tower_add_button_cb(void *data, Evas_Object *o, Evas *e, void *event_info)
 {
    Ede_Tower_Class *tc = data;
-   D("'%s'", tc->engine);
    ede_tower_add(tc);
 }
 
@@ -497,7 +496,6 @@ ede_gui_tower_button_add(const char *tower_class_id)
 {
    Evas_Object *obj;
    Ede_Tower_Class *tc;
-   char buf[PATH_MAX];
 
    tc = ede_tower_class_get_by_id(tower_class_id);
    if (!tc)
@@ -507,9 +505,7 @@ ede_gui_tower_button_add(const char *tower_class_id)
    }
 
    // create the image object (button)
-   obj = evas_object_image_filled_add(ede_gui_canvas_get());
-   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/%s", tc->icon);
-   evas_object_image_file_set(obj, buf, NULL);
+   obj = ede_gui_image_load(tc->icon);
    evas_object_resize(obj, 30, 30); // TODO fixme, should be themable
    evas_object_event_callback_add(obj, EVAS_CALLBACK_MOUSE_UP,
                                   _add_tower_add_button_cb, tc);
@@ -532,22 +528,32 @@ ede_gui_tower_button_box_clear(void)
 /**
  * Change the tower information box
  */
+
 EAPI void
 ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
 {
+   Evas_Object *o_icon;
+
    D(" ");
 
    if (!name)
    {
       edje_object_part_text_set(o_layout, "tower.name", "");
       edje_object_part_text_set(o_layout, "tower.info", "");
-      edje_object_signal_emit(o_layout, "tower,icon,set", "hide");
+      o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
+      if (o_icon) evas_object_del(o_icon);
       return;
    }
 
    edje_object_part_text_set(o_layout, "tower.name", name);
    edje_object_part_text_set(o_layout, "tower.info", text);
-   edje_object_signal_emit(o_layout, "tower,icon,set", icon);
+
+   // update icon
+   o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
+   if (o_icon) evas_object_del(o_icon);
+   o_icon = ede_gui_image_load(icon);
+   edje_object_part_swallow(o_layout, "tower.icon.swallow", o_icon);
+   
 }
 
 EAPI void
@@ -728,6 +734,27 @@ ede_gui_cell_get_at_coords(int x, int y, int *row, int *col)
    if (row) *row = (y - STAGE_OFFSET_Y) / CELL_W;
    if (col) *col = (x - STAGE_OFFSET_X) / CELL_H;
    return EINA_TRUE;
+}
+
+/**
+ * Get an image name (ex. tower_ghost_icon.png) and return an Evas_Object*
+ * with the give file loaded. The image will be searched in the appropriate
+ * theme directory...will... 
+ */
+EAPI Evas_Object *
+ede_gui_image_load(const char *image)
+{
+   Evas_Object *o;
+   char buf[PATH_MAX];
+
+   // TODO here evaluate theme
+   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/%s", image);
+
+   D("LOAD IMAGE: %s", buf);
+   o = evas_object_image_filled_add(canvas);
+   evas_object_image_file_set(o, buf, NULL);
+   evas_object_show(o);
+   return o;
 }
 
 /*****************  OVERLAY FUNCTIONS  ****************************************/

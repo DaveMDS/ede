@@ -49,7 +49,7 @@ struct _Ede_Tower {
 
 /* Local subsystem vars */
 static Eina_List *tower_classes = NULL;
-static Eina_List *towers = NULL; // TODO rename to alive_towers
+static Eina_List *alive_towers = NULL; // TODO rename to alive_towers
 static Ede_Tower *selected_tower = NULL;
 
 
@@ -64,7 +64,6 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    Ede_Tower_Class *tc = data;
    Ede_Tower *tower;
    int x, y, i, j;
-   char buf[64];
 
    if (!tc) return;
 
@@ -87,23 +86,17 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->center_y = y + (rows * CELL_H / 2);
 
    // add the base sprite
-   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/%s", tc->image1);
-   tower->o_base = evas_object_image_filled_add(ede_gui_canvas_get());
-   evas_object_image_file_set(tower->o_base, buf, NULL);
+   tower->o_base = ede_gui_image_load(tc->image1);
    evas_object_pass_events_set(tower->o_base, EINA_TRUE);
    evas_object_layer_set(tower->o_base, LAYER_TOWER);
    evas_object_resize(tower->o_base, CELL_W * cols, CELL_H * rows);
-   evas_object_show(tower->o_base);
    evas_object_move(tower->o_base, x, y);
 
    // add the rotating sprite
-   snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/%s", tc->image2);
-   tower->o_cannon = evas_object_image_filled_add(ede_gui_canvas_get());
+   tower->o_cannon = ede_gui_image_load(tc->image2);
    evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
-   evas_object_image_file_set(tower->o_cannon, buf, NULL);
    evas_object_layer_set(tower->o_cannon, LAYER_TOWER);
    evas_object_resize(tower->o_cannon, CELL_W * cols, CELL_H * rows);
-   evas_object_show(tower->o_cannon);
    evas_object_move(tower->o_cannon, x, y);
 
    // mark all the tower cells as unwalkable
@@ -115,7 +108,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    ede_enemy_path_recalc_all();
 
    // add to the towers list
-   towers = eina_list_append(towers, tower);
+   alive_towers = eina_list_append(alive_towers, tower);
 }
 
 static void
@@ -137,7 +130,7 @@ _tower_del(Ede_Tower *tower)
    ede_gui_selection_hide();
 
    // free stuff
-   towers = eina_list_remove(towers, tower);
+   alive_towers = eina_list_remove(alive_towers, tower);
    EDE_OBJECT_DEL(tower->o_base);
    EDE_OBJECT_DEL(tower->o_cannon);
    EDE_FREE(tower);
@@ -152,8 +145,8 @@ _tower_select(Ede_Tower *tower)
    selected_tower = tower;
    snprintf(buf, sizeof(buf), "damage: %d<br>range: %d<br>reload: %d",
                  tower->damage, tower->range, tower->reload);
-   // TODO CONTINUE FROM HERE !!!!!
-   //~ ede_gui_tower_info_set(_tower_types[tower->engine][TYPE_LABEL], _tower_types[tower->engine][TYPE_NAME], buf);
+
+   ede_gui_tower_info_set(tower->class->name, tower->class->icon, buf);
 
    ede_gui_upgrade_box_hide_all();
    ede_gui_upgrade_box_set(0, "Level UP");
@@ -321,7 +314,7 @@ ede_tower_shutdown(void)
    Ede_Tower_Class *tc;
    D(" ");
 
-   EINA_LIST_FREE(towers, tower)
+   EINA_LIST_FREE(alive_towers, tower)
       _tower_del(tower);
 
    EINA_LIST_FREE(tower_classes, tc)
@@ -376,7 +369,7 @@ ede_tower_select_at(int row, int col)
 
    D("%d %d", row, col);
 
-   EINA_LIST_FOREACH(towers, l, tower)
+   EINA_LIST_FOREACH(alive_towers, l, tower)
    {
       if (row >= tower->row && row < tower->row + tower->rows &&
           col >= tower->col && col < tower->col + tower->cols)
@@ -393,7 +386,7 @@ ede_tower_reset(void)
    Ede_Tower *tower;
 
    ede_gui_selection_hide();
-   EINA_LIST_FREE(towers, tower)
+   EINA_LIST_FREE(alive_towers, tower)
    {
       EDE_OBJECT_DEL(tower->o_base);
       EDE_OBJECT_DEL(tower->o_cannon);
@@ -417,7 +410,7 @@ ede_tower_one_step_all(double time)
    Eina_List *l;
 
    //~ D("STEP [time %f]", time);
-   EINA_LIST_FOREACH(towers, l, tower)
+   EINA_LIST_FOREACH(alive_towers, l, tower)
       _tower_step(tower, time);
 }
 
@@ -425,6 +418,6 @@ EAPI void
 ede_tower_debug_info_fill(Eina_Strbuf *t)
 {
    eina_strbuf_append(t, "<h3>towers:</h3><br>");
-   eina_strbuf_append_printf(t, "count %d<br>", eina_list_count(towers));
+   eina_strbuf_append_printf(t, "count %d<br>", eina_list_count(alive_towers));
    eina_strbuf_append(t, "<br>");
 }

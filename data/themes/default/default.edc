@@ -230,12 +230,11 @@ collections {
                max: 400 30;
                align: 0.0 0.0;
                rel1.offset: 200 15;
-               //~ image.normal: "tower_normal_icon.png";
                box {
                   layout: "horizontal";
-                  //~ padding: 0 2;
+                  padding: 4 0;
                   align: 0.0 0.5;
-                  min: 1 1;
+                  min: 0 0;
                 }
             }
          }
@@ -270,28 +269,17 @@ collections {
                }
             }
          }
-         part { name: "tower.icon";
-            type: IMAGE;
+         part { name: "tower.icon.swallow";
+            type: SWALLOW;
             mouse_events:  0;
             description { state: "default" 0.0;
-               color: 200 200 200 255;
                min: 30 30;
                max: 30 30;
                align: 0.0 0.0;
                rel1.offset: 10 20;
                rel1.to: "side_bar";
                rel2.to: "side_bar";
-               visible: 0;
-            }
-            description { state: "normal" 0.0;
-               inherit: "default" 0.0;
                visible: 1;
-               image.normal: "tower_normal_icon.png";
-            }
-            description { state: "ghost" 0.0;
-               inherit: "default" 0.0;
-               visible: 1;
-               image.normal: "tower_ghost_icon.png";
             }
          }
          part { name: "tower.info";
@@ -583,25 +571,6 @@ collections {
             signal: "mouse,down,1";
             source: "btn_tower_add_slowdown";
             action: SIGNAL_EMIT "tower,add" "slowdown";
-         }
-         /* tower info */
-         program {
-            signal: "tower,icon,set";
-            source: "normal";
-            action: STATE_SET "normal" 0.0;
-            target: "tower.icon";
-         }
-         program {
-            signal: "tower,icon,set";
-            source: "ghost";
-            action: STATE_SET "ghost" 0.0;
-            target: "tower.icon";
-         }
-         program {
-            signal: "tower,icon,set";
-            source: "hide";
-            action: STATE_SET "default" 0.0;
-            target: "tower.icon";
          }
          /* upgrades */
 #define UPGRADE_BUTTON_PROGS(NUM) \

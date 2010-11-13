@@ -89,6 +89,7 @@ EAPI void        ede_gui_upgrade_box_set(int pos, const char *name);
 EAPI void      ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col);
 EAPI void      ede_gui_cell_overlay_text_set(int row, int col, int val, int pos);
 
+EAPI Evas_Object *ede_gui_image_load(const char *image);
 EAPI Eina_Bool ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center);
 EAPI Eina_Bool ede_gui_cell_get_at_coords(int x, int y, int *row, int *col);
 
