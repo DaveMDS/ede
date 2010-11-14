@@ -103,6 +103,8 @@ Flags:
 Installation Path:.......: $prefix
    Binaries..............: $prefix/bin
    Themes................: $prefix/share/ede/themes
+   Levels................: $prefix/share/ede/levels
+   Towers................: $prefix/share/ede/towers
 
 Now type 'make' ('gmake' on some systems) to compile emc, if it
 builds successfully then you can 'make install', acquiring required

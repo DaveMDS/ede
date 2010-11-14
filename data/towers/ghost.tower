@@ -13,8 +13,8 @@ Image2=tower_ghost_cannon.png
 Cost=50
 SellFactor=0.7
 
-PARAM=Reload
-level 1: value=60 bucks=0
+PARAM=Reload(upgrade_reload_icon.png)
+level 1: value=61 bucks=0
 level 2: value=50 bucks=100
 level 3: value=40 bucks=200
 level 4: value=30 bucks=300
@@ -25,8 +25,8 @@ level 8: value=3 bucks=700
 level 9: value=2 bucks=800
 level 10: value=1 bucks=1000
 
-PARAM=Damage
-level 1: value=10 bucks=0
+PARAM=Damage(upgrade_damage_icon.png)
+level 1: value=11 bucks=0
 level 2: value=30 bucks=100
 level 3: value=60 bucks=200
 level 4: value=100 bucks=300
@@ -37,8 +37,8 @@ level 8: value=1500 bucks=700
 level 9: value=2000 bucks=800
 level 10: value=3000 bucks=1000
 
-PARAM=Range
-level 1: value=50 bucks=0
+PARAM=Range(upgrade_range_icon.png)
+level 1: value=51 bucks=0
 level 2: value=75 bucks=100
 level 3: value=100 bucks=300
 level 4: value=200 bucks=500

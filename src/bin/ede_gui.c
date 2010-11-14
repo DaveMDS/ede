@@ -132,7 +132,6 @@ _upgrade_button_cb(void *data, Evas_Object *o, const char *emission, const char 
    int num;
 
    D(" as");
-
    num = atoi(source);
    printf("ASD %s %d\n", source, num);
    ede_tower_upgrade(num);
@@ -529,30 +528,96 @@ ede_gui_tower_button_box_clear(void)
  */
 
 EAPI void
-ede_gui_tower_info_set(const char *name, const char *icon, const char *text)
+ede_gui_tower_info_set(Ede_Tower *tower)
 {
    Evas_Object *o_icon;
+   Eina_List *l;
+   Ede_Tower_Class_Param *par;
+   char buf[256];
 
    D(" ");
 
-   if (!name)
+   if (tower)
    {
+      // update info
+      snprintf(buf, sizeof(buf), "damage: %d<br>reload: %d<br>range: %d",
+               tower->damage, tower->reload, tower->range);
+      edje_object_part_text_set(o_layout, "tower.name", tower->class->name);
+      edje_object_part_text_set(o_layout, "tower.info", buf);
+
+      // update info icon
+      o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
+      if (o_icon) evas_object_del(o_icon);
+      o_icon = ede_gui_image_load(tower->class->icon);
+      edje_object_part_swallow(o_layout, "tower.icon.swallow", o_icon);
+
+      // fill ugrades box
+      ede_gui_upgrade_box_hide_all();
+      int i = 0;
+      EINA_LIST_FOREACH(tower->class->params, l, par)
+      {
+         Ede_Tower_Class_Param_Upgrade *up = NULL;
+
+         if (streql(par->name, "Damage"))
+            up = tower->damage_up;
+         else if (streql(par->name, "Reload"))
+            up = tower->reload_up;
+         else if (streql(par->name, "Range"))
+            up = tower->range_up;
+
+         if (up)
+            ede_gui_upgrade_box_set(i, par->name, up->name, par->icon, up->bucks);
+         i++;
+      }
+   }
+   else
+   {
+      // hide all
       edje_object_part_text_set(o_layout, "tower.name", "");
       edje_object_part_text_set(o_layout, "tower.info", "");
       o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
       if (o_icon) evas_object_del(o_icon);
-      return;
+      ede_gui_upgrade_box_hide_all();
    }
+}
 
-   edje_object_part_text_set(o_layout, "tower.name", name);
-   edje_object_part_text_set(o_layout, "tower.info", text);
+EAPI void
+ede_gui_upgrade_box_set(int pos, const char *name, const char *desc,
+                                 const char *icon, int bucks)
+{
+   Evas_Object *o_icon;
+   char buf[32], buf2[32];
+   D(" ");
 
-   // update icon
-   o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
+   // set name & desc
+   snprintf(buf, sizeof(buf), "upgrade.%d.name", pos);
+   edje_object_part_text_set(o_layout, buf, name);
+   snprintf(buf, sizeof(buf), "upgrade.%d.desc", pos);
+   edje_object_part_text_set(o_layout, buf, desc);
+
+   // set icon
+   snprintf(buf, sizeof(buf), "upgrade.%d.icon", pos);
+   o_icon = edje_object_part_swallow_get(o_layout, buf);
    if (o_icon) evas_object_del(o_icon);
    o_icon = ede_gui_image_load(icon);
-   edje_object_part_swallow(o_layout, "tower.icon.swallow", o_icon);
+   edje_object_part_swallow(o_layout, buf, o_icon);
+
+   // set cost
+   snprintf(buf, sizeof(buf), "upgrade.%d.cost", pos);
+   snprintf(buf2, sizeof(buf2), "%d", bucks);
+   edje_object_part_text_set(o_layout, buf, buf2);
    
+   // emit show signal
+   snprintf(buf, sizeof(buf), "%d", pos);
+   edje_object_signal_emit(o_layout, "upgrade,show", buf);
+}
+
+EAPI void
+ede_gui_upgrade_box_hide_all(void)
+{
+   D(" ");
+
+   edje_object_signal_emit(o_layout, "upgrade,hide,all", "");
 }
 
 EAPI void
@@ -581,27 +646,6 @@ ede_gui_wave_timer_update(int secs)
 
    snprintf(buf, sizeof(buf), "SEND (%d)", secs);
    edje_object_part_text_set(o_layout, "wave.button.text", buf);
-}
-
-EAPI void
-ede_gui_upgrade_box_set(int pos, const char *name)
-{
-   char buf[32];
-   D(" ");
-   
-   snprintf(buf, sizeof(buf), "upgrade.%d.name", pos);
-   edje_object_part_text_set(o_layout, buf, name);
-
-   snprintf(buf, sizeof(buf), "%d", pos);
-   edje_object_signal_emit(o_layout, "upgrade,show", buf);
-}
-
-EAPI void
-ede_gui_upgrade_box_hide_all(void)
-{
-   D(" ");
-
-   edje_object_signal_emit(o_layout, "upgrade,hide,all", "");
 }
 
 EAPI void

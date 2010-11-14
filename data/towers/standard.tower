@@ -13,19 +13,7 @@ Image2=tower_normal_cannon.png
 Cost=10
 SellFactor=0.5
 
-PARAM=Reload
-level 1: value=60 bucks=0
-level 2: value=50 bucks=100
-level 3: value=40 bucks=200
-level 4: value=30 bucks=300
-level 5: value=20 bucks=400
-level 6: value=10 bucks=500
-level 7: value=5 bucks=600
-level 8: value=3 bucks=700
-level 9: value=2 bucks0800
-ultimate: value=1 bucks=1000
-
-PARAM=Damage
+PARAM=Damage(upgrade_damage_icon.png)
 level 1: value=10 bucks=0
 level 2: value=30 bucks=100
 level 3: value=60 bucks=200
@@ -37,10 +25,22 @@ level 8: value=1500 bucks=700
 level 9: value=2000 bucks=800
 level 10: value=3000 bucks=1000
 
-PARAM=Range
+PARAM=Reload(upgrade_reload_icon.png)
+level 1: value=60 bucks=0
+level 2: value=50 bucks=101
+level 3: value=40 bucks=201
+level 4: value=30 bucks=301
+level 5: value=20 bucks=401
+level 6: value=10 bucks=501
+level 7: value=5 bucks=601
+level 8: value=3 bucks=701
+level 9: value=2 bucks=801
+ultimate: value=1 bucks=1001
+
+PARAM=Range(upgrade_range_icon.png)
 level 1: value=50 bucks=0
-level 2: value=75 bucks=100
-level 3: value=100 bucks=300
-level 4: value=200 bucks=500
-level 5: value=300 bucks=1000
+level 2: value=75 bucks=102
+level 3: value=100 bucks=302
+level 4: value=200 bucks=502
+level 5: value=300 bucks=1002
 

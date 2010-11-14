@@ -49,8 +49,7 @@ data {
    //~ item: "ede/theme/version" "1"; // This must match the ede version of themes
 }
 
-styles
-{
+styles {
    style { name: "ede_style";
       base: "font=Sans font_size=10 align=left color=#FFF wrap=word";
       tag:  "br" "\n";
@@ -359,7 +358,7 @@ collections {
                rel1.to: "upgrade."NUM".clip"; \
                rel2.to: "upgrade."NUM".clip"; \
                text { \
-                  text: "piccolo +10"; \
+                  text: ""; \
                   font: UI_FONTUI; \
                   size: 12; \
                   align: 0.0 0.0; \
@@ -367,11 +366,10 @@ collections {
             } \
          } \
          part { name: "upgrade."NUM".icon"; \
-            type: RECT; \
+            type: SWALLOW; \
             mouse_events:  0; \
             clip_to: "upgrade."NUM".clip"; \
             description { state : "default" 0.0; \
-               color: 0 0 200 255; \
                max: 30 30; \
                align: 0.0 0.5; \
                rel1.to: "upgrade."NUM".clip"; \
@@ -399,13 +397,13 @@ collections {
             mouse_events:  0; \
             clip_to: "upgrade."NUM".clip"; \
             description { state: "default" 0.0; \
-               color: 0 255 255 255; \
+               color: 0 0 0 255; \
                rel1.to: "upgrade."NUM".button"; \
                rel2.to: "upgrade."NUM".button"; \
                text { \
                   text: "999"; \
                   font: UI_FONTUI; \
-                  size: 16; \
+                  size: 12; \
                } \
             } \
          } \

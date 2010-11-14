@@ -39,8 +39,9 @@ struct _Ede_Tower_Class {
 typedef struct _Ede_Tower_Class_Param Ede_Tower_Class_Param;
 struct _Ede_Tower_Class_Param {
    const char *name;     // param name.  ex: Damage
+   const char *icon;     // param icon.  ex: upgrade_damage_icon.png
    Eina_List *upgrades;  // list of Ede_Tower_Class_Param_Upgrade*
-};
+ };
 
 typedef struct _Ede_Tower_Class_Param_Upgrade Ede_Tower_Class_Param_Upgrade;
 struct _Ede_Tower_Class_Param_Upgrade {
@@ -49,11 +50,29 @@ struct _Ede_Tower_Class_Param_Upgrade {
    int bucks;        // upgrade cost
 };
 
+/* structure to define a single tower */
+typedef struct _Ede_Tower Ede_Tower;
+struct _Ede_Tower {
+   Ede_Tower_Class *class;
+
+   Evas_Object *o_base;
+   Evas_Object *o_cannon;
+
+   int row, col, rows, cols;  // position & size. In cells
+   int center_x, center_y;    // center position. In pixel
+   int damage, reload, range; // current values
+   Ede_Tower_Class_Param_Upgrade *damage_up; //next available upgrade
+   Ede_Tower_Class_Param_Upgrade *reload_up; //next available upgrade
+   Ede_Tower_Class_Param_Upgrade *range_up;  //next available upgrade
+   
+   double reload_counter; // accumulator for reloading
+};
 
 EAPI Eina_Bool ede_tower_init(void);
 EAPI Eina_Bool ede_tower_shutdown(void);
 
 EAPI Ede_Tower_Class *ede_tower_class_get_by_id(const char *id);
+EAPI Ede_Tower *ede_tower_selected_get(void);
 
 EAPI void ede_tower_add(Ede_Tower_Class *tc);
 EAPI void ede_tower_reset(void);
