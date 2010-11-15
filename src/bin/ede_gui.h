@@ -79,7 +79,7 @@ EAPI void        ede_gui_level_selector_item_add(const char *label,
                                                  void (*selected_cb)(void *data),
                                                  void *data);
 
-EAPI void        ede_gui_tower_info_set(Ede_Tower *tower);
+EAPI void        ede_gui_tower_info_set(const char *name, const char *icon, const char *info);
 EAPI void        ede_gui_wave_info_set(int tot, int cur, int num, const char *type);
 EAPI void        ede_gui_wave_timer_update(int secs);
 

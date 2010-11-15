@@ -984,11 +984,22 @@ collections {
    group { name: "ede/tower/normal";
       script {
          public message(Msg_Type:type, id, ...)
-         {  // received message to rotate the tower (MSG_FLOAT arg2 = angle)
-            // rotate the tower cannon
-            custom_state(PART:"cannon", "default", 0.0);
-            set_state_val(PART:"cannon", STATE_MAP_ROT_Z, getfarg(2));
-            set_state(PART:"cannon", "custom", 0.0);
+         {
+            new buf[16];
+            if (id == 123)
+            {  // received message to rotate the tower (MSG_FLOAT arg2 = angle)
+               // rotate the tower cannon
+               custom_state(PART:"cannon", "default", 0.0);
+               set_state_val(PART:"cannon", STATE_MAP_ROT_Z, getfarg(2));
+               set_state(PART:"cannon", "custom", 0.0);
+            }
+
+            else if (id == 125)
+            {  // received message to upgrade the tower (MSG_INT arg2 = level)
+               // set the correct state
+               snprintf(buf, sizeof(buf), "level_%d", getarg(2));
+               set_state(PART:"base", buf, 0.0);
+            }
          }
       }
       parts {
@@ -996,6 +1007,49 @@ collections {
             type: IMAGE;
             description { state: "default" 0.0;
                image.normal: "tower_normal_base.png";
+            }
+            description { state: "1" 0.0;
+               inherit: "default" 0.0;
+               color: 255 225 225 255;
+            }
+            description { state: "level_1" 0.0;
+               inherit: "default" 0.0;
+            }
+            description { state: "level_2" 0.0;
+               inherit: "default" 0.0;
+               color: 255 200 200 255;
+            }
+            description { state: "level_3" 0.0;
+               inherit: "default" 0.0;
+               color: 255 175 175 255;
+            }
+            description { state: "level_4" 0.0;
+               inherit: "default" 0.0;
+               color: 255 150 150 255;
+            }
+            description { state: "level_5" 0.0;
+               inherit: "default" 0.0;
+               color: 255 125 125 255;
+            }
+            description { state: "level_6" 0.0;
+               inherit: "default" 0.0;
+               color: 255 100 100 255;
+            }
+            description { state: "level_7" 0.0;
+               inherit: "default" 0.0;
+               color: 255 75 75 255;
+            }
+            description { state: "level_8" 0.0;
+               inherit: "default" 0.0;
+               color: 255 50 50 255;
+            }
+            description { state: "level_9" 0.0;
+               inherit: "default" 0.0;
+               color: 255 25 25 255;
+            }
+            description { state: "level_10" 0.0;
+               inherit: "default" 0.0;
+               color: 255 0 0 255;
             }
          }
          part { name: "cannon";

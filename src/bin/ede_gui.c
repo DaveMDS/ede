@@ -528,57 +528,20 @@ ede_gui_tower_button_box_clear(void)
  */
 
 EAPI void
-ede_gui_tower_info_set(Ede_Tower *tower)
+ede_gui_tower_info_set(const char *name, const char *icon, const char *info)
 {
    Evas_Object *o_icon;
-   Eina_List *l;
-   Ede_Tower_Class_Param *par;
-   char buf[256];
+   
+   edje_object_part_text_set(o_layout, "tower.name",name);
+   edje_object_part_text_set(o_layout, "tower.info", info);
 
-   D(" ");
+   o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
+   if (o_icon)
+      evas_object_del(o_icon);
 
-   if (tower)
-   {
-      // update info
-      snprintf(buf, sizeof(buf), "damage: %d<br>reload: %d<br>range: %d",
-               tower->damage, tower->reload, tower->range);
-      edje_object_part_text_set(o_layout, "tower.name", tower->class->name);
-      edje_object_part_text_set(o_layout, "tower.info", buf);
-
-      // update info icon
-      o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
-      if (o_icon) evas_object_del(o_icon);
-      o_icon = ede_gui_image_load(tower->class->icon);
+   o_icon = ede_gui_image_load(icon);
+   if (o_icon)
       edje_object_part_swallow(o_layout, "tower.icon.swallow", o_icon);
-
-      // fill ugrades box
-      ede_gui_upgrade_box_hide_all();
-      int i = 0;
-      EINA_LIST_FOREACH(tower->class->params, l, par)
-      {
-         Ede_Tower_Class_Param_Upgrade *up = NULL;
-
-         if (streql(par->name, "Damage"))
-            up = tower->damage_up;
-         else if (streql(par->name, "Reload"))
-            up = tower->reload_up;
-         else if (streql(par->name, "Range"))
-            up = tower->range_up;
-
-         if (up)
-            ede_gui_upgrade_box_set(i, par->name, up->name, par->icon, up->bucks);
-         i++;
-      }
-   }
-   else
-   {
-      // hide all
-      edje_object_part_text_set(o_layout, "tower.name", "");
-      edje_object_part_text_set(o_layout, "tower.info", "");
-      o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
-      if (o_icon) evas_object_del(o_icon);
-      ede_gui_upgrade_box_hide_all();
-   }
 }
 
 EAPI void

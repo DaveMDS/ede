@@ -40,7 +40,7 @@ static Ede_Tower *selected_tower = NULL;
 /* Local subsystem functions */
 
 Ede_Tower_Class_Param * // unused
-_tower_class_param_get(Ede_Tower_Class *tc, const char *param, int up_level)
+_tower_class_param_get(Ede_Tower_Class *tc, const char *param)
 {
    Ede_Tower_Class_Param *par;
    Eina_List *l;
@@ -50,13 +50,24 @@ _tower_class_param_get(Ede_Tower_Class *tc, const char *param, int up_level)
    return NULL;
 }// unused
 
+Ede_Tower_Class_Param_Upgrade *
+_tower_class_param_upgrade_get(Ede_Tower_Class *tc,
+                               const char *param, int up_level)
+{
+   Ede_Tower_Class_Param *par;
+   Eina_List *l;
+   EINA_LIST_FOREACH(tc->params, l, par)
+      if (streql(par->name, param))
+         return eina_list_nth(par->upgrades, up_level);
+   return NULL;
+}
+
 static void
 _tower_add_real(int row, int col, int rows, int cols, void *data)
 {
    Ede_Tower_Class *tc = data;
-   Ede_Tower_Class_Param *par;
+   Ede_Tower_Class_Param_Upgrade *up;
    Ede_Tower *tower;
-   Eina_List *l;
    char buf[64];
    int x, y, i, j;
 
@@ -75,29 +86,17 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->rows = rows;
 
    // set params upgrade to level 0
-   EINA_LIST_FOREACH(tc->params, l, par)
-   {
-      Ede_Tower_Class_Param_Upgrade *base;
-      Ede_Tower_Class_Param_Upgrade *up;
-      
-      base = eina_list_data_get(par->upgrades);
-      up = eina_list_data_get(eina_list_next(par->upgrades));
-      if (streql(par->name, "Reload"))
-      {
-         tower->reload = base->value;
-         tower->reload_up = up;
-      }
-      else if (streql(par->name, "Damage"))
-      {
-         tower->damage = base->value;
-         tower->damage_up = up;
-      }
-      else if (streql(par->name, "Range"))
-      {
-         tower->range = base->value;
-         tower->range_up = up;
-      }
-   }
+   tower->damage_uplvl = 0;
+   up = _tower_class_param_upgrade_get(tc, "Damage", 0);
+   tower->damage = up->value;
+
+   tower->reload_uplvl = 0;
+   up = _tower_class_param_upgrade_get(tc, "Reload", 0);
+   tower->reload = up->value;
+
+   tower->range_uplvl = 0;
+   up = _tower_class_param_upgrade_get(tc, "Range", 0);
+   tower->range = up->value;
 
    // calc center
    ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
@@ -155,7 +154,7 @@ _tower_select(Ede_Tower *tower)
 {
    D(" ");
    selected_tower = tower;
-   ede_gui_tower_info_set(tower);
+   ede_tower_info_update(tower);
    ede_gui_selection_type_set(SELECTION_TOWER);
    ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols,
                              tower->range);
@@ -187,7 +186,7 @@ _tower_step(Ede_Tower *tower, double time)
    if (distance < tower->range)
    {
       fangle = angle;
-      edje_object_message_send(tower->obj, EDJE_MESSAGE_FLOAT, 1, &fangle);
+      edje_object_message_send(tower->obj, EDJE_MESSAGE_FLOAT, 123, &fangle);
       _tower_shoot_at(tower, e);
    }
 }
@@ -407,6 +406,53 @@ ede_tower_add(Ede_Tower_Class *tc)
 }
 
 EAPI void
+ede_tower_info_update(Ede_Tower *tower)
+{
+   Eina_List *l;
+   Ede_Tower_Class_Param *par;
+   char buf[256];
+
+   D(" ");
+
+   if (tower)
+   {
+      // update tower info
+      snprintf(buf, sizeof(buf), "damage: %d<br>reload: %d<br>range: %d",
+               tower->damage, tower->reload, tower->range);
+      ede_gui_tower_info_set(tower->class->name, tower->class->icon, buf);
+      
+      // fill ugrades box
+      ede_gui_upgrade_box_hide_all();
+     
+      int i = 0;
+      EINA_LIST_FOREACH(tower->class->params, l, par)
+      {
+         Ede_Tower_Class_Param_Upgrade *up = NULL;
+
+         if (streql(par->name, "Damage"))
+            up = _tower_class_param_upgrade_get(tower->class,
+                                          "Damage", tower->damage_uplvl + 1);
+         else if (streql(par->name, "Reload"))
+            up = _tower_class_param_upgrade_get(tower->class,
+                                          "Reload", tower->reload_uplvl + 1);
+         else if (streql(par->name, "Range"))
+            up = _tower_class_param_upgrade_get(tower->class,
+                                          "Range", tower->range_uplvl + 1);
+
+         if (up)
+            ede_gui_upgrade_box_set(i, par->name, up->name, par->icon, up->bucks);
+         i++;
+      }
+   }
+   else
+   {
+      // hide all
+      ede_gui_tower_info_set("", "", "");
+      ede_gui_upgrade_box_hide_all();
+   }
+}
+
+EAPI void
 ede_tower_destroy_selected(void)
 {
    if (selected_tower)
@@ -421,7 +467,7 @@ ede_tower_deselect(void)
    {
       selected_tower = NULL;
       ede_gui_selection_hide();
-      ede_gui_tower_info_set(NULL);
+      ede_tower_info_update(NULL);
    }
 }
 
@@ -462,8 +508,7 @@ EAPI void
 ede_tower_upgrade(int button_num)
 {
    Ede_Tower_Class_Param *param;
-   Ede_Tower_Class_Param_Upgrade *next;
-   Eina_List *l;
+   Ede_Tower_Class_Param_Upgrade *up;
    
    if (!selected_tower) return;
    D("UPGRADE %d\n", button_num);
@@ -472,24 +517,26 @@ ede_tower_upgrade(int button_num)
    D("%s", param->name);
    if (streql(param->name, "Damage"))
    {
-      l = eina_list_data_find_list(param->upgrades, selected_tower->damage_up);
-      next = eina_list_data_get(eina_list_next(l));
-      selected_tower->damage = selected_tower->damage_up->value;
-      selected_tower->damage_up = next;
+      up = _tower_class_param_upgrade_get(selected_tower->class,
+                                       "Damage", selected_tower->damage_uplvl);
+      selected_tower->damage = up->value;
+      selected_tower->damage_uplvl ++;
+      edje_object_message_send(selected_tower->obj, EDJE_MESSAGE_INT,
+                               125, &selected_tower->damage_uplvl);
    }
    else if (streql(param->name, "Reload"))
    {
-      l = eina_list_data_find_list(param->upgrades, selected_tower->reload_up);
-      next = eina_list_data_get(eina_list_next(l));
-      selected_tower->reload = selected_tower->reload_up->value;
-      selected_tower->reload_up = next;
+      up = _tower_class_param_upgrade_get(selected_tower->class,
+                                       "Reload", selected_tower->reload_uplvl);
+      selected_tower->reload = up->value;
+      selected_tower->reload_uplvl ++;
    }
    else if (streql(param->name, "Range"))
    {
-      l = eina_list_data_find_list(param->upgrades, selected_tower->range_up);
-      next = eina_list_data_get(eina_list_next(l));
-      selected_tower->range = selected_tower->range_up->value;
-      selected_tower->range_up = next;
+      up = _tower_class_param_upgrade_get(selected_tower->class,
+                                       "Range", selected_tower->range_uplvl);
+      selected_tower->range = up->value;
+      selected_tower->range_uplvl ++;
    }
    // Update selection
    _tower_select(selected_tower);

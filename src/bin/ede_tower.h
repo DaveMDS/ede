@@ -60,9 +60,9 @@ struct _Ede_Tower {
    int row, col, rows, cols;  // position & size. In cells
    int center_x, center_y;    // center position. In pixel
    int damage, reload, range; // current values
-   Ede_Tower_Class_Param_Upgrade *damage_up; //next available upgrade
-   Ede_Tower_Class_Param_Upgrade *reload_up; //next available upgrade
-   Ede_Tower_Class_Param_Upgrade *range_up;  //next available upgrade
+   int damage_uplvl;          // damage current upgrade level
+   int reload_uplvl;          // reload current upgrade level
+   int range_uplvl;           // range current upgrade level
    
    double reload_counter; // accumulator for reloading
 };
@@ -74,6 +74,7 @@ EAPI Ede_Tower_Class *ede_tower_class_get_by_id(const char *id);
 EAPI Ede_Tower *ede_tower_selected_get(void);
 
 EAPI void ede_tower_add(Ede_Tower_Class *tc);
+EAPI void ede_tower_info_update(Ede_Tower *tower);
 EAPI void ede_tower_reset(void);
 EAPI void ede_tower_upgrade(int button_num);
 EAPI void ede_tower_destroy_selected(void);
