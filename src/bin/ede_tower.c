@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <Eina.h>
 #include <Evas.h>
+#include <Edje.h>
 
 #include "ede.h"
 #include "ede_tower.h"
@@ -56,6 +57,7 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    Ede_Tower_Class_Param *par;
    Ede_Tower *tower;
    Eina_List *l;
+   char buf[64];
    int x, y, i, j;
 
    if (!tc) return;
@@ -102,19 +104,15 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->center_x = x + (cols * CELL_W / 2);
    tower->center_y = y + (rows * CELL_H / 2);
 
-   // add the base sprite
-   tower->o_base = ede_gui_image_load(tc->image1);
-   evas_object_pass_events_set(tower->o_base, EINA_TRUE);
-   evas_object_layer_set(tower->o_base, LAYER_TOWER);
-   evas_object_resize(tower->o_base, CELL_W * cols, CELL_H * rows);
-   evas_object_move(tower->o_base, x, y);
-
-   // add the rotating sprite
-   tower->o_cannon = ede_gui_image_load(tc->image2);
-   evas_object_pass_events_set(tower->o_cannon, EINA_TRUE);
-   evas_object_layer_set(tower->o_cannon, LAYER_TOWER);
-   evas_object_resize(tower->o_cannon, CELL_W * cols, CELL_H * rows);
-   evas_object_move(tower->o_cannon, x, y);
+   // create the edje object
+   tower->obj = edje_object_add(ede_gui_canvas_get());
+   snprintf(buf, sizeof(buf), "ede/tower/%s", tc->id);;
+   edje_object_file_set(tower->obj, ede_gui_theme_get(), buf);
+   //~ evas_object_pass_events_set(tower->obj, EINA_TRUE);
+   evas_object_layer_set(tower->obj, LAYER_TOWER);
+   evas_object_resize(tower->obj, CELL_W * cols, CELL_H * rows);
+   evas_object_move(tower->obj, x, y);
+   evas_object_show(tower->obj);
 
    // mark all the tower cells as unwalkable
    for (i = col; i < col + cols; i++)
@@ -148,8 +146,7 @@ _tower_del(Ede_Tower *tower)
 
    // free stuff
    alive_towers = eina_list_remove(alive_towers, tower);
-   EDE_OBJECT_DEL(tower->o_base);
-   EDE_OBJECT_DEL(tower->o_cannon);
+   EDE_OBJECT_DEL(tower->obj);
    EDE_FREE(tower);
 }
 
@@ -160,7 +157,8 @@ _tower_select(Ede_Tower *tower)
    selected_tower = tower;
    ede_gui_tower_info_set(tower);
    ede_gui_selection_type_set(SELECTION_TOWER);
-   ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols, tower->range);
+   ede_gui_selection_show_at(tower->row, tower->col, tower->rows, tower->cols,
+                             tower->range);
 }
 
 static void
@@ -175,6 +173,7 @@ _tower_step(Ede_Tower *tower, double time)
 {
    Ede_Enemy *e;
    int angle = 0;
+   double fangle = 0.0;
    int distance = 0;
 
    // check reload time
@@ -187,7 +186,8 @@ _tower_step(Ede_Tower *tower, double time)
    e = ede_enemy_nearest_get(tower->center_x, tower->center_y, &angle, &distance);
    if (distance < tower->range)
    {
-      ede_util_obj_rotate(tower->o_cannon, angle);
+      fangle = angle;
+      edje_object_message_send(tower->obj, EDJE_MESSAGE_FLOAT, 1, &fangle);
       _tower_shoot_at(tower, e);
    }
 }
@@ -452,8 +452,7 @@ ede_tower_reset(void)
    ede_gui_selection_hide();
    EINA_LIST_FREE(alive_towers, tower)
    {
-      EDE_OBJECT_DEL(tower->o_base);
-      EDE_OBJECT_DEL(tower->o_cannon);
+      EDE_OBJECT_DEL(tower->obj);
       EDE_FREE(tower);
    }
    selected_tower = NULL;

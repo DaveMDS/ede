@@ -17,10 +17,6 @@
 images {
    image: "layout.png" COMP;
    image: "checkboard.png" COMP;
-   //~ image: "tower_normal_base.png" COMP;
-   //~ image: "tower_normal_rotate.png" COMP;
-   image: "tower_normal_icon.png" COMP;
-   image: "tower_ghost_icon.png" COMP;
    image: "overlay_0.png" COMP;
    image: "overlay_1.png" COMP;
    image: "overlay_2.png" COMP;
@@ -36,6 +32,14 @@ images {
    image: "icon_lives.png" COMP;
    image: "icon_bucks.png" COMP;
    image: "icon_score.png" COMP;
+
+   image: "tower_normal_base.png" COMP;
+   image: "tower_normal_cannon.png" COMP;
+   image: "tower_normal_icon.png" COMP;
+   
+   image: "tower_ghost_icon.png" COMP;
+   image: "tower_ghost_base.png" COMP;
+   image: "tower_ghost_cannon.png" COMP;
 
 }
 
@@ -976,7 +980,59 @@ collections {
          }
       }
    }
-
+/******************************************************************************/
+   group { name: "ede/tower/normal";
+      script {
+         public message(Msg_Type:type, id, ...)
+         {  // received message to rotate the tower (MSG_FLOAT arg2 = angle)
+            // rotate the tower cannon
+            custom_state(PART:"cannon", "default", 0.0);
+            set_state_val(PART:"cannon", STATE_MAP_ROT_Z, getfarg(2));
+            set_state(PART:"cannon", "custom", 0.0);
+         }
+      }
+      parts {
+         part { name: "base";
+            type: IMAGE;
+            description { state: "default" 0.0;
+               image.normal: "tower_normal_base.png";
+            }
+         }
+         part { name: "cannon";
+            type: IMAGE;
+            description { state: "default" 0.0;
+               image.normal: "tower_normal_cannon.png";
+               map.on: 1;
+            }
+         }
+      }
+   }
+   group { name: "ede/tower/ghost";
+      script {
+         public message(Msg_Type:type, id, ...)
+         {
+            custom_state(PART:"cannon", "default", 0.0);
+            set_state_val(PART:"cannon", STATE_MAP_ROT_Z, getfarg(2));
+            set_state(PART:"cannon", "custom", 0.0);
+         }
+      }
+      parts {
+         part { name: "base";
+            type: IMAGE;
+            description { state: "default" 0.0;
+               image.normal: "tower_ghost_base.png";
+            }
+         }
+         part { name: "cannon";
+            type: IMAGE;
+            description { state: "default" 0.0;
+               color: 200 0 0 200;
+               image.normal: "tower_ghost_cannon.png";
+               map.on: 1;
+            }
+         }
+      }
+   }
 /******************************************************************************/
    group { name: "ede/menu";
       parts {

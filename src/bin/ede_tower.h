@@ -55,8 +55,7 @@ typedef struct _Ede_Tower Ede_Tower;
 struct _Ede_Tower {
    Ede_Tower_Class *class;
 
-   Evas_Object *o_base;
-   Evas_Object *o_cannon;
+   Evas_Object *obj;          // edje group 'ede/tower/<class_id>'
 
    int row, col, rows, cols;  // position & size. In cells
    int center_x, center_y;    // center position. In pixel

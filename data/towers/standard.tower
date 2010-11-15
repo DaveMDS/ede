@@ -26,7 +26,7 @@ level 9: value=2000 bucks=800
 level 10: value=3000 bucks=1000
 
 PARAM=Reload(upgrade_reload_icon.png)
-level 1: value=60 bucks=0
+level 1: value=1 bucks=0
 level 2: value=50 bucks=101
 level 3: value=40 bucks=201
 level 4: value=30 bucks=301
@@ -38,7 +38,7 @@ level 9: value=2 bucks=801
 ultimate: value=1 bucks=1001
 
 PARAM=Range(upgrade_range_icon.png)
-level 1: value=50 bucks=0
+level 1: value=300 bucks=0
 level 2: value=75 bucks=102
 level 3: value=100 bucks=302
 level 4: value=200 bucks=502

@@ -88,7 +88,7 @@ _circle_recalc(Evas_Object *obj, int center_x, int center_y, int radius)
    }
    for (x = radius; x > -radius; x -= 2)
    {
-      y = (int) (sqrt(r2 - x*x) + 0.5);
+      y = (int)(sqrt(r2 - x*x) + 0.5);
       evas_object_polygon_point_add(obj, center_x + x, center_y - y);
    }
 }
