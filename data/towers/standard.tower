@@ -44,10 +44,4 @@ level 3: value=100 bucks=302
 level 4: value=200 bucks=502
 level 5: value=300 bucks=1002
 
-PARAM=Unused(upgrade_range_icon.png)
-level 1: value=50 bucks=0
-level 2: value=75 bucks=21
-level 3: value=100 bucks=99
-level 4: value=200 bucks=502
-level 5: value=300 bucks=1002
 

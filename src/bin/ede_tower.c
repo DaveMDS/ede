@@ -30,8 +30,8 @@
 
 
 /* Local subsystem vars */
-static Eina_List *tower_classes = NULL;
-static Eina_List *alive_towers = NULL; // TODO rename to alive_towers
+static Eina_List *tower_classes = NULL;  // Ede_Tower_Class* list
+static Eina_List *alive_towers = NULL;   // Ede_Tower* list
 static Ede_Tower *selected_tower = NULL;
 
 
@@ -40,7 +40,7 @@ static Ede_Tower *selected_tower = NULL;
 
 /* Local subsystem functions */
 
-Ede_Tower_Class_Param * // unused
+Ede_Tower_Class_Param *
 _tower_class_param_get(Ede_Tower_Class *tc, const char *param)
 {
    Ede_Tower_Class_Param *par;
@@ -49,9 +49,9 @@ _tower_class_param_get(Ede_Tower_Class *tc, const char *param)
       if (streql(par->name, param))
          return par;
    return NULL;
-}// unused
+}
 
-Ede_Tower_Class_Param_Upgrade *
+Ede_Tower_Class_Param_Upgrade * // unused
 _tower_class_param_upgrade_get(Ede_Tower_Class *tc,
                                const char *param, int up_level)
 {
@@ -61,6 +61,36 @@ _tower_class_param_upgrade_get(Ede_Tower_Class *tc,
       if (streql(par->name, param))
          return eina_list_nth(par->upgrades, up_level);
    return NULL;
+} // unused
+
+static void
+_tower_recalc_param_values(void)
+{
+   Ede_Tower *tower;
+   Ede_Tower_Class_Param *param;
+   Ede_Tower_Class_Param_Upgrade *up;
+   Eina_List *l;
+
+   D("RECALC TOWERS PARAMS");
+   EINA_LIST_FOREACH(alive_towers, l, tower)
+   {
+      // TODO here calc also stuff inerithed from neightbour towers
+
+      // calc damage
+      param = _tower_class_param_get(tower->class, "Damage");
+      up = eina_list_nth(param->upgrades, tower->up_levels[param->num]);
+      tower->damage = up->value;
+
+      // calc reload
+      param = _tower_class_param_get(tower->class, "Reload");
+      up = eina_list_nth(param->upgrades, tower->up_levels[param->num]);
+      tower->reload = up->value;
+
+      // calc range
+      param = _tower_class_param_get(tower->class, "Range");
+      up = eina_list_nth(param->upgrades, tower->up_levels[param->num]);
+      tower->range = up->value;
+   }
 }
 
 static void
@@ -113,6 +143,9 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 
    // add to the towers list
    alive_towers = eina_list_append(alive_towers, tower);
+
+   // recalc all tower params
+   _tower_recalc_param_values();
 }
 
 static void
@@ -500,6 +533,7 @@ ede_tower_upgrade(Ede_Tower_Class_Param *param)
    if (ede_game_bucks_pay(up->bucks))
    {
       tower->up_levels[param->num]++;
+      _tower_recalc_param_values();
       _tower_select(tower);
    }
    else
