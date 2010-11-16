@@ -7,7 +7,8 @@ scenarios = tutorial.scenario \
             easy.scenario
 
 levels = debug.level \
-         easy_01.level
+         easy_01.level \
+         easy_02.level
 
 files_DATA = $(scenarios) $(levels)
 

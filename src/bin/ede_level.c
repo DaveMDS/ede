@@ -204,8 +204,8 @@ _parse_scenario(const char *path)
       else if(sscanf(line, "Order=%d", &order) == 1) {}
       else if(sscanf(line, "Level=%[^\n]", str) == 1)
       {
-         level = _load_level_header(str);
-         levels = eina_list_append(levels, level);
+         if ((level = _load_level_header(str)))
+            levels = eina_list_append(levels, level);
       }
    }
    //close

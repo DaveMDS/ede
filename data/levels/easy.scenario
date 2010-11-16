@@ -7,4 +7,5 @@ Description=simple levels<br>for beginner users
 Order=0
 
 Level=easy_01.level
+Level=easy_02.level
 Level=debug.level

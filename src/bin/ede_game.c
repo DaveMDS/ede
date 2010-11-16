@@ -20,7 +20,8 @@
 #include "ede_tower.h"
 #include "ede_bullet.h"
 
-#define LOCAL_DEBUG 1
+// this debug will also enable the col/row numbers
+#define LOCAL_DEBUG 0
 #if LOCAL_DEBUG
 #define D DBG
 #else
@@ -249,7 +250,8 @@ ede_game_start(void)
    {
       for (col = 0; col < level->cols; col++)
       {
-         // DBG col/row numbers
+#if LOCAL_DEBUG
+         // DBG show col/row numbers
          if (row == 0)
          {
             ede_gui_cell_overlay_add(OVERLAY_BORDER_RED, row, col);
@@ -260,8 +262,7 @@ ede_game_start(void)
             ede_gui_cell_overlay_add(OVERLAY_BORDER_RED, row, col);
             ede_gui_cell_overlay_text_set(row, col, row, 2);
          }
-         // DBG
-
+#endif
          //~ printf("%d\n", level->cells[row][col]);
          switch (cells[row][col])
          {
