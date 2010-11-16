@@ -129,12 +129,7 @@ _menu_button_cb(void *data, Evas_Object *o, const char *emission, const char *so
 static void
 _upgrade_button_cb(void *data, Evas_Object *o, const char *emission, const char *source)
 {
-   int num;
-
-   D(" as");
-   num = atoi(source);
-   printf("ASD %s %d\n", source, num);
-   ede_tower_upgrade(num);
+   ede_tower_upgrade(data);
 }
 
 static void
@@ -329,8 +324,6 @@ ede_gui_init(void)
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "a button", _debug_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "send,next,wave", "", _next_wave_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "menu_button", _menu_button_cb, NULL);
-   edje_object_signal_callback_add(o_layout, "upgrade,pressed", "*", _upgrade_button_cb, NULL);
-   ede_gui_upgrade_box_hide_all();
 
    // create the checkboard object
    o_checkboard = edje_object_add(canvas);
@@ -532,55 +525,78 @@ ede_gui_tower_info_set(const char *name, const char *icon, const char *info)
 {
    Evas_Object *o_icon;
    
-   edje_object_part_text_set(o_layout, "tower.name",name);
-   edje_object_part_text_set(o_layout, "tower.info", info);
+   edje_object_part_text_set(o_layout, "tower.name", name ? name : "");
+   edje_object_part_text_set(o_layout, "tower.info", info ? info : "");
 
    o_icon = edje_object_part_swallow_get(o_layout, "tower.icon.swallow");
-   if (o_icon)
-      evas_object_del(o_icon);
+   EDE_OBJECT_DEL(o_icon);
 
-   o_icon = ede_gui_image_load(icon);
-   if (o_icon)
-      edje_object_part_swallow(o_layout, "tower.icon.swallow", o_icon);
+   if (icon)
+   {
+      o_icon = ede_gui_image_load(icon);
+      if (o_icon)
+         edje_object_part_swallow(o_layout, "tower.icon.swallow", o_icon);
+   }
 }
 
 EAPI void
-ede_gui_upgrade_box_set(int pos, const char *name, const char *desc,
-                                 const char *icon, int bucks)
+ede_gui_upgrade_box_append(Ede_Tower_Class_Param *param, Ede_Tower_Class_Param_Upgrade *up)
 {
-   Evas_Object *o_icon;
-   char buf[32], buf2[32];
+   Evas_Object *obj, *o_icon;
+   Evas_Coord w, h;
+   Eina_List *l;
+   char buf[32];
    D(" ");
+
+   // create a new button object
+   obj = edje_object_add(canvas);
+   edje_object_file_set(obj, theme_file, "ede/upgrade_button");
+   edje_object_size_min_get(obj, &w, &h);
+   evas_object_size_hint_min_set(obj, w, h);
+   edje_object_signal_callback_add(obj, "mouse,down,1", "base",
+                                        _upgrade_button_cb, param);
+   evas_object_show(obj);
+
+   // append the button to the edje box
+   edje_object_part_box_append(o_layout, "upgrades.box", obj);
+
+   // keep a list of childrens (to clear them later)
+   l = evas_object_data_get(o_layout, "ups_list");
+   l = eina_list_append(l, obj);
+   evas_object_data_set(o_layout, "ups_list", l);
 
    // set name & desc
-   snprintf(buf, sizeof(buf), "upgrade.%d.name", pos);
-   edje_object_part_text_set(o_layout, buf, name);
-   snprintf(buf, sizeof(buf), "upgrade.%d.desc", pos);
-   edje_object_part_text_set(o_layout, buf, desc);
+   edje_object_part_text_set(obj, "name", param->name);
+   edje_object_part_text_set(obj, "desc", up->name);
 
    // set icon
-   snprintf(buf, sizeof(buf), "upgrade.%d.icon", pos);
-   o_icon = edje_object_part_swallow_get(o_layout, buf);
+   o_icon = edje_object_part_swallow_get(obj, "icon");
    if (o_icon) evas_object_del(o_icon);
-   o_icon = ede_gui_image_load(icon);
-   edje_object_part_swallow(o_layout, buf, o_icon);
+   o_icon = ede_gui_image_load(param->icon);
+   edje_object_part_swallow(obj, "icon", o_icon);
 
    // set cost
-   snprintf(buf, sizeof(buf), "upgrade.%d.cost", pos);
-   snprintf(buf2, sizeof(buf2), "%d", bucks);
-   edje_object_part_text_set(o_layout, buf, buf2);
-   
-   // emit show signal
-   snprintf(buf, sizeof(buf), "%d", pos);
-   edje_object_signal_emit(o_layout, "upgrade,show", buf);
+   snprintf(buf, sizeof(buf), "%d", up->bucks);
+   edje_object_part_text_set(obj, "cost", buf);
 }
 
 EAPI void
-ede_gui_upgrade_box_hide_all(void)
+ede_gui_upgrade_box_clear(void)
 {
+   Evas_Object *obj, *icon;
+   Eina_List *l;
    D(" ");
 
-   edje_object_signal_emit(o_layout, "upgrade,hide,all", "");
+   l = evas_object_data_get(o_layout, "ups_list");
+   EINA_LIST_FREE(l, obj)
+   {
+      edje_object_part_box_remove(o_layout, "upgrades.box", obj);
+      icon = edje_object_part_swallow_get(obj, "icon");
+      EDE_OBJECT_DEL(icon);
+      EDE_OBJECT_DEL(obj);
+   }
+   evas_object_data_set(o_layout, "ups_list", NULL);
+   
 }
 
 EAPI void

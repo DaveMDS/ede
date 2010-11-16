@@ -83,8 +83,8 @@ EAPI void        ede_gui_tower_info_set(const char *name, const char *icon, cons
 EAPI void        ede_gui_wave_info_set(int tot, int cur, int num, const char *type);
 EAPI void        ede_gui_wave_timer_update(int secs);
 
-EAPI void        ede_gui_upgrade_box_hide_all(void);
-EAPI void        ede_gui_upgrade_box_set(int pos, const char *name, const char *desc, const char *icon, int bucks);
+EAPI void        ede_gui_upgrade_box_append(Ede_Tower_Class_Param *param, Ede_Tower_Class_Param_Upgrade *up);
+EAPI void        ede_gui_upgrade_box_clear(void);
 
 
 EAPI void      ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col);

@@ -76,7 +76,7 @@ EAPI Ede_Tower *ede_tower_selected_get(void);
 EAPI void ede_tower_add(Ede_Tower_Class *tc);
 EAPI void ede_tower_info_update(Ede_Tower *tower);
 EAPI void ede_tower_reset(void);
-EAPI void ede_tower_upgrade(int button_num);
+EAPI void ede_tower_upgrade(Ede_Tower_Class_Param *param);
 EAPI void ede_tower_destroy_selected(void);
 EAPI void ede_tower_select_at(int row, int col);
 EAPI void ede_tower_deselect(void);

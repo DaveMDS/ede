@@ -422,7 +422,7 @@ ede_tower_info_update(Ede_Tower *tower)
       ede_gui_tower_info_set(tower->class->name, tower->class->icon, buf);
       
       // fill ugrades box
-      ede_gui_upgrade_box_hide_all();
+      ede_gui_upgrade_box_clear();
      
       int i = 0;
       EINA_LIST_FOREACH(tower->class->params, l, par)
@@ -440,15 +440,15 @@ ede_tower_info_update(Ede_Tower *tower)
                                           "Range", tower->range_uplvl + 1);
 
          if (up)
-            ede_gui_upgrade_box_set(i, par->name, up->name, par->icon, up->bucks);
+            ede_gui_upgrade_box_append(par, up);
          i++;
       }
    }
    else
    {
       // hide all
-      ede_gui_tower_info_set("", "", "");
-      ede_gui_upgrade_box_hide_all();
+      ede_gui_tower_info_set(NULL, NULL, NULL);
+      ede_gui_upgrade_box_clear();
    }
 }
 
@@ -505,16 +505,13 @@ ede_tower_reset(void)
 }
 
 EAPI void
-ede_tower_upgrade(int button_num)
+ede_tower_upgrade(Ede_Tower_Class_Param *param)
 {
-   Ede_Tower_Class_Param *param;
    Ede_Tower_Class_Param_Upgrade *up;
    
    if (!selected_tower) return;
-   D("UPGRADE %d\n", button_num);
+   D("UPGRADE %s\n", param->name);
 
-   param = eina_list_nth(selected_tower->class->params, button_num);
-   D("%s", param->name);
    if (streql(param->name, "Damage"))
    {
       up = _tower_class_param_upgrade_get(selected_tower->class,
