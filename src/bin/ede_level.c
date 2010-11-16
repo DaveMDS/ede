@@ -237,22 +237,18 @@ error:
 EAPI Eina_Bool
 ede_level_init(void)
 {
-   Eina_List *files;
-   char buf[PATH_MAX];
+   Eina_Iterator *files;
+   //~ char buf[PATH_MAX];
    char *f;
    D(" ");
 
    // TODO CHECK ALSO IN USER DIR
-   files = ecore_file_ls(PACKAGE_DATA_DIR"/levels/");
-   EINA_LIST_FREE(files, f)
-   {
+   files = eina_file_ls(PACKAGE_DATA_DIR"/levels/");
+   EINA_ITERATOR_FOREACH(files, f)
       if (eina_str_has_suffix(f, ".scenario"))
-      {
-         snprintf(buf, sizeof(buf),  PACKAGE_DATA_DIR"/levels/%s", f);
-         _parse_scenario(buf);
-      }
-      EDE_FREE(f);
-   }
+         _parse_scenario(f);
+   eina_iterator_free(files);
+
    return EINA_TRUE;
 }
 

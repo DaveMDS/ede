@@ -15,7 +15,3 @@ New stuff
  * global upgrade? (like mini Tower Defence)
  * bomb?  (like mini Tower Defence)
 
-Other
-
- * use eina_file_ls instead of ecore_file_ls
-
