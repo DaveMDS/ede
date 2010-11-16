@@ -287,7 +287,7 @@ ede_game_start(void)
    _play_time = 0.0;
 
    ede_gui_lives_set(_player_lives);
-   ede_gui_bucks_set(_player_lives);
+   ede_gui_bucks_set(_player_bucks);
    ede_gui_score_set(_player_score);
    ede_game_state_set(GAME_STATE_PLAYING);
 
@@ -435,5 +435,17 @@ ede_game_bucks_gain(int bucks)
 {
    _player_bucks += bucks;
    ede_gui_bucks_set(_player_bucks);
+}
+
+EAPI Eina_Bool
+ede_game_bucks_pay(int bucks)
+{
+   if (_player_bucks >= bucks)
+   {
+      _player_bucks -= bucks;
+      ede_gui_bucks_set(_player_bucks);
+      return EINA_TRUE;
+   }
+   return EINA_FALSE;
 }
 

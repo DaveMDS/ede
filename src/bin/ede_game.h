@@ -42,5 +42,6 @@ EAPI Ede_Game_State  ede_game_state_get(void);
 EAPI void            ede_game_home_violated(void);
 EAPI int             ede_game_bucks_get(void);
 EAPI void            ede_game_bucks_gain(int bucks);
+EAPI Eina_Bool       ede_game_bucks_pay(int bucks);
 
 #endif /* EDE_GAME_H */

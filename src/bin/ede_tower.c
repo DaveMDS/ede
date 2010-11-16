@@ -18,6 +18,7 @@
 #include "ede_level.h"
 #include "ede_bullet.h"
 #include "ede_utils.h"
+#include "ede_game.h"
 
 
 #define LOCAL_DEBUG 1
@@ -66,7 +67,6 @@ static void
 _tower_add_real(int row, int col, int rows, int cols, void *data)
 {
    Ede_Tower_Class *tc = data;
-   Ede_Tower_Class_Param_Upgrade *up;
    Ede_Tower *tower;
    char buf[64];
    int x, y, i, j;
@@ -86,17 +86,8 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->rows = rows;
 
    // set params upgrade to level 0
-   tower->damage_uplvl = 0;
-   up = _tower_class_param_upgrade_get(tc, "Damage", 0);
-   tower->damage = up->value;
-
-   tower->reload_uplvl = 0;
-   up = _tower_class_param_upgrade_get(tc, "Reload", 0);
-   tower->reload = up->value;
-
-   tower->range_uplvl = 0;
-   up = _tower_class_param_upgrade_get(tc, "Range", 0);
-   tower->range = up->value;
+   for (i = 0; i < MAX_PARAMS; i++)
+      tower->up_levels[i] = 0;
 
    // calc center
    ede_gui_cell_coords_get(row, col, &x, &y, EINA_FALSE);
@@ -107,7 +98,6 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
    tower->obj = edje_object_add(ede_gui_canvas_get());
    snprintf(buf, sizeof(buf), "ede/tower/%s", tc->id);;
    edje_object_file_set(tower->obj, ede_gui_theme_get(), buf);
-   //~ evas_object_pass_events_set(tower->obj, EINA_TRUE);
    evas_object_layer_set(tower->obj, LAYER_TOWER);
    evas_object_resize(tower->obj, CELL_W * cols, CELL_H * rows);
    evas_object_move(tower->obj, x, y);
@@ -221,12 +211,13 @@ _tower_class_del(Ede_Tower_Class *tc)
 }
 
 static void
-_parse_tower_class_file(const char *path)
+_tower_parse_class_file(const char *path)
 {
    Eina_List *params = NULL;
    char line[PATH_MAX], id[64], name[64], eng[64], desc[256];
    char icon[64], icon2[64], im1[64], im2[64], im3[64], param[256];
    int cost = -1;
+   int param_count = 0;
    double sell_factor = -1.0;
    FILE *fp;
 
@@ -265,7 +256,9 @@ _parse_tower_class_file(const char *path)
          par->name = eina_stringshare_add(param);
          par->icon = eina_stringshare_add(icon2);
          par->upgrades = NULL;
+         par->num = param_count;
          params = eina_list_append(params, par);
+         param_count++;
 
          // parse upgrades info until empty line
          while (fgets(line, sizeof(line), fp) != NULL)
@@ -329,7 +322,7 @@ ede_tower_init(void)
    files = eina_file_ls(PACKAGE_DATA_DIR"/towers/");
    EINA_ITERATOR_FOREACH(files, f)
       if (eina_str_has_suffix(f, ".tower"))
-         _parse_tower_class_file(f);
+         _tower_parse_class_file(f);
    eina_iterator_free(files);
    // TODO CHECK ALSO IN USER DIR
 
@@ -408,10 +401,11 @@ ede_tower_add(Ede_Tower_Class *tc)
 EAPI void
 ede_tower_info_update(Ede_Tower *tower)
 {
+   Ede_Tower_Class_Param *param;
+   Ede_Tower_Class_Param_Upgrade *up;
    Eina_List *l;
-   Ede_Tower_Class_Param *par;
    char buf[256];
-
+   int param_count;
    D(" ");
 
    if (tower)
@@ -423,25 +417,13 @@ ede_tower_info_update(Ede_Tower *tower)
       
       // fill ugrades box
       ede_gui_upgrade_box_clear();
-     
-      int i = 0;
-      EINA_LIST_FOREACH(tower->class->params, l, par)
+      param_count = 0;
+      EINA_LIST_FOREACH(tower->class->params, l, param)
       {
-         Ede_Tower_Class_Param_Upgrade *up = NULL;
-
-         if (streql(par->name, "Damage"))
-            up = _tower_class_param_upgrade_get(tower->class,
-                                          "Damage", tower->damage_uplvl + 1);
-         else if (streql(par->name, "Reload"))
-            up = _tower_class_param_upgrade_get(tower->class,
-                                          "Reload", tower->reload_uplvl + 1);
-         else if (streql(par->name, "Range"))
-            up = _tower_class_param_upgrade_get(tower->class,
-                                          "Range", tower->range_uplvl + 1);
-
-         if (up)
-            ede_gui_upgrade_box_append(par, up);
-         i++;
+         // get the next available upgrade for this param
+         up = eina_list_nth(param->upgrades, tower->up_levels[param_count] + 1);
+         if (up) ede_gui_upgrade_box_append(param, up);
+         param_count++;
       }
    }
    else
@@ -507,36 +489,23 @@ ede_tower_reset(void)
 EAPI void
 ede_tower_upgrade(Ede_Tower_Class_Param *param)
 {
+   Ede_Tower *tower = selected_tower;
    Ede_Tower_Class_Param_Upgrade *up;
-   
-   if (!selected_tower) return;
-   D("UPGRADE %s\n", param->name);
 
-   if (streql(param->name, "Damage"))
+   if (!tower || !param) return;
+   up = eina_list_nth(param->upgrades, tower->up_levels[param->num] + 1);
+   if (!up) return;
+
+   D("UPGRADE %s\n", param->name);
+   if (ede_game_bucks_pay(up->bucks))
    {
-      up = _tower_class_param_upgrade_get(selected_tower->class,
-                                       "Damage", selected_tower->damage_uplvl);
-      selected_tower->damage = up->value;
-      selected_tower->damage_uplvl ++;
-      edje_object_message_send(selected_tower->obj, EDJE_MESSAGE_INT,
-                               125, &selected_tower->damage_uplvl);
+      tower->up_levels[param->num]++;
+      _tower_select(tower);
    }
-   else if (streql(param->name, "Reload"))
+   else
    {
-      up = _tower_class_param_upgrade_get(selected_tower->class,
-                                       "Reload", selected_tower->reload_uplvl);
-      selected_tower->reload = up->value;
-      selected_tower->reload_uplvl ++;
+      D("NO MORE MONEY !!\n");
    }
-   else if (streql(param->name, "Range"))
-   {
-      up = _tower_class_param_upgrade_get(selected_tower->class,
-                                       "Range", selected_tower->range_uplvl);
-      selected_tower->range = up->value;
-      selected_tower->range_uplvl ++;
-   }
-   // Update selection
-   _tower_select(selected_tower);
 }
 
 EAPI void

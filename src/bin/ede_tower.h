@@ -10,15 +10,9 @@
 #ifndef EDE_TOWER_H
 #define EDE_TOWER_H
 
+/* maximum number of params a Tower_Class can hold*/
+#define MAX_PARAMS 10
 
-//~ typedef enum {
-   //~ TOWER_UNKNOW,
-   //~ TOWER_NORMAL,
-   //~ TOWER_GHOST,
-   //~ TOWER_POWERUP,
-   //~ TOWER_SLOWDOWN,
-   //~ TOWER_TYPE_NUM
-//~ }Ede_Tower_Engine;
 
 /* structure to define a class of towers */
 typedef struct _Ede_Tower_Class Ede_Tower_Class;
@@ -41,6 +35,7 @@ struct _Ede_Tower_Class_Param {
    const char *name;     // param name.  ex: Damage
    const char *icon;     // param icon.  ex: upgrade_damage_icon.png
    Eina_List *upgrades;  // list of Ede_Tower_Class_Param_Upgrade*
+   int num;              // number of the upgrade
  };
 
 typedef struct _Ede_Tower_Class_Param_Upgrade Ede_Tower_Class_Param_Upgrade;
@@ -60,9 +55,7 @@ struct _Ede_Tower {
    int row, col, rows, cols;  // position & size. In cells
    int center_x, center_y;    // center position. In pixel
    int damage, reload, range; // current values
-   int damage_uplvl;          // damage current upgrade level
-   int reload_uplvl;          // reload current upgrade level
-   int range_uplvl;           // range current upgrade level
+   int up_levels[MAX_PARAMS]; // contain the current upgrade level for each param
    
    double reload_counter; // accumulator for reloading
 };

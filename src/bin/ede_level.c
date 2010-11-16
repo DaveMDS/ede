@@ -238,7 +238,6 @@ EAPI Eina_Bool
 ede_level_init(void)
 {
    Eina_Iterator *files;
-   //~ char buf[PATH_MAX];
    char *f;
    D(" ");
 
