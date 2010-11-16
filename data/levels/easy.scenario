@@ -6,4 +6,5 @@ Name=Easy Levels
 Description=simple levels<br>for beginner users
 Order=0
 
-Level=asd2.txt
+Level=easy_01.level
+Level=debug.level

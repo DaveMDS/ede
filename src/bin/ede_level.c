@@ -557,11 +557,14 @@ ede_wave_send(void)
 }
 
 /**
- * @return number of remaining waves
+ * @return Number of remaining waves (or remaining enemies to spawn if the
+ *         last wave is sent
  */
 EAPI int
 ede_wave_step(double time)
 {
+   int ret;
+
    if (!_current_wave) return _total_waves; // user has not yet sended the first wave
 
    // Enemy to spawn in the current wave
@@ -585,7 +588,8 @@ ede_wave_step(double time)
          _send_wave();
    }
 
-   return _total_waves - _current_wave_num;
+   ret = _total_waves - _current_wave_num;
+   return ret ? ret : _current_wave->count;
 }
 
 /********   DEBUG INFO   *******************************************/
