@@ -31,7 +31,7 @@
 
 
 /* Local subsystem vars */
-static Eina_List *scenarios = NULL;
+static Eina_List *scenarios = NULL;       // Ede_Scenario*
 static Ede_Level *current_level = NULL;
 Ede_Level_Cell **cells = NULL;
 Eina_List *waves = NULL;
@@ -185,7 +185,7 @@ _parse_scenario(const char *path)
 {
    Ede_Scenario *sce;
    Ede_Level *level;
-   Eina_List *levels = NULL;
+   Eina_List *levels = NULL, *l;
    char line[PATH_MAX], name[64], desc[256], str[256];
    int order = 10;
    FILE *fp;
@@ -221,6 +221,8 @@ _parse_scenario(const char *path)
       sce->order = order;
       sce->levels = levels;
       scenarios = eina_list_append(scenarios, sce);
+      EINA_LIST_FOREACH(sce->levels, l, level)
+         level->scenario = sce;
       return;
    }
 
@@ -382,6 +384,15 @@ EAPI Ede_Level *
 ede_level_current_get(void)
 {
    return current_level;
+}
+
+EAPI Ede_Level *
+ede_level_next_get(void)
+{
+   Eina_List *l;
+   l = eina_list_data_find_list(current_level->scenario->levels, current_level);
+   l = eina_list_next(l);
+   return l ? eina_list_data_get(l) : NULL;
 }
 
 /**

@@ -29,21 +29,30 @@ typedef enum {
    CELL_HOME
 }Ede_Level_Cell;
 
+typedef struct _Ede_Scenario Ede_Scenario;
+struct _Ede_Scenario {
+   const char *name;
+   const char *desc;
+   int order;
+   Eina_List *levels;
+   Eina_List *levels2;
+};
 
 typedef struct _Ede_Level Ede_Level;
 struct _Ede_Level
 {
+   Ede_Scenario *scenario;
    const char *file;
    const char *name;
    const char *description;
    const char *author;
    const char *towers;
-   int         version;
-   int         cols, rows;
-   int         lives;
-   int         bucks;
-   int         data_start_at_line;
-   int         home_row, home_col;
+   int version;
+   int cols, rows;
+   int lives;
+   int bucks;
+   int data_start_at_line;
+   int home_row, home_col;
 
    Eina_List *starts[10]; // 10 lists of enemy starting points (row, col, row, col, etc..)
 };
@@ -62,15 +71,6 @@ struct _Ede_Wave{
 };
 
 
-typedef struct _Ede_Scenario Ede_Scenario;
-struct _Ede_Scenario {
-   const char *name;
-   const char *desc;
-   int order;
-   Eina_List *levels;
-   Eina_List *levels2;
-};
-
 extern Ede_Level_Cell **cells;
 extern Eina_List *waves; // TODO remove this export
 
@@ -80,6 +80,7 @@ EAPI Eina_Bool ede_level_shutdown(void);
 
 EAPI Eina_Bool  ede_level_load_data(Ede_Level *level);
 EAPI Ede_Level *ede_level_current_get(void);
+EAPI Ede_Level *ede_level_next_get(void);
 EAPI Eina_Bool  ede_level_walkable_get(int row, int col);
 EAPI void       ede_level_free(Ede_Level *level);
 EAPI void       ede_level_dump(Ede_Level *level);

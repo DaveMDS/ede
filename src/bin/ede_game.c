@@ -46,6 +46,7 @@ _level_selected_cb(void *data)
 {
    Ede_Level *level = data;
    D("PLAY LEVEL %s", level->name);
+   ede_game_reset();
    ede_level_load_data(level);
    ede_game_start();
 }
@@ -176,19 +177,18 @@ _game_loop(void *data)
          ede_gui_menu_item_add("Retry Level", "", _restart_level_cb, NULL);
          ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
          ede_gui_menu_item_add("Level Selector", "", _scenario_selected_cb, _current_scenario);
-
          _game_state = GAME_STATE_PAUSE;
       }
 
       // no more enemies ? WINNER !!
       if (remaining_waves < 1 && num_enemies < 1)
       {
+         Ede_Level *next = ede_level_next_get();
          ede_gui_menu_show("Victory !!");
-         ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
-         ede_gui_menu_item_add("Level selector", "", _scenario_selected_cb,
-                                                     _current_scenario);
+         if (next)
+            ede_gui_menu_item_add("Next level", "", _level_selected_cb, next);
          ede_gui_menu_item_add("Retry Level", "", _restart_level_cb, NULL);
-
+         ede_gui_menu_item_add("Main Menu", "", _mainmenu_cb, NULL);
          _game_state = GAME_STATE_PAUSE;
       }
    }
