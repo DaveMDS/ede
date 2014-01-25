@@ -41,12 +41,13 @@ AM_GNU_GETTEXT([external])
 # Mandatory Libs #
 ##################
 PKG_CHECK_MODULES( [EDE],
-   [eina >= 1.0]
-   [evas >= 1.0]
-   [ecore >= 1.0]
-   [ecore-evas >= 1.0]
-   [ecore-file >= 1.0]
-   [edje >= 1.0]
+   [eina >= 1.7]
+   [evas >= 1.7]
+   [ecore >= 1.7]
+   [ecore-evas >= 1.7]
+   [ecore-file >= 1.7]
+   [ecore-input >= 1.7]
+   [edje >= 1.7]
 )
 
 
@@ -106,7 +107,7 @@ Installation Path:.......: $prefix
    Levels................: $prefix/share/ede/levels
    Towers................: $prefix/share/ede/towers
 
-Now type 'make' ('gmake' on some systems) to compile emc, if it
+Now type 'make' ('gmake' on some systems) to compile ede, if it
 builds successfully then you can 'make install', acquiring required
 permissions with 'su' or 'sudo'.
 

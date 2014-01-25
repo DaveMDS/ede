@@ -9,6 +9,7 @@
 
 #include <Evas.h>
 #include <Ecore.h>
+#include <Ecore_Input.h>
 #include <Ecore_Evas.h>
 #include <Ecore_File.h>
 #include <Edje.h>
