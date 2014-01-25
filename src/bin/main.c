@@ -1,10 +1,21 @@
 /*
  *  Ede - EFL Defender Environment
+ *  Copyright (C) 2010-2014 Davide Andreoli <dave@gurumeditation.it>
  *
- *  Copyright (C) 2010 Davide Andreoli <dave@gurumeditation.it>
+ *  This file is part of Ede.
  *
- *  License LGPL-2.1, see COPYING file at project folder.
+ *  Ede is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
+ *  Ede is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Ede.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -45,13 +56,14 @@ main(int argc, char **argv)
    ecore_init();
 
    // init log domain
-   eina_log_level_set(EINA_LOG_LEVEL_DBG);
+   // eina_log_level_set(EINA_LOG_LEVEL_DBG);
    ede_log_domain = eina_log_domain_register("ede", EINA_COLOR_GREEN);
    if (ede_log_domain < 0)
    {
       EINA_LOG_CRIT("could not create log domain 'ede'.");
       exit(1);
    }
+   eina_log_domain_level_set("ede", EINA_LOG_LEVEL_DBG);
    INF("Welcome to EDE :)");
    INF("Eina host a population of %d hamsters.", eina_hamster_count());
 

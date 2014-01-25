@@ -1,3 +1,6 @@
+##################
+# EDE            #
+##################
 AC_INIT(ede, 0.5, dave@gurumeditation.it)
 AC_PREREQ([2.60])
 AC_CONFIG_SRCDIR([configure.ac])

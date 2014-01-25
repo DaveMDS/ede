@@ -60,4 +60,7 @@ DATA
 
 WAVES
 5 standard in 20s from base 1 [speed:20 energy:10 bucks:15], wait 0s
+10 standard in 20s from base 1 [speed:20 energy:10 bucks:15], wait 0s
+20 standard in 20s from base 1 [speed:20 energy:10 bucks:15], wait 0s
+30 standard in 20s from base 1 [speed:20 energy:10 bucks:15], wait 0s
 
