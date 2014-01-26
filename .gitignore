@@ -1,3 +1,6 @@
+data/themes/*/*.edj
+src/bin/ede
+src/bin/*.o
 ABOUT-NLS
 INSTALL
 Makefile
@@ -58,6 +61,8 @@ mkinstalldirs
 po/Makefile
 po/Makefile.in
 po/POTFILES
+po/remove-potcdate.sed
+po/stamp-po
 src/Makefile
 src/Makefile.in
 src/bin/.deps/
