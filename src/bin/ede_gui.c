@@ -45,7 +45,7 @@
 #define STAGE_OFFSET_Y 60
 
 /* Local subsystem vars */
-static Evas_Object ***overlays = NULL; /** 2D dynamic array of Evas_Object pointers.
+static Evas_Object* **overlays = NULL; /** 2D dynamic array of Evas_Object pointers.
                                            One for each cell of the grid */
 
 static const char *theme_file; /** full path to the theme file */
@@ -450,8 +450,8 @@ ede_gui_level_init(int rows, int cols, const char *towers)
    evas_object_resize(o_checkboard, cols * CELL_W, rows * CELL_H);
 
    // resize the overlays array
-   ede_array_free((int **)overlays);
-   overlays = (Evas_Object ***)ede_array_new(rows, cols);
+   ede_parray_free((void***)overlays);
+   overlays = (Evas_Object* **)ede_parray_new(rows, cols);
    if (!overlays) return EINA_FALSE;
    checkboard_rows = rows;
    checkboard_cols = cols;
@@ -482,7 +482,7 @@ ede_gui_level_clear(void)
          EDE_OBJECT_DEL(overlays[row][col]);
 
    // free the overlays array
-   ede_array_free((int **)overlays);
+   ede_parray_free((void* **)overlays);
    overlays = NULL;
 
    // hide the checkboard
@@ -804,7 +804,7 @@ ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col)
 {
    Evas_Object *obj;
 
-   //~ D("%d %d [%p]", col, row, overlays[row][col]);
+   // D("%d %d [%p]", row, col, overlays[row][col]);
 
    // if the object is not yet in the array create it
    if (!overlays[row][col])

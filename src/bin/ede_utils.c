@@ -110,6 +110,41 @@ ede_array_free(int **array)
    EDE_FREE(array);
 }
 
+EAPI void* **
+ede_parray_new(int rows, int cols)
+{
+   int row;
+   void* *aptr;
+   void* **rptr;
+
+   // alloc mem for the cells and the rows pointers
+   aptr = calloc(cols * rows, sizeof(void*));
+   rptr = malloc(rows * sizeof(void* *));
+   if (!aptr || !rptr)
+   {
+      CRITICAL("Failure to allocate mem for the array");
+      EDE_FREE(aptr);
+      EDE_FREE(rptr);
+      return NULL;
+   }
+   // 'point' the rows pointers
+   for (row = 0; row < rows; row++)
+      rptr[row] = aptr + (row * cols);
+
+   return rptr;
+}
+
+EAPI void
+ede_parray_free(void* **array)
+{
+   D(" ");
+   if (!array || !*array)
+      return;
+
+   EDE_FREE(*array);
+   EDE_FREE(array);
+}
+
 
 /**************   VECTOR STUFF   **********************************************/
 EAPI Vector

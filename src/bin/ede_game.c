@@ -32,7 +32,7 @@
 #include "ede_bullet.h"
 
 // this debug will also enable the col/row numbers
-#define LOCAL_DEBUG 0
+#define LOCAL_DEBUG 1
 #if LOCAL_DEBUG
 #define D DBG
 #else

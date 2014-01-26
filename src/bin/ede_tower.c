@@ -32,7 +32,7 @@
 #include "ede_game.h"
 
 
-#define LOCAL_DEBUG 1
+#define LOCAL_DEBUG 0
 #if LOCAL_DEBUG
 #define D DBG
 #else

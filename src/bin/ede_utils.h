@@ -47,5 +47,8 @@ EAPI int ede_util_distance_calc(int x1, int y1, int x2, int y2);
 EAPI int **ede_array_new(int rows, int cols);
 EAPI void  ede_array_free(int **array);
 
+EAPI void* **ede_parray_new(int rows, int cols);
+EAPI void    ede_parray_free(void* **array);
+
 
 #endif /* EDE_UTILS_H */
