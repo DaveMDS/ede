@@ -21,8 +21,6 @@
 #ifndef EDE_ASTAR_H
 #define EDE_ASTAR_H
 
-//~ #include "ede.h"
-
 
 EAPI Eina_Bool ede_pathfinder_init(void);
 EAPI Eina_Bool ede_pathfinder_shutdown(void);

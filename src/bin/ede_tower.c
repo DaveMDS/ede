@@ -25,6 +25,7 @@
 
 #include "ede.h"
 #include "ede_tower.h"
+#include "ede_enemy.h"
 #include "ede_gui.h"
 #include "ede_level.h"
 #include "ede_bullet.h"
@@ -162,11 +163,9 @@ _tower_add_real(int row, int col, int rows, int cols, void *data)
 static void
 _tower_del(Ede_Tower *tower)
 {
-   Ede_Level *level;
    int i, j;
 
    // mark all the tower cells as empty
-   level = ede_level_current_get();
    for (i = tower->col; i < tower->col + tower->cols; i++)
       for (j = tower->row; j < tower->row + tower->rows; j++)
          cells[j][i] = CELL_EMPTY;
@@ -370,7 +369,7 @@ ede_tower_init(void)
    eina_iterator_free(files);
    // TODO CHECK ALSO IN USER DIR
 
-   // DEBUG  dump classes
+#if LOCAL_DEBUG // DEBUG  dump classes
    Eina_List *l1, *l2, *l3;
    Ede_Tower_Class *tc;
    Ede_Tower_Class_Param *par;
@@ -396,7 +395,7 @@ ede_tower_init(void)
       }
       D("********************");
    }
-   // END DEBUG
+#endif
 
    return EINA_TRUE;
 }

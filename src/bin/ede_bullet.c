@@ -25,6 +25,7 @@
 
 #include "ede.h"
 #include "ede_tower.h"
+#include "ede_enemy.h"
 #include "ede_gui.h"
 #include "ede_level.h"
 #include "ede_utils.h"

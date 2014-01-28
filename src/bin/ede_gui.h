@@ -22,8 +22,7 @@
 #define EDE_GUI_H
 
 #include <Evas.h>
-#include "ede_enemy.h"
-#include "ede_tower.h"
+#include "ede_tower.h" // TODO remove me
 
 
 #define EDE_THEME_GENERATION "2"

@@ -28,6 +28,7 @@
 #include "ede_level.h"
 #include "ede_utils.h"
 #include "ede_gui.h"
+#include "ede_enemy.h"
 
 #define LOCAL_DEBUG 0
 #if LOCAL_DEBUG
