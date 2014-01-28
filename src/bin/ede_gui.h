@@ -26,11 +26,10 @@
 #include "ede_tower.h"
 
 
+#define EDE_THEME_GENERATION "2"
+
 #define CELL_W 25
 #define CELL_H 25
-
-#define WIN_W 800
-#define WIN_H 600
 
 #define LAYER_TOWER 1
 #define LAYER_WALKER 2

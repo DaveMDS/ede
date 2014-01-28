@@ -41,14 +41,25 @@
 #endif
 
 
-#define STAGE_OFFSET_X 180
-#define STAGE_OFFSET_Y 60
+
+typedef struct Ede_Theme {
+   char *full_path;
+   char *name, *desc, *auth;
+   struct {
+      int t, r, b, l;
+   } stage_margin;
+   struct {
+      int w, h;
+   } min;
+} Ede_Theme;
+
 
 /* Local subsystem vars */
+static Ede_Theme theme;
 static Evas_Object* **overlays = NULL; /** 2D dynamic array of Evas_Object pointers.
                                            One for each cell of the grid */
 
-static const char *theme_file; /** full path to the theme file */
+
 static Ecore_Evas *window;     /** window handle */
 static Evas *canvas;           /** evas canvas */
 static Evas_Object *o_layout;  /** main edje object containing the interface */
@@ -110,10 +121,10 @@ _point_inside_checkboard(int x, int y)
 {
    Ede_Level *level = ede_level_current_get();
 
-   return (x > STAGE_OFFSET_X &&
-           x < STAGE_OFFSET_X + level->cols * CELL_W &&
-           y > STAGE_OFFSET_Y &&
-           y < STAGE_OFFSET_Y + level->rows * CELL_H);
+   return (x > theme.stage_margin.l &&
+           x < theme.stage_margin.l + level->cols * CELL_W &&
+           y > theme.stage_margin.t &&
+           y < theme.stage_margin.t + level->rows * CELL_H);
 }
 
 /* Local subsystem callbacks */
@@ -279,6 +290,7 @@ ede_gui_init(void)
    char buf[PATH_MAX];
    Eina_List *engines, *l;
    const char *e;
+   char* str;
 
    D(" ");
    evas_init();
@@ -296,21 +308,6 @@ ede_gui_init(void)
    INF("Available evas engine: %s", buf);
    ecore_evas_engines_free(engines);
 
-   // create window
-   window = ecore_evas_new(NULL, 0, 0, WIN_W, WIN_H, NULL);
-   if (!window)
-   {
-      CRITICAL("could not create window.");
-      return EINA_FALSE;
-   }
-   ecore_evas_size_min_set(window, WIN_W, WIN_H);
-   ecore_evas_size_step_set(window, 50, 50);
-   ecore_evas_title_set(window, "EFL Defender Game");
-   ecore_evas_callback_delete_request_set(window, _window_delete_req_cb);
-   INF("Using evas engine: %s", ecore_evas_engine_name_get(window));
-   ecore_evas_show(window);
-   canvas = ecore_evas_get(window);
-
 
    // find the theme to use
    snprintf(buf, sizeof(buf), PACKAGE_DATA_DIR"/themes/default.edj");
@@ -319,19 +316,63 @@ ede_gui_init(void)
       CRITICAL("can not find default theme. Aborting...");
       return EINA_FALSE;
    }
-   theme_file = eina_stringshare_add(buf);
-   INF("Theme: '%s'", theme_file);
+   theme.full_path = strdup(buf);
+   INF("Loading theme: '%s'", theme.full_path);
 
+   // check theme generation
+   str = edje_file_data_get(theme.full_path, "ede/theme/gene");
+   if (!streql(str, EDE_THEME_GENERATION))
+   {
+      CRITICAL("wrong theme generation (found: %s, required: %s)",
+               str, EDE_THEME_GENERATION);
+      return EINA_FALSE;
+   }
+   free(str);
+
+   // get data from the theme
+   theme.name = edje_file_data_get(theme.full_path, "ede/theme/name");
+   theme.desc = edje_file_data_get(theme.full_path, "ede/theme/desc");
+   theme.auth = edje_file_data_get(theme.full_path, "ede/theme/auth");
+   str = edje_file_data_get(theme.full_path, "ede/theme/stage_margins");
+   sscanf(str, "%d %d %d %d", &theme.stage_margin.l, &theme.stage_margin.t,
+                              &theme.stage_margin.r, &theme.stage_margin.b);
+   free(str);
+   str = edje_file_data_get(theme.full_path, "ede/theme/win_min_size");
+   sscanf(str, "%d %d", &theme.min.w, &theme.min.h);
+   free(str);
+
+   INF("   name: %s", theme.name);
+   INF("   desc: %s", theme.desc);
+   INF("   auth: %s", theme.auth);
+   INF("   win_min: %d %d", theme.min.w, theme.min.h);
+   INF("   margins: %d %d %d %d", theme.stage_margin.l, theme.stage_margin.t,
+                                  theme.stage_margin.r, theme.stage_margin.b);
+
+
+   // create window
+   window = ecore_evas_new(NULL, 0, 0, theme.min.w, theme.min.h, NULL);
+   if (!window)
+   {
+      CRITICAL("could not create window.");
+      return EINA_FALSE;
+   }
+   ecore_evas_size_min_set(window, theme.min.w, theme.min.h);
+   ecore_evas_size_max_set(window, theme.min.w, theme.min.h);
+   ecore_evas_title_set(window, "EFL Defender Game");
+   ecore_evas_callback_delete_request_set(window, _window_delete_req_cb);
+   INF("Using evas engine: %s", ecore_evas_engine_name_get(window));
+   ecore_evas_show(window);
+   canvas = ecore_evas_get(window);
 
    // create the main layout edje object
    o_layout = edje_object_add(canvas);
-   if (!edje_object_file_set(o_layout, theme_file, "ede/layout"))
+   if (!edje_object_file_set(o_layout, theme.full_path, "ede/layout"))
    {
       CRITICAL("error loading  theme file: %s", buf);
       return EINA_FALSE;
    }
    ecore_evas_object_associate(window, o_layout, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
-   evas_object_resize(o_layout, WIN_W, WIN_H);
+   evas_object_resize(o_layout, theme.min.w, theme.min.h);
    evas_object_show(o_layout);
    edje_object_signal_callback_add(o_layout, "mouse,down,1", "a button", _debug_button_cb, NULL);
    edje_object_signal_callback_add(o_layout, "send,next,wave", "", _next_wave_button_cb, NULL);
@@ -339,14 +380,14 @@ ede_gui_init(void)
 
    // create the checkboard object
    o_checkboard = edje_object_add(canvas);
-   edje_object_file_set(o_checkboard, theme_file, "ede/checkboard");
+   edje_object_file_set(o_checkboard, theme.full_path, "ede/checkboard");
    _move_at(o_checkboard, 0, 0);
    evas_object_resize(o_checkboard, 0, 0);
    evas_object_show(o_checkboard);
 
    // create the selection object
    o_selection = edje_object_add(canvas);
-   edje_object_file_set(o_selection, theme_file, "ede/selection");
+   edje_object_file_set(o_selection, theme.full_path, "ede/selection");
    evas_object_layer_set(o_selection, LAYER_SELECTION);
    evas_object_pass_events_set(o_selection, EINA_TRUE);
    // selection circle
@@ -360,14 +401,14 @@ ede_gui_init(void)
 
    // create the mainmenu object
    o_menu = edje_object_add(canvas);
-   edje_object_file_set(o_menu, theme_file, "ede/menu");
+   edje_object_file_set(o_menu, theme.full_path, "ede/menu");
    evas_object_layer_set(o_menu, LAYER_MENU);
    evas_object_move(o_menu, 200, 80); //TODO FIXME
    evas_object_resize(o_menu, 400, 400); //TODO FIXME
 
    // create the levelselector menu object
    o_levelselector = edje_object_add(canvas);
-   edje_object_file_set(o_levelselector, theme_file, "ede/levelselector");
+   edje_object_file_set(o_levelselector, theme.full_path, "ede/levelselector");
    evas_object_move(o_levelselector, 200, 80); //TODO FIXME
    evas_object_resize(o_levelselector, 400, 400); //TODO FIXME
 
@@ -405,7 +446,11 @@ ede_gui_shutdown(void)
    EDE_OBJECT_DEL(o_checkboard);
    EDE_OBJECT_DEL(o_layout);
    if (window) ecore_evas_free(window);
-   EDE_STRINGSHARE_DEL(theme_file);
+
+   free(theme.full_path);
+   free(theme.name);
+   free(theme.desc);
+   free(theme.auth);
 
    // shoutdown graphic library
    edje_shutdown();
@@ -430,19 +475,21 @@ ede_gui_canvas_get(void)
 EAPI const char *
 ede_gui_theme_get(void)
 {
-   return theme_file;
+   return theme.full_path;
 }
 
 /**
  * This function actually show the checkboard background at the right size.
  * And create the array for store all the Evas_Object * of the overlays.
- * Also the towers buttons are created according the level requested towers
+ * Also the towers buttons are created according the level requested towers.
+ * Window is resized to fit the level size.
  */
 EAPI Eina_Bool
 ede_gui_level_init(int rows, int cols, const char *towers)
 {
    char **split;
    int i = 0;
+   int w, h;
 
    D("%d %d", rows, cols);
    
@@ -462,6 +509,15 @@ ede_gui_level_init(int rows, int cols, const char *towers)
       ede_gui_tower_button_add(split[i++]);
    free(split[0]);
    free(split);
+
+   // resize the window to fit the checkboard size
+   w = cols * CELL_W + theme.stage_margin.l + theme.stage_margin.r;
+   h = rows * CELL_H + theme.stage_margin.t + theme.stage_margin.b;
+   if (w < theme.min.w) w = theme.min.w;
+   if (h < theme.min.h) h = theme.min.h;
+   ecore_evas_size_min_set(window, w, h);
+   ecore_evas_size_max_set(window, w, h);
+   ecore_evas_resize(window, w, h);
 
    return EINA_TRUE;
 }
@@ -562,7 +618,7 @@ ede_gui_upgrade_box_append(Ede_Tower_Class_Param *param, Ede_Tower_Class_Param_U
 
    // create a new button object
    obj = edje_object_add(canvas);
-   edje_object_file_set(obj, theme_file, "ede/upgrade_button");
+   edje_object_file_set(obj, theme.full_path, "ede/upgrade_button");
    edje_object_size_min_get(obj, &w, &h);
    evas_object_size_hint_min_set(obj, w, h);
    edje_object_signal_callback_add(obj, "mouse,down,1", "base",
@@ -679,7 +735,7 @@ ede_gui_menu_item_add(const char *label1, const char *label2,
    int w, h;
 
    item = edje_object_add(canvas);
-   edje_object_file_set(item, theme_file, "ede/menu_item");
+   edje_object_file_set(item, theme.full_path, "ede/menu_item");
    edje_object_signal_callback_add(item, "item,selected", "",
                                    _menu_item_selected, item);
 
@@ -718,7 +774,7 @@ ede_gui_level_selector_item_add(const char *label,
    int w, h;
 
    item = edje_object_add(canvas);
-   edje_object_file_set(item, theme_file, "ede/menu_item");
+   edje_object_file_set(item, theme.full_path, "ede/menu_item");
    edje_object_signal_callback_add(item, "item,selected", "",
                                    _menu_item_selected, item);
 
@@ -745,7 +801,7 @@ ede_gui_level_selector_hide(void)
 /**********   UTILS   *********************************************************/
 /**
  * Get the screen coordinates (x,y) of the given level cell
- * If center is EINA_FALSE that the top-left corner of the cell is returned,
+ * If center is EINA_FALSE than the top-left corner of the cell is returned,
  * else the center point is calculated instead.
  */
 EAPI Eina_Bool
@@ -754,8 +810,8 @@ ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
    if (row > checkboard_rows || col > checkboard_cols)
       return EINA_FALSE;
 
-   if (x) *x = (col * CELL_W + STAGE_OFFSET_X) + (center * CELL_W / 2);
-   if (y) *y = (row * CELL_H + STAGE_OFFSET_Y) + (center * CELL_H / 2);
+   if (x) *x = (col * CELL_W + theme.stage_margin.l) + (center * CELL_W / 2);
+   if (y) *y = (row * CELL_H + theme.stage_margin.t) + (center * CELL_H / 2);
    return EINA_TRUE;
 }
 
@@ -765,8 +821,8 @@ ede_gui_cell_coords_get(int row, int col, int *x, int *y, Eina_Bool center)
 EAPI Eina_Bool
 ede_gui_cell_get_at_coords(int x, int y, int *row, int *col)
 {
-   if (row) *row = (y - STAGE_OFFSET_Y) / CELL_W;
-   if (col) *col = (x - STAGE_OFFSET_X) / CELL_H;
+   if (row) *row = (y - theme.stage_margin.t) / CELL_W;
+   if (col) *col = (x - theme.stage_margin.l) / CELL_H;
    return EINA_TRUE;
 }
 
@@ -810,7 +866,7 @@ ede_gui_cell_overlay_add(Ede_Cell_Overlay overlay, int row, int col)
    if (!overlays[row][col])
    {
       obj = edje_object_add(canvas);
-      edje_object_file_set(obj, theme_file, "ede/cell_overlay");
+      edje_object_file_set(obj, theme.full_path, "ede/cell_overlay");
       evas_object_pass_events_set(obj, EINA_TRUE);
 
       _move_at(obj, row, col);

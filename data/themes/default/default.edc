@@ -1,10 +1,21 @@
 /*
- *  Elif - EFL File Manager
+ *  Ede - EFL Defender Environment
+ *  Copyright (C) 2010-2014 Davide Andreoli <dave@gurumeditation.it>
  *
- *  Copyright (C) 2010 Davide Andreoli <dave@gurumeditation.it>
+ *  This file is part of Ede.
  *
- *  License LGPL-2.1, see COPYING file at project folder.
+ *  Ede is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
+ *  Ede is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Ede.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #define COMP LOSSY 80
@@ -48,9 +59,13 @@ fonts {
 }
 
 data {
-   //~ item: "ede/theme/name" "Default";
-   //~ item: "ede/theme/desc" "The ede default theme";
-   //~ item: "ede/theme/version" "1"; // This must match the ede version of themes
+   // mandatory theme info
+   item: "ede/theme/gene" "2"; // must match the ede generation, isn't the theme version
+   item: "ede/theme/name" "Default";
+   item: "ede/theme/desc" "The ede default theme";
+   item: "ede/theme/auth" "DaveMDS";
+   item: "ede/theme/stage_margins" "180 60 10 60";
+   item: "ede/theme/win_min_size" "800 600";
 }
 
 styles {
@@ -410,6 +425,7 @@ collections {
                }
             }
          }
+
          /* stage clipper */
          part { name: "stage.clipper";
             type: RECT;
