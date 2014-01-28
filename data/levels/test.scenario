@@ -1,0 +1,9 @@
+#
+# TODO
+#
+
+Name=Tests
+Description=Variuos test levels
+
+Level=debug_01.level
+Level=debug_02.level

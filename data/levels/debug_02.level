@@ -1,0 +1,55 @@
+#
+# DEBUGGING ede level
+# Just for debugging purpose
+#
+
+Name=Debug Level 02
+Description=test small checkboard size
+Author=DaveMDS
+Version=1
+Lives=20
+Bucks=9000
+Size=10x10
+Towers=normal,ghost
+
+# DIDASCALIA
+#
+#   . = Empty cell
+#   # = Unvalicable wall
+#
+#   s = Standard turret
+#   g = Ghost turret
+#
+#   P = Power up turret
+#   D = reloaD up turret
+#   R = Range up turret
+#
+#   S = Slow down turret
+#
+#   @ = Home! This is the player core turret. You can place only one @ in the
+#             level. Don't put the @ to let the user choose the place.
+#
+#   0..9 = enemy start base 0 to 9 (ten in total)
+#          NOTE: you can place more than one of a single number, ex. if you put
+#                three times the number 1 in the map, then the game will choose
+#                randomly from these three points.
+#                If you instead want to choose from where to start the waves then
+#                use different numbers
+#
+
+DATA
+##########
+#........#
+#........#
+#........#
+1........#
+#........#
+#........#
+#........#
+#.......@#
+##########
+
+WAVES
+1 standard in 2s from base 1 [speed:50 energy:25 bucks:15], wait 4s
+
+

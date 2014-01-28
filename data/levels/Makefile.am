@@ -3,12 +3,13 @@ MAINTAINERCLEANFILES = Makefile.in
 
 filesdir = $(pkgdatadir)/levels
 
-scenarios = tutorial.scenario \
-            easy.scenario
+scenarios = easy.scenario \
+            test.scenario
 
-levels = debug.level \
-         easy_01.level \
-         easy_02.level
+levels = easy_01.level \
+         easy_02.level \
+         debug_01.level \
+         debug_02.level
 
 files_DATA = $(scenarios) $(levels)
 
