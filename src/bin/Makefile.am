@@ -1,17 +1,17 @@
 MAINTAINERCLEANFILES = Makefile.in
 
-INCLUDES = -I$(top_srcdir) \
-           -I$(top_srcdir)/src/bin \
-           -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
-           -DPACKAGE_LIB_DIR=\"$(libdir)\" \
-           -DPACKAGE_BIN_DIR=\"$(bindir)\" \
-           -DGETTEXT_PACKAGE=\"$(PACKAGE)\" \
-           -DLOCALEDIR=\"$(localedir)\" \
-           @EDE_CFLAGS@
+AM_CPPFLAGS = -I$(top_srcdir) \
+              -I$(top_srcdir)/src/bin \
+              -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
+              -DPACKAGE_LIB_DIR=\"$(libdir)\" \
+              -DPACKAGE_BIN_DIR=\"$(bindir)\" \
+              -DGETTEXT_PACKAGE=\"$(PACKAGE)\" \
+              -DLOCALEDIR=\"$(localedir)\" \
+              @EDE_CFLAGS@
 
 bin_PROGRAMS = ede
 
-ede_LDADD = @EDE_LIBS@
+ede_LDADD = @EDE_LIBS@ -lm
 ede_LDFLAGS = -rdynamic
 ede_CFLAGS = -Wall
 ede_SOURCES = main.c \
