@@ -681,7 +681,7 @@ collections {
          /* label1 */
          part { name: "label1";
             type: TEXT;
-            description { state: "deafault" 0.0;
+            description { state: "default" 0.0;
                text {
                   font: "Sans";
                   size: 8;
@@ -692,7 +692,7 @@ collections {
          /* label2 */
          part { name: "label2";
             type: TEXT;
-            description { state: "deafault" 0.0;
+            description { state: "default" 0.0;
                text {
                   font: "Sans";
                   size: 8;
@@ -703,7 +703,7 @@ collections {
          /* label3 */
          part { name: "label3";
             type: TEXT;
-            description { state: "deafault" 0.0;
+            description { state: "default" 0.0;
                text {
                   font: "Sans";
                   size: 8;
